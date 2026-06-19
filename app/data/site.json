@@ -1,0 +1,67 @@
+{
+  "name": "Jaroch-Konwent Pakos",
+  "legal_name": "Jaroch-Konwent Pakos Kancelaria Radców Prawnych sp.k.",
+  "tagline": "Kancelaria Radców Prawnych",
+  "phone": "880 383 880",
+  "phone_href": "+48880383880",
+  "email": "kontakt@kancelaria-jp.pl",
+  "address": [
+    "Pl. Tadeusza Kościuszki 7-8/1",
+    "50-028 Wrocław"
+  ],
+  "hours": {
+    "Poniedziałek": "8:00–16:00",
+    "Wtorek": "8:00–16:00",
+    "Środa": "8:00–16:00",
+    "Czwartek": "8:00–16:00",
+    "Piątek": "8:00–16:00"
+  },
+  "socials": {
+    "LinkedIn": "https://pl.linkedin.com/company/jaroch-pakos-kancelaria-radc%C3%B3w-prawnych-s-c/",
+    "Facebook": "https://www.facebook.com/kancelariajp",
+    "Instagram": "https://www.instagram.com/kancelaria_jp/"
+  },
+  "nav": [
+    {
+      "label": "O kancelarii",
+      "url": "/o-kancelarii/"
+    },
+    {
+      "label": "Specjalizacje",
+      "url": "/specjalizacje/"
+    },
+    {
+      "label": "Zespół",
+      "url": "/zespol/"
+    },
+    {
+      "label": "Kariera",
+      "url": "/kariera/"
+    },
+    {
+      "label": "Artykuły",
+      "url": "/artykuly/"
+    },
+    {
+      "label": "Kontakt",
+      "url": "/kontakt/"
+    }
+  ],
+  "documents": [
+    {
+      "slug": "kodeks-etyczny",
+      "title": "Kodeks etyczny",
+      "summary": "Zasady działania, odpowiedzialności i standardów zawodowych kancelarii."
+    },
+    {
+      "slug": "strategia-esg",
+      "title": "Strategia ESG",
+      "summary": "Kierunek działań środowiskowych, społecznych i organizacyjnych."
+    },
+    {
+      "slug": "polityka-prywatnosci",
+      "title": "Polityka prywatności",
+      "summary": "Informacje o przetwarzaniu danych osobowych oraz korzystaniu ze strony."
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+[Mon Jun  1 14:36:12 2026] PHP 8.2.12 Development Server (http://127.0.0.1:8000) started
+[Mon Jun  1 14:36:28 2026] 127.0.0.1:49674 Accepted
+[Mon Jun  1 14:36:28 2026] 127.0.0.1:49674 Closed without sending a request; it was probably just an unused speculative preconnection
+[Mon Jun  1 14:36:28 2026] 127.0.0.1:49674 Closing
+[Mon Jun  1 14:36:36 2026] 127.0.0.1:49676 Accepted
+[Mon Jun  1 14:36:36 2026] 127.0.0.1:49677 Accepted
+[Mon Jun  1 14:36:36 2026] 127.0.0.1:49676 [200]: GET /
+[Mon Jun  1 14:36:36 2026] 127.0.0.1:49676 Closing
+[Mon Jun  1 14:36:36 2026] 127.0.0.1:49680 Accepted
+[Mon Jun  1 14:36:36 2026] 127.0.0.1:49677 [200]: GET /kontakt/
+[Mon Jun  1 14:36:36 2026] 127.0.0.1:49677 Closing
+[Mon Jun  1 14:36:36 2026] 127.0.0.1:49681 Accepted
+[Mon Jun  1 14:36:36 2026] 127.0.0.1:49680 [200]: GET /artykuly/
+[Mon Jun  1 14:36:36 2026] 127.0.0.1:49680 Closing
+[Mon Jun  1 14:36:36 2026] 127.0.0.1:49681 [200]: GET /specjalizacje/prawo-pracy/
+[Mon Jun  1 14:36:36 2026] 127.0.0.1:49681 Closing

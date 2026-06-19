@@ -1,0 +1,197 @@
+[
+  {
+    "slug": "bankowosc-finanse",
+    "category": "Rynek finansowy",
+    "title": "Bankowość i finanse",
+    "summary": "Obsługa prawna banków i podmiotów rynku finansowego, prowadzona z naciskiem na procedury, ryzyko i spory.",
+    "body": [
+      "Doradzamy instytucjom finansowym oraz przedsiębiorcom działającym w obszarze finansowania, obsługi wierzytelności i procesów reklamacyjnych.",
+      "Łączymy znajomość praktyki rynkowej z doświadczeniem w postępowaniach sądowych i bieżącej obsłudze prawnej."
+    ],
+    "scope": [
+      "obsługa banków i instytucji finansowych",
+      "spory związane z usługami finansowymi",
+      "opinie, procedury i dokumentacja"
+    ]
+  },
+  {
+    "slug": "prawo-ubezpieczeniowe",
+    "category": "Ubezpieczenia",
+    "title": "Prawo ubezpieczeniowe",
+    "summary": "Wsparcie ubezpieczycieli, agentów i multiagentów w sprawach bieżących, spornych oraz regulacyjnych.",
+    "body": [
+      "Pomagamy podmiotom rynku ubezpieczeniowego w prowadzeniu spraw, w których liczy się precyzyjna ocena ryzyka oraz znajomość praktyki instytucji nadzoru.",
+      "Reprezentujemy klientów w sporach i wspieramy ich w kontaktach z partnerami biznesowymi oraz organami."
+    ],
+    "scope": [
+      "obsługa ubezpieczycieli",
+      "spory ubezpieczeniowe",
+      "wsparcie agentów i multiagentów"
+    ]
+  },
+  {
+    "slug": "windykacja-naleznosci",
+    "category": "Należności",
+    "title": "Windykacja należności",
+    "summary": "Prowadzenie spraw od etapu polubownego przez proces sądowy po egzekucję komorniczą.",
+    "body": [
+      "Odzyskiwanie należności wymaga szybkiej decyzji, właściwej strategii i sprawnej komunikacji z klientem.",
+      "Prowadzimy sprawy przedsiębiorców i klientów indywidualnych, dobierając środki do charakteru długu i celu sprawy."
+    ],
+    "scope": [
+      "wezwania i ugody",
+      "postępowania sądowe",
+      "egzekucja komornicza"
+    ]
+  },
+  {
+    "slug": "prawo-gospodarcze",
+    "category": "Przedsiębiorcy",
+    "title": "Prawo gospodarcze",
+    "summary": "Stała i projektowa obsługa przedsiębiorców, spółek oraz osób zarządzających.",
+    "body": [
+      "Wspieramy przedsiębiorców w decyzjach, które mają znaczenie operacyjne i strategiczne: od umów, przez strukturę spółki, po spory z kontrahentami.",
+      "Doradztwo prowadzone jest w sposób praktyczny, z uwzględnieniem realiów działania firmy."
+    ],
+    "scope": [
+      "zakładanie i obsługa spółek",
+      "umowy i negocjacje",
+      "przekształcenia i likwidacje"
+    ]
+  },
+  {
+    "slug": "prawo-rodzinne",
+    "category": "Klienci indywidualni",
+    "title": "Prawo rodzinne",
+    "summary": "Pomoc w sprawach rozwodowych, alimentacyjnych, opiekuńczych i majątkowych.",
+    "body": [
+      "Sprawy rodzinne wymagają połączenia wiedzy prawnej, dyskrecji i spokojnego prowadzenia klienta przez kolejne etapy postępowania.",
+      "Przygotowujemy pisma, reprezentujemy strony i pomagamy uporządkować strategię działania."
+    ],
+    "scope": [
+      "rozwody i separacje",
+      "alimenty",
+      "kontakty z dziećmi i władza rodzicielska"
+    ]
+  },
+  {
+    "slug": "prawo-spadkowe",
+    "category": "Dziedziczenie",
+    "title": "Prawo spadkowe",
+    "summary": "Wsparcie w sprawach dziedziczenia, zachowku, testamentów i działu spadku.",
+    "body": [
+      "Pomagamy uporządkować formalności po śmierci bliskiej osoby oraz rozwiązać spory między spadkobiercami.",
+      "Doradzamy również w zakresie odpowiedzialności za długi spadkowe i zabezpieczenia interesów klienta."
+    ],
+    "scope": [
+      "stwierdzenie nabycia spadku",
+      "zachowek i testament",
+      "dział spadku"
+    ]
+  },
+  {
+    "slug": "postepowania-sadowe",
+    "category": "Spory",
+    "title": "Postępowania sądowe",
+    "summary": "Reprezentacja przed sądami cywilnymi, rodzinnymi i administracyjnymi.",
+    "body": [
+      "Postępowanie sądowe wymaga dobrej strategii, pełnego przygotowania dokumentów i konsekwencji na każdym etapie.",
+      "Kancelaria prowadzi zarówno sprawy gospodarcze, jak i indywidualne, z naciskiem na realny cel klienta."
+    ],
+    "scope": [
+      "strategie procesowe",
+      "pisma i reprezentacja",
+      "postępowania odwoławcze"
+    ]
+  },
+  {
+    "slug": "prawo-pracy",
+    "category": "Praca",
+    "title": "Prawo pracy",
+    "summary": "Doradztwo dla pracowników i pracodawców, dokumentacja pracownicza oraz spory sądowe.",
+    "body": [
+      "Wspieramy pracodawców w organizacji relacji z pracownikami oraz pracowników w ochronie ich praw.",
+      "Pomagamy przy dokumentach, rozwiązaniu umów, sporach, mobbingu i odpowiedzialności pracowniczej."
+    ],
+    "scope": [
+      "umowy i regulaminy",
+      "rozwiązanie stosunku pracy",
+      "mobbing, dyskryminacja i spory"
+    ]
+  },
+  {
+    "slug": "prawo-konsumenckie",
+    "category": "Konsumenci i e-commerce",
+    "title": "Prawo konsumenckie",
+    "summary": "Regulaminy, dokumenty, spory konsumenckie i wsparcie sprzedaży internetowej.",
+    "body": [
+      "Doradzamy przedsiębiorcom w relacjach z konsumentami oraz klientom indywidualnym w sporach z podmiotami profesjonalnymi.",
+      "Tworzymy dokumenty dla e-commerce i pomagamy ocenić ryzyko związane z komunikacją sprzedażową."
+    ],
+    "scope": [
+      "spory konsumenckie",
+      "regulaminy sklepów",
+      "dokumentacja i audyty"
+    ]
+  },
+  {
+    "slug": "prawo-nieruchomosci",
+    "category": "Nieruchomości",
+    "title": "Prawo nieruchomości",
+    "summary": "Analiza prawna nieruchomości, umowy, inwestycje i spory.",
+    "body": [
+      "Wspieramy klientów przy transakcjach, analizie stanu prawnego nieruchomości oraz rozwiązywaniu sporów.",
+      "Zakres działań obejmuje przygotowanie umów, opiniowanie dokumentów i reprezentację w postępowaniach."
+    ],
+    "scope": [
+      "analiza prawna nieruchomości",
+      "umowy i negocjacje",
+      "spory nieruchomościowe"
+    ]
+  },
+  {
+    "slug": "ochrona-danych-osobowych",
+    "category": "RODO",
+    "title": "Ochrona danych osobowych",
+    "summary": "Dokumentacja, audyty, szkolenia i bieżące doradztwo w zakresie danych osobowych.",
+    "body": [
+      "Pomagamy organizacjom porządkować procesy przetwarzania danych osobowych oraz reagować na incydenty i pytania praktyczne.",
+      "Wsparcie może obejmować dokumentację, audyt, szkolenie i konsultacje przy wdrożeniach."
+    ],
+    "scope": [
+      "dokumentacja RODO",
+      "audyty i szkolenia",
+      "reprezentacja przed organami"
+    ]
+  },
+  {
+    "slug": "ochrona-sygnalistow",
+    "category": "Organizacje",
+    "title": "Ochrona sygnalistów",
+    "summary": "Procedury zgłoszeń wewnętrznych, dokumentacja i bieżąca obsługa procesu.",
+    "body": [
+      "Wspieramy organizacje w przygotowaniu rozwiązań dotyczących zgłoszeń wewnętrznych oraz ochrony sygnalistów.",
+      "Pomagamy zaprojektować proces tak, aby był zrozumiały, bezpieczny i możliwy do wdrożenia w praktyce."
+    ],
+    "scope": [
+      "procedury wewnętrzne",
+      "obsługa zgłoszeń",
+      "szkolenia i konsultacje"
+    ]
+  },
+  {
+    "slug": "mediacje",
+    "category": "Rozwiązywanie sporów",
+    "title": "Negocjacje i mediacje",
+    "summary": "Wsparcie w rozmowach, negocjacjach i mediacjach prowadzonych poza salą sądową.",
+    "body": [
+      "Nie każdy spór wymaga eskalacji. W wielu sprawach dobre przygotowanie rozmowy może skrócić czas, ograniczyć koszty i zmniejszyć napięcie.",
+      "Pomagamy klientom ocenić możliwości porozumienia i przygotować się do procesu negocjacyjnego."
+    ],
+    "scope": [
+      "mediacje",
+      "negocjacje",
+      "porozumienia"
+    ]
+  }
+]
