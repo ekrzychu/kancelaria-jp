@@ -12,10 +12,27 @@
   window.addEventListener('scroll', onScroll, { passive: true });
 
   if (menuButton && menu) {
+    const closeMenu = () => {
+      menu.classList.remove('is-open');
+      menuButton.setAttribute('aria-expanded', 'false');
+      menuButton.textContent = 'Menu';
+    };
+
     menuButton.addEventListener('click', () => {
       const open = menu.classList.toggle('is-open');
       menuButton.setAttribute('aria-expanded', String(open));
       menuButton.textContent = open ? 'Zamknij' : 'Menu';
+    });
+
+    menu.addEventListener('click', event => {
+      if (event.target.closest('a')) closeMenu();
+    });
+
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && menu.classList.contains('is-open')) {
+        closeMenu();
+        menuButton.focus();
+      }
     });
   }
 
@@ -36,12 +53,22 @@
 
   const search = document.querySelector('[data-service-search]');
   const rows = document.querySelectorAll('[data-service-row]');
+  const searchStatus = document.querySelector('[data-service-status]');
   if (search && rows.length) {
     search.addEventListener('input', () => {
-      const q = search.value.trim().toLowerCase();
+      const q = search.value.trim().toLocaleLowerCase('pl');
+      let visible = 0;
       rows.forEach(row => {
-        row.hidden = q && !(row.dataset.title || '').includes(q);
+        const matches = !q || (row.dataset.title || '').includes(q);
+        row.hidden = !matches;
+        if (matches) visible += 1;
       });
+
+      if (searchStatus) {
+        searchStatus.textContent = q
+          ? (visible ? `Liczba wyników: ${visible}.` : 'Brak specjalizacji pasujących do wyszukiwania.')
+          : '';
+      }
     });
   }
 })();

@@ -9,10 +9,10 @@
 # Runtime-generated data
 /storage/*.log
 /storage/contact-submissions.jsonl
+/storage/contact-rate-limit.json
 
 # Editor and operating-system files
 /.idea/
 /.vscode/
 .DS_Store
 Thumbs.db
-

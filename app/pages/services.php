@@ -11,13 +11,15 @@
     <div class="filter-line">
       <label>
         <?= icon('search') ?>
-        <input type="search" placeholder="Szukaj specjalizacji" data-service-search>
+        <span class="visually-hidden">Szukaj specjalizacji</span>
+        <input type="search" placeholder="Szukaj specjalizacji" autocomplete="off" data-service-search aria-controls="service-list">
       </label>
+      <p class="filter-status" data-service-status aria-live="polite"></p>
     </div>
 
-    <div class="practice-list" data-service-list>
+    <div class="practice-list" id="service-list" data-service-list>
       <?php foreach ($services as $i => $service): ?>
-        <?php $searchText = mb_strtolower($service['title'] . ' ' . $service['summary'] . ' ' . $service['category']); ?>
+        <?php $searchText = text_lower($service['title'] . ' ' . $service['summary'] . ' ' . $service['category']); ?>
         <a
           class="practice-row"
           data-service-row

@@ -1,3 +1,3 @@
 User-agent: *
 Allow: /
-Sitemap: http://kancelaria-jp.local/sitemap.xml
+Sitemap: https://kancelaria-jp.pl/sitemap.xml

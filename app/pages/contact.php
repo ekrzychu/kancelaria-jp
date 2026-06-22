@@ -1,4 +1,4 @@
-<?php $formStatus = handle_contact_submission(); ?>
+<?php $formFields = $formStatus['fields'] ?? []; ?>
 
 <section class="page-hero page-reveal">
   <div class="container narrow">
@@ -43,30 +43,31 @@
     <form class="contact-form" method="post" action="/kontakt/">
       <h2>Opisz krótko sprawę</h2>
       <?php if ($formStatus): ?>
-        <p class="form-status <?= $formStatus['ok'] ? 'ok' : 'error' ?>"><?= e($formStatus['message']) ?></p>
+        <p class="form-status <?= $formStatus['ok'] ? 'ok' : 'error' ?>" role="status" aria-live="polite"><?= e($formStatus['message']) ?></p>
       <?php endif; ?>
 
+      <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
       <label class="form-honeypot" aria-hidden="true">
         Strona internetowa
         <input name="website" autocomplete="off" tabindex="-1">
       </label>
       <label>
         Imię i nazwisko
-        <input name="name" autocomplete="name" maxlength="120" required>
+        <input name="name" autocomplete="name" maxlength="120" value="<?= e($formFields['name'] ?? '') ?>" required>
       </label>
       <label>
         Adres e-mail
-        <input name="email" type="email" autocomplete="email" maxlength="180" required>
+        <input name="email" type="email" autocomplete="email" maxlength="180" value="<?= e($formFields['email'] ?? '') ?>" required>
       </label>
       <label>
         Telefon
-        <input name="phone" autocomplete="tel" maxlength="40">
+        <input name="phone" autocomplete="tel" maxlength="40" value="<?= e($formFields['phone'] ?? '') ?>">
       </label>
       <label>
         Opis sprawy
-        <textarea name="message" rows="6" maxlength="4000" required></textarea>
+        <textarea name="message" rows="6" maxlength="4000" required><?= e($formFields['message'] ?? '') ?></textarea>
       </label>
-      <p class="privacy-note">Formularz zapisuje zgłoszenie po stronie serwera. Przy wdrożeniu produkcyjnym można podłączyć wysyłkę SMTP lub CRM.</p>
+      <p class="privacy-note">Dane z formularza służą wyłącznie do kontaktu w sprawie zgłoszenia. Szczegóły opisuje <a href="/dokumenty/polityka-prywatnosci/">polityka prywatności</a>.</p>
       <button class="button" type="submit">Wyślij zgłoszenie</button>
     </form>
   </div>

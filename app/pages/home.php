@@ -12,7 +12,7 @@
     <figure class="hero-photo">
       <picture>
         <source srcset="/assets/img/office-reception-hero.webp" type="image/webp">
-        <img src="/assets/img/office-reception-hero.jpg" alt="Recepcja kancelarii z logo JP" loading="eager">
+        <img src="/assets/img/office-reception-hero.jpg" alt="Recepcja kancelarii z logo JP" width="1150" height="1480" loading="eager" fetchpriority="high">
       </picture>
     </figure>
   </div>
@@ -56,7 +56,7 @@
 <section class="image-statement page-reveal">
   <picture>
     <source srcset="/assets/img/building-exterior-wide.webp" type="image/webp">
-    <img src="/assets/img/building-exterior-wide.jpg" alt="Budynek przy Placu Tadeusza Kościuszki we Wrocławiu" loading="lazy">
+    <img src="/assets/img/building-exterior-wide.jpg" alt="Budynek przy Placu Tadeusza Kościuszki we Wrocławiu" width="1800" height="980" loading="lazy">
   </picture>
   <div class="container image-statement-panel">
     <span class="section-kicker">Wrocław</span>
@@ -94,7 +94,7 @@
       <h2>Artykuły i komentarze prawne.</h2>
     </div>
     <div class="rich-text">
-      <p>W finalnym wdrożeniu ta część może prezentować aktualne analizy i poradniki. Na etapie koncepcyjnym zostawiamy czystą stronę artykułów bez przenoszenia całego archiwum.</p>
+      <p>W tej sekcji publikujemy analizy, komentarze i praktyczne omówienia zmian w prawie. Archiwum jest obecnie aktualizowane.</p>
       <p><a class="button secondary" href="/artykuly/">Przejdź do artykułów</a></p>
     </div>
   </div>

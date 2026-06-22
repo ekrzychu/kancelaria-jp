@@ -54,7 +54,7 @@
       <h3>Portale społecznościowe</h3>
       <p class="social-links">
         <?php foreach ($site['socials'] as $label => $href): ?>
-          <a href="<?= e($href) ?>" rel="noopener"><?= e($label) ?></a>
+          <a href="<?= e($href) ?>" target="_blank" rel="noopener noreferrer"><?= e($label) ?></a>
         <?php endforeach; ?>
       </p>
     </div>

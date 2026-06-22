@@ -3,6 +3,19 @@ require __DIR__ . '/../app/bootstrap.php';
 
 $path = current_path();
 $vars = compact('site', 'services', 'team', 'articles');
+$requestedPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+if (
+    ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET'
+    && $requestedPath !== '/'
+    && !str_ends_with($requestedPath, '/')
+    && pathinfo($requestedPath, PATHINFO_EXTENSION) === ''
+) {
+    $query = isset($_SERVER['QUERY_STRING']) && $_SERVER['QUERY_STRING'] !== ''
+        ? '?' . $_SERVER['QUERY_STRING']
+        : '';
+    header('Location: ' . $path . $query, true, 301);
+    exit;
+}
 
 switch (true) {
     case $path === '/':
@@ -27,7 +40,10 @@ switch (true) {
         $service = find_by_slug($services, $m[1]);
         if (!$service) {
             http_response_code(404);
-            render('404', $vars);
+            render('404', $vars + [
+                'title' => page_title('Nie znaleziono strony', $site),
+                'robots' => 'noindex,follow',
+            ]);
             break;
         }
 
@@ -58,14 +74,27 @@ switch (true) {
         break;
 
     case $path === '/kontakt/':
+        $formStatus = handle_contact_submission();
+        if (($formStatus['ok'] ?? false) === true) {
+            header('Location: /kontakt/?wyslano=1', true, 303);
+            exit;
+        }
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET' && isset($_GET['wyslano'])) {
+            $formStatus = ['ok' => true, 'message' => 'Dziękujemy. Wiadomość została zapisana po stronie serwera.'];
+        }
+        $csrfToken = csrf_token();
+
         render('contact', $vars + [
             'title' => page_title('Kontakt', $site),
+            'formStatus' => $formStatus,
+            'csrfToken' => $csrfToken,
         ]);
         break;
 
     case $path === '/dokumenty/':
         render('documents', $vars + [
             'title' => page_title('Dokumenty', $site),
+            'robots' => 'noindex,follow',
         ]);
         break;
 
@@ -73,7 +102,10 @@ switch (true) {
         $document = find_by_slug($site['documents'] ?? [], $m[1]);
         if (!$document) {
             http_response_code(404);
-            render('404', $vars);
+            render('404', $vars + [
+                'title' => page_title('Nie znaleziono strony', $site),
+                'robots' => 'noindex,follow',
+            ]);
             break;
         }
 
@@ -89,5 +121,6 @@ switch (true) {
         http_response_code(404);
         render('404', $vars + [
             'title' => page_title('Nie znaleziono strony', $site),
+            'robots' => 'noindex,follow',
         ]);
 }

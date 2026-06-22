@@ -12,7 +12,8 @@
       <h2>Informacja</h2>
     </div>
     <div class="rich-text">
-      <p>Ta podstrona jest przygotowana pod pełną treść dokumentu albo bezpośredni link do pliku PDF po przeniesieniu właściwych materiałów z obecnej strony.</p>
+      <p>Aktualna treść dokumentu jest przygotowywana do publikacji. Aby otrzymać obowiązującą wersję, skontaktuj się z kancelarią.</p>
+      <p><a class="text-action" href="/kontakt/">Skontaktuj się z kancelarią <?= icon('arrow', 'inline-arrow') ?></a></p>
       <p><a class="button secondary" href="/dokumenty/">Wróć do dokumentów</a></p>
     </div>
   </div>

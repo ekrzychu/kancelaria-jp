@@ -2,6 +2,7 @@
 $title = $title ?? page_title('Kancelaria Radców Prawnych', $site);
 $description = $description ?? 'Jaroch-Konwent Pakos Kancelaria Radców Prawnych. Obsługa prawna firm i klientów indywidualnych we Wrocławiu.';
 $robots = $robots ?? null;
+$canonical = canonical_url($site);
 ?>
 <!doctype html>
 <html lang="pl">
@@ -10,6 +11,13 @@ $robots = $robots ?? null;
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?= e($title) ?></title>
   <meta name="description" content="<?= e($description) ?>">
+  <link rel="canonical" href="<?= e($canonical) ?>">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="pl_PL">
+  <meta property="og:site_name" content="<?= e($site['name']) ?>">
+  <meta property="og:title" content="<?= e($title) ?>">
+  <meta property="og:description" content="<?= e($description) ?>">
+  <meta property="og:url" content="<?= e($canonical) ?>">
   <?php if ($robots): ?>
     <meta name="robots" content="<?= e($robots) ?>">
   <?php endif; ?>
@@ -39,7 +47,11 @@ $robots = $robots ?? null;
     <button class="menu-button" type="button" data-menu-button aria-controls="main-nav" aria-expanded="false">Menu</button>
     <nav class="main-nav" id="main-nav" data-menu>
       <?php foreach ($site['nav'] as $item): ?>
-        <a class="nav-link<?= is_active($item['url']) ?>" href="<?= e($item['url']) ?>"><?= e($item['label']) ?></a>
+        <a
+          class="nav-link<?= is_active($item['url']) ?>"
+          href="<?= e($item['url']) ?>"
+          <?= is_current_section($item['url']) ? 'aria-current="page"' : '' ?>
+        ><?= e($item['label']) ?></a>
       <?php endforeach; ?>
       <a class="nav-action" href="/kontakt/">Umów spotkanie</a>
     </nav>
