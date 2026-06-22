@@ -1,0 +1,18 @@
+# Local environment configuration
+.env
+.env.*
+!.env.example
+
+# PHP dependencies
+/vendor/
+
+# Runtime-generated data
+/storage/*.log
+/storage/contact-submissions.jsonl
+
+# Editor and operating-system files
+/.idea/
+/.vscode/
+.DS_Store
+Thumbs.db
+
