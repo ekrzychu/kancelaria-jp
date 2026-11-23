@@ -21,7 +21,7 @@
       </ul>
 
       <div class="service-contact">
-        <p>Potrzebujesz wsparcia w tym obszarze? Opisz krótko sprawę — kancelaria wróci z informacją o możliwym zakresie współpracy.</p>
+        <p>Opisz sprawę. Wrócimy z informacją o możliwym zakresie współpracy.</p>
         <a class="button" href="/kontakt/">Skontaktuj się</a>
       </div>
     </article>

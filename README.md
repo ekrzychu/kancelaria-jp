@@ -25,9 +25,10 @@ The web server must use `public/` as its document root and direct application ro
 
 ## Editorial media
 
-- Team entries in `app/data/team.json` can specify an optional `portrait` filename. The team index uses initials when the file is absent.
+- Team entries in `app/data/team.json` can specify an optional `portrait` filename. Entries without a portrait use name and role alone.
 - Publication entries in `app/data/articles.json` use `title` and may supply `date` in ISO format (`YYYY-MM-DD`), `category`, `summary`, `image` and `image_alt`. An empty archive displays the publication notice.
 - Optional image filenames point to existing AVIF, JPEG, PNG or WebP files in `public/assets/img/`. Use rights-cleared images. About and Contact use the firm's existing building and reception photographs.
+- The optional editorial chess photograph on About is by Maarten van den Heuvel. The supplied copy was resized to `public/assets/img/chess-strategy.webp`. [Original photograph](https://unsplash.com/photos/selective-focus-photography-of-chess-pieces-_pc8aMbI9UQ) · [Unsplash License](https://unsplash.com/license)
 
 ## Production notes
 

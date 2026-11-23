@@ -7,7 +7,7 @@ $publications = array_filter($articles, static fn ($article) =>
   <div class="container page-intro" data-reveal>
     <span class="section-kicker">Artykuły</span>
     <h1>Publikacje prawne.</h1>
-    <p>Analizy, komentarze i praktyczne omówienia zmian w prawie.</p>
+    <p>Analizy i&nbsp;komentarze do zmian w&nbsp;prawie.</p>
   </div>
 </section>
 
@@ -56,8 +56,8 @@ $publications = array_filter($articles, static fn ($article) =>
     <div class="container archive-note editorial-split">
       <h2 data-reveal>Archiwum w przygotowaniu</h2>
       <div>
-        <p>Porządkujemy dotychczasowe publikacje i przygotowujemy nowe materiały. W sprawie konkretnego zagadnienia zapraszamy do bezpośredniego kontaktu.</p>
-        <a class="text-action" href="/kontakt/">Skontaktuj się <?= icon('arrow', 'inline-arrow') ?></a>
+        <p>Aktualizujemy publikacje. W sprawie konkretnego zagadnienia napisz lub zadzwoń.</p>
+        <a class="text-action" href="/kontakt/">Skontaktuj się</a>
       </div>
     </div>
   <?php endif; ?>

@@ -2,7 +2,6 @@
   <div class="container page-intro" data-reveal>
     <span class="section-kicker">Specjalizacje</span>
     <h1>Zakres wsparcia prawnego.</h1>
-    <p>Najważniejsze obszary praktyki kancelarii zebrane w czytelnej strukturze.</p>
   </div>
 </section>
 
@@ -31,7 +30,6 @@
             <span class="row-title"><?= e($service['title']) ?></span>
           </span>
           <span class="row-summary"><?= e($service['summary']) ?></span>
-          <span class="row-indicator" aria-hidden="true"><?= icon('arrow', 'inline-arrow') ?></span>
         </a>
       <?php endforeach; ?>
     </div>

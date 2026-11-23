@@ -5,7 +5,7 @@
     <span class="section-kicker">Kontakt</span>
     <h1>Umów spotkanie z kancelarią.</h1>
     <div>
-      <p>Spotkania odbywają się po wcześniejszym ustaleniu terminu. Najszybciej skontaktujesz się telefonicznie lub mailowo.</p>
+      <p>Spotkania po wcześniejszym umówieniu. Zadzwoń lub napisz.</p>
       <a class="text-action contact-form-link" href="#formularz">Przejdź do formularza</a>
     </div>
   </div>
@@ -82,7 +82,6 @@
         <source type="image/webp" srcset="/assets/img/office-reception-wide.webp">
         <img src="/assets/img/office-reception-wide.jpg" alt="Recepcja kancelarii z drewnianą ladą i monogramem JP" width="1800" height="900" loading="lazy" decoding="async">
       </picture>
-      <figcaption>Recepcja kancelarii we Wrocławiu</figcaption>
     </figure>
   </div>
 </section>

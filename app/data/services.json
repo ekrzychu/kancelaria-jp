@@ -3,7 +3,7 @@
     "slug": "bankowosc-finanse",
     "category": "Rynek finansowy",
     "title": "Bankowość i finanse",
-    "summary": "Obsługa prawna banków i podmiotów rynku finansowego, prowadzona z naciskiem na procedury, ryzyko i spory.",
+    "summary": "Procedury, ryzyko i spory banków oraz innych podmiotów rynku finansowego.",
     "body": [
       "Doradzamy instytucjom finansowym oraz przedsiębiorcom działającym w obszarze finansowania, obsługi wierzytelności i procesów reklamacyjnych.",
       "Łączymy znajomość praktyki rynkowej z doświadczeniem w postępowaniach sądowych i bieżącej obsłudze prawnej."
@@ -18,7 +18,7 @@
     "slug": "prawo-ubezpieczeniowe",
     "category": "Ubezpieczenia",
     "title": "Prawo ubezpieczeniowe",
-    "summary": "Wsparcie ubezpieczycieli, agentów i multiagentów w sprawach bieżących, spornych oraz regulacyjnych.",
+    "summary": "Bieżące sprawy, spory i regulacje dla ubezpieczycieli, agentów i multiagentów.",
     "body": [
       "Pomagamy podmiotom rynku ubezpieczeniowego w prowadzeniu spraw, w których liczy się precyzyjna ocena ryzyka oraz znajomość praktyki instytucji nadzoru.",
       "Reprezentujemy klientów w sporach i wspieramy ich w kontaktach z partnerami biznesowymi oraz organami."
@@ -33,7 +33,7 @@
     "slug": "windykacja-naleznosci",
     "category": "Należności",
     "title": "Windykacja należności",
-    "summary": "Prowadzenie spraw od etapu polubownego przez proces sądowy po egzekucję komorniczą.",
+    "summary": "Odzyskiwanie należności od ugody po proces i egzekucję komorniczą.",
     "body": [
       "Odzyskiwanie należności wymaga szybkiej decyzji, właściwej strategii i sprawnej komunikacji z klientem.",
       "Prowadzimy sprawy przedsiębiorców i klientów indywidualnych, dobierając środki do charakteru długu i celu sprawy."
@@ -48,7 +48,7 @@
     "slug": "prawo-gospodarcze",
     "category": "Przedsiębiorcy",
     "title": "Prawo gospodarcze",
-    "summary": "Stała i projektowa obsługa przedsiębiorców, spółek oraz osób zarządzających.",
+    "summary": "Stała i projektowa obsługa firm, spółek i osób zarządzających.",
     "body": [
       "Wspieramy przedsiębiorców w decyzjach, które mają znaczenie operacyjne i strategiczne: od umów, przez strukturę spółki, po spory z kontrahentami.",
       "Doradztwo prowadzone jest w sposób praktyczny, z uwzględnieniem realiów działania firmy."
@@ -63,7 +63,7 @@
     "slug": "prawo-rodzinne",
     "category": "Klienci indywidualni",
     "title": "Prawo rodzinne",
-    "summary": "Pomoc w sprawach rozwodowych, alimentacyjnych, opiekuńczych i majątkowych.",
+    "summary": "Rozwody, alimenty, opieka nad dziećmi i sprawy majątkowe.",
     "body": [
       "Sprawy rodzinne wymagają połączenia wiedzy prawnej, dyskrecji i spokojnego prowadzenia klienta przez kolejne etapy postępowania.",
       "Przygotowujemy pisma, reprezentujemy strony i pomagamy uporządkować strategię działania."
@@ -78,7 +78,7 @@
     "slug": "prawo-spadkowe",
     "category": "Dziedziczenie",
     "title": "Prawo spadkowe",
-    "summary": "Wsparcie w sprawach dziedziczenia, zachowku, testamentów i działu spadku.",
+    "summary": "Dziedziczenie, zachowek, testamenty i dział spadku.",
     "body": [
       "Pomagamy uporządkować formalności po śmierci bliskiej osoby oraz rozwiązać spory między spadkobiercami.",
       "Doradzamy również w zakresie odpowiedzialności za długi spadkowe i zabezpieczenia interesów klienta."
@@ -108,7 +108,7 @@
     "slug": "prawo-pracy",
     "category": "Praca",
     "title": "Prawo pracy",
-    "summary": "Doradztwo dla pracowników i pracodawców, dokumentacja pracownicza oraz spory sądowe.",
+    "summary": "Dokumentacja i spory pracownicze. Doradztwo pracownikom i pracodawcom.",
     "body": [
       "Wspieramy pracodawców w organizacji relacji z pracownikami oraz pracowników w ochronie ich praw.",
       "Pomagamy przy dokumentach, rozwiązaniu umów, sporach, mobbingu i odpowiedzialności pracowniczej."
@@ -123,7 +123,7 @@
     "slug": "prawo-konsumenckie",
     "category": "Konsumenci i e-commerce",
     "title": "Prawo konsumenckie",
-    "summary": "Regulaminy, dokumenty, spory konsumenckie i wsparcie sprzedaży internetowej.",
+    "summary": "Regulaminy i dokumentacja e-commerce oraz spory konsumenckie.",
     "body": [
       "Doradzamy przedsiębiorcom w relacjach z konsumentami oraz klientom indywidualnym w sporach z podmiotami profesjonalnymi.",
       "Tworzymy dokumenty dla e-commerce i pomagamy ocenić ryzyko związane z komunikacją sprzedażową."
@@ -153,7 +153,7 @@
     "slug": "ochrona-danych-osobowych",
     "category": "RODO",
     "title": "Ochrona danych osobowych",
-    "summary": "Dokumentacja, audyty, szkolenia i bieżące doradztwo w zakresie danych osobowych.",
+    "summary": "Dokumentacja RODO, audyty, szkolenia i bieżące doradztwo.",
     "body": [
       "Pomagamy organizacjom porządkować procesy przetwarzania danych osobowych oraz reagować na incydenty i pytania praktyczne.",
       "Wsparcie może obejmować dokumentację, audyt, szkolenie i konsultacje przy wdrożeniach."
@@ -168,7 +168,7 @@
     "slug": "ochrona-sygnalistow",
     "category": "Organizacje",
     "title": "Ochrona sygnalistów",
-    "summary": "Procedury zgłoszeń wewnętrznych, dokumentacja i bieżąca obsługa procesu.",
+    "summary": "Procedury i dokumentacja zgłoszeń wewnętrznych oraz ich obsługa.",
     "body": [
       "Wspieramy organizacje w przygotowaniu rozwiązań dotyczących zgłoszeń wewnętrznych oraz ochrony sygnalistów.",
       "Pomagamy zaprojektować proces tak, aby był zrozumiały, bezpieczny i możliwy do wdrożenia w praktyce."
@@ -183,7 +183,7 @@
     "slug": "mediacje",
     "category": "Rozwiązywanie sporów",
     "title": "Negocjacje i mediacje",
-    "summary": "Wsparcie w rozmowach, negocjacjach i mediacjach prowadzonych poza salą sądową.",
+    "summary": "Negocjacje i mediacje poza salą sądową.",
     "body": [
       "Nie każdy spór wymaga eskalacji. W wielu sprawach dobre przygotowanie rozmowy może skrócić czas, ograniczyć koszty i zmniejszyć napięcie.",
       "Pomagamy klientom ocenić możliwości porozumienia i przygotować się do procesu negocjacyjnego."

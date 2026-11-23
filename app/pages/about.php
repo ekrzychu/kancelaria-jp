@@ -3,7 +3,7 @@
     <div data-reveal>
       <span class="section-kicker">O kancelarii</span>
       <h1>Kancelaria tworzona przez praktyków.</h1>
-      <p>Obsługa prawna oparta na wiedzy, doświadczeniu i odpowiedzialnym prowadzeniu spraw.</p>
+      <p>Łączymy doradztwo z&nbsp;doświadczeniem w&nbsp;prowadzeniu sporów.</p>
     </div>
     <picture class="page-hero-photo" data-reveal="image">
       <source type="image/webp" srcset="/assets/img/building-exterior-portrait-760.webp 760w, /assets/img/building-exterior-portrait.webp 1000w" sizes="(max-width: 42rem) 91vw, (max-width: 92rem) 39vw, 35rem">
@@ -18,31 +18,33 @@
       <h2>Kim jesteśmy</h2>
     </div>
     <div class="rich-text">
-      <p>Jaroch-Konwent Pakos Kancelaria Radców Prawnych sp.k. wspiera klientów biznesowych i indywidualnych w sprawach wymagających precyzyjnego doradztwa, reprezentacji i dobrej organizacji procesu.</p>
-      <p>Zespół kancelarii tworzą radcowie prawni, adwokaci, specjaliści prawni i administracyjni. Dzięki temu możliwe jest prowadzenie wielu spraw równolegle, bez utraty kontroli nad szczegółem.</p>
+      <p>Doradzamy firmom i&nbsp;klientom indywidualnym oraz reprezentujemy ich w&nbsp;sporach. Radcowie prawni, adwokaci, specjaliści prawni i&nbsp;administracyjni wspólnie organizują pracę nad sprawami.</p>
     </div>
   </div>
 </section>
 
 <section class="section about-method">
   <div class="container editorial-split">
-    <div data-reveal>
-      <h2>Jak pracujemy</h2>
+    <figure class="method-photo" data-reveal="image">
+      <img src="/assets/img/chess-strategy.webp" alt="" width="1080" height="720" loading="lazy" decoding="async">
+    </figure>
+    <div>
+      <h2 data-reveal>Jak pracujemy</h2>
+      <dl class="method-list">
+        <div>
+          <dt>Rozpoznanie sprawy</dt>
+          <dd>Ustalamy fakty, dokumenty i interes klienta.</dd>
+        </div>
+        <div>
+          <dt>Dobór rozwiązania</dt>
+          <dd>Przedstawiamy możliwe działania i rekomendację.</dd>
+        </div>
+        <div>
+          <dt>Prowadzenie</dt>
+          <dd>Realizujemy strategię i informujemy o postępach.</dd>
+        </div>
+      </dl>
     </div>
-    <dl class="method-list">
-      <div>
-        <dt>Rozpoznanie sprawy</dt>
-        <dd>Ustalamy fakty, dokumenty i interes klienta.</dd>
-      </div>
-      <div>
-        <dt>Dobór rozwiązania</dt>
-        <dd>Przedstawiamy rekomendację i możliwe warianty działania.</dd>
-      </div>
-      <div>
-        <dt>Prowadzenie</dt>
-        <dd>Realizujemy przyjętą strategię i dbamy o komunikację.</dd>
-      </div>
-    </dl>
   </div>
 </section>
 
@@ -57,7 +59,6 @@
         <a class="editorial-row" href="/dokumenty/<?= e($doc['slug']) ?>/">
           <span class="row-title"><?= e($doc['title']) ?></span>
           <span class="row-summary"><?= e($doc['summary']) ?></span>
-          <span class="row-indicator" aria-hidden="true"><?= icon('arrow', 'inline-arrow') ?></span>
         </a>
       <?php endforeach; ?>
     </div>

@@ -2,7 +2,7 @@
 <footer class="site-footer">
   <div class="container footer-callout">
     <h2>Porozmawiajmy o sprawie.</h2>
-    <a class="button secondary" href="/kontakt/">Skontaktuj się z kancelarią</a>
+    <a class="text-action" href="/kontakt/">Skontaktuj się z kancelarią</a>
   </div>
   <div class="container footer-grid">
     <div class="footer-identity">

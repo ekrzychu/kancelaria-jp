@@ -12,10 +12,10 @@
       <h2>Informacja</h2>
     </div>
     <div class="rich-text">
-      <p>Aktualna treść dokumentu jest przygotowywana do publikacji. Aby otrzymać obowiązującą wersję, skontaktuj się z kancelarią.</p>
+      <p>Dokument jest w przygotowaniu do publikacji. O obowiązującą wersję zapytaj kancelarię.</p>
       <div class="editorial-actions">
-        <a class="button secondary" href="/dokumenty/">Wróć do dokumentów</a>
-        <a class="text-action" href="/kontakt/">Skontaktuj się z kancelarią <?= icon('arrow', 'inline-arrow') ?></a>
+        <a class="text-action" href="/dokumenty/">Wróć do dokumentów</a>
+        <a class="text-action" href="/kontakt/">Skontaktuj się z kancelarią</a>
       </div>
     </div>
   </div>
