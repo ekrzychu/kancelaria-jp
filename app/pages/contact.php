@@ -1,16 +1,20 @@
 <?php $formFields = $formStatus['fields'] ?? []; ?>
 
 <section class="page-hero">
-  <div class="container narrow">
+  <div class="container page-intro" data-reveal>
     <span class="section-kicker">Kontakt</span>
     <h1>Umów spotkanie z kancelarią.</h1>
-    <p>Spotkania odbywają się po wcześniejszym ustaleniu terminu. Najszybciej skontaktujesz się telefonicznie lub mailowo.</p>
+    <div>
+      <p>Spotkania odbywają się po wcześniejszym ustaleniu terminu. Najszybciej skontaktujesz się telefonicznie lub mailowo.</p>
+      <a class="text-action contact-form-link" href="#formularz">Przejdź do formularza</a>
+    </div>
   </div>
 </section>
 
 <section class="section">
   <div class="container contact-layout">
     <div class="contact-details">
+      <h2 data-reveal>Dane kontaktowe</h2>
       <dl>
         <div>
           <dt><?= icon('pin') ?>Adres</dt>
@@ -31,19 +35,19 @@
         </div>
         <div>
           <dt>Godziny pracy</dt>
-          <dd>
+          <dd class="contact-hours">
             <?php foreach ($site['hours'] as $day => $hours): ?>
-              <?= e($day) ?>: <?= e($hours) ?><br>
+              <span><span><?= e($day) ?></span> <span><?= e($hours) ?></span></span>
             <?php endforeach; ?>
           </dd>
         </div>
       </dl>
     </div>
 
-    <form class="contact-form" method="post" action="/kontakt/">
-      <h2>Opisz krótko sprawę</h2>
+    <form class="contact-form" id="formularz" aria-labelledby="contact-form-title" tabindex="-1" method="post" action="/kontakt/">
+      <h2 id="contact-form-title" data-reveal>Opisz krótko sprawę</h2>
       <?php if ($formStatus): ?>
-        <p class="form-status <?= $formStatus['ok'] ? 'ok' : 'error' ?>" role="status" aria-live="polite"><?= e($formStatus['message']) ?></p>
+        <p class="form-status <?= $formStatus['ok'] ? 'ok' : 'error' ?>" role="<?= $formStatus['ok'] ? 'status' : 'alert' ?>" tabindex="-1"><?= e($formStatus['message']) ?></p>
       <?php endif; ?>
 
       <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
@@ -51,17 +55,19 @@
         Strona internetowa
         <input name="website" autocomplete="off" tabindex="-1">
       </label>
+      <div class="contact-fields">
+        <label>
+          Imię i nazwisko
+          <input name="name" autocomplete="name" maxlength="120" value="<?= e($formFields['name'] ?? '') ?>" required>
+        </label>
+        <label>
+          Adres e-mail
+          <input name="email" type="email" autocomplete="email" maxlength="180" value="<?= e($formFields['email'] ?? '') ?>" required>
+        </label>
+      </div>
       <label>
-        Imię i nazwisko
-        <input name="name" autocomplete="name" maxlength="120" value="<?= e($formFields['name'] ?? '') ?>" required>
-      </label>
-      <label>
-        Adres e-mail
-        <input name="email" type="email" autocomplete="email" maxlength="180" value="<?= e($formFields['email'] ?? '') ?>" required>
-      </label>
-      <label>
-        Telefon
-        <input name="phone" autocomplete="tel" maxlength="40" value="<?= e($formFields['phone'] ?? '') ?>">
+        <span>Telefon <small>(opcjonalnie)</small></span>
+        <input name="phone" type="tel" autocomplete="tel" maxlength="40" value="<?= e($formFields['phone'] ?? '') ?>">
       </label>
       <label>
         Opis sprawy
@@ -70,5 +76,13 @@
       <p class="privacy-note">Dane z formularza służą wyłącznie do kontaktu w sprawie zgłoszenia. Szczegóły opisuje <a href="/dokumenty/polityka-prywatnosci/">polityka prywatności</a>.</p>
       <button class="button" type="submit">Wyślij zgłoszenie</button>
     </form>
+
+    <figure class="contact-photo" data-reveal="image">
+      <picture>
+        <source type="image/webp" srcset="/assets/img/office-reception-wide.webp">
+        <img src="/assets/img/office-reception-wide.jpg" alt="Recepcja kancelarii z drewnianą ladą i monogramem JP" width="1800" height="900" loading="lazy" decoding="async">
+      </picture>
+      <figcaption>Recepcja kancelarii we Wrocławiu</figcaption>
+    </figure>
   </div>
 </section>

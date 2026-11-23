@@ -53,6 +53,8 @@
     }
   }
 
+  document.querySelector('.form-status.error')?.focus();
+
   const search = document.querySelector('[data-service-search]');
   const rows = document.querySelectorAll('[data-service-row]');
   const searchStatus = document.querySelector('[data-service-status]');

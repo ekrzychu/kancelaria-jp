@@ -23,6 +23,12 @@ Website for Jaroch-Konwent Pakos Kancelaria Radców Prawnych sp.k. The project i
 
 The web server must use `public/` as its document root and direct application routes to `public/index.php`.
 
+## Editorial media
+
+- Team entries in `app/data/team.json` can specify an optional `portrait` filename. The team index uses initials when the file is absent.
+- Publication entries in `app/data/articles.json` use `title` and may supply `date` in ISO format (`YYYY-MM-DD`), `category`, `summary`, `image` and `image_alt`. An empty archive displays the publication notice.
+- Optional image filenames point to existing AVIF, JPEG, PNG or WebP files in `public/assets/img/`. Use rights-cleared images. About and Contact use the firm's existing building and reception photographs.
+
 ## Production notes
 
 Before publication, the firm should approve all service descriptions, team details, contact information, privacy disclosures, formal documents, and third-party profile links. The contact workflow currently stores submissions in `storage/contact-submissions.jsonl`; production delivery can instead be connected to an approved mail service or CRM.

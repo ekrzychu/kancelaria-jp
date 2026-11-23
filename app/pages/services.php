@@ -1,12 +1,12 @@
 <section class="page-hero">
-  <div class="container narrow">
+  <div class="container page-intro" data-reveal>
     <span class="section-kicker">Specjalizacje</span>
     <h1>Zakres wsparcia prawnego.</h1>
     <p>Najważniejsze obszary praktyki kancelarii zebrane w czytelnej strukturze.</p>
   </div>
 </section>
 
-<section class="section">
+<section class="section" aria-label="Katalog specjalizacji">
   <div class="container">
     <div class="filter-line">
       <label>
@@ -17,21 +17,21 @@
       <p class="filter-status" data-service-status aria-live="polite"></p>
     </div>
 
-    <div class="practice-list" id="service-list" data-service-list>
+    <div class="editorial-list" id="service-list" data-service-list>
       <?php foreach ($services as $service): ?>
         <?php $searchText = text_lower($service['title'] . ' ' . $service['summary'] . ' ' . $service['category']); ?>
         <a
-          class="practice-row"
+          class="editorial-row"
           data-service-row
           data-title="<?= e($searchText) ?>"
           href="/specjalizacje/<?= e($service['slug']) ?>/"
         >
-          <span class="row-main">
-            <small><?= e($service['category']) ?></small>
-            <strong><?= e($service['title']) ?></strong>
-            <em><?= e($service['summary']) ?></em>
+          <span class="row-heading">
+            <span class="row-meta"><?= e($service['category']) ?></span>
+            <span class="row-title"><?= e($service['title']) ?></span>
           </span>
-          <span class="row-link">Otwórz</span>
+          <span class="row-summary"><?= e($service['summary']) ?></span>
+          <span class="row-indicator" aria-hidden="true"><?= icon('arrow', 'inline-arrow') ?></span>
         </a>
       <?php endforeach; ?>
     </div>

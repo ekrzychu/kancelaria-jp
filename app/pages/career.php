@@ -1,40 +1,39 @@
 <section class="page-hero">
-  <div class="container narrow">
+  <div class="container page-intro" data-reveal>
     <span class="section-kicker">Kariera</span>
     <h1>Praca w uporządkowanym środowisku prawnym.</h1>
-    <p>Strona kariery może prezentować aktualne rekrutacje oraz zasady dołączenia do zespołu.</p>
+    <p>Poznaj przebieg rekrutacji i zasady dołączenia do zespołu.</p>
   </div>
 </section>
 
 <section class="section">
   <div class="container editorial-split">
-    <div>
-      <h2>Proces</h2>
+    <div data-reveal>
+      <h2>Jak wygląda rekrutacja</h2>
     </div>
-    <div class="step-list">
-      <div>
-        <span>01</span>
-        <strong>Aplikacja</strong>
+    <ol class="process-list">
+      <li>
+        <h3>Aplikacja</h3>
         <p>CV i krótka informacja o doświadczeniu.</p>
-      </div>
-      <div>
-        <span>02</span>
-        <strong>Rozmowa</strong>
+      </li>
+      <li>
+        <h3>Rozmowa</h3>
         <p>Spotkanie z osobami odpowiedzialnymi za dany obszar.</p>
-      </div>
-      <div>
-        <span>03</span>
-        <strong>Współpraca</strong>
+      </li>
+      <li>
+        <h3>Współpraca</h3>
         <p>Ustalenie zakresu, roli i zasad wdrożenia.</p>
-      </div>
-    </div>
+      </li>
+    </ol>
   </div>
 </section>
 
-<section class="section muted">
-  <div class="container narrow">
-    <span class="section-kicker">Zgłoszenia</span>
-    <h2>Wyślij aplikację na adres kancelarii.</h2>
-    <p><a class="button" href="mailto:<?= e($site['email']) ?>">Napisz do kancelarii</a></p>
+<section class="section career-application">
+  <div class="container application-layout">
+    <div data-reveal>
+      <span class="section-kicker">Zgłoszenia</span>
+      <h2>Wyślij aplikację na adres kancelarii.</h2>
+    </div>
+    <a class="button" href="mailto:<?= e($site['email']) ?>">Napisz do kancelarii</a>
   </div>
 </section>
