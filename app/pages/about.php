@@ -6,7 +6,7 @@
       <p>Obsługa prawna oparta na wiedzy, doświadczeniu i odpowiedzialnym prowadzeniu spraw.</p>
     </div>
     <picture class="page-hero-photo">
-      <source type="image/webp" srcset="/assets/img/building-exterior-portrait.webp">
+      <source type="image/webp" srcset="/assets/img/building-exterior-portrait-760.webp 760w, /assets/img/building-exterior-portrait.webp 1000w" sizes="(max-width: 42rem) 91vw, (max-width: 92rem) 39vw, 35rem">
       <img src="/assets/img/building-exterior-portrait.jpg" alt="Detal fasady siedziby kancelarii we Wrocławiu" width="1000" height="1300">
     </picture>
   </div>

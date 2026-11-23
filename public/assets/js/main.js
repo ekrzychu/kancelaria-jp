@@ -32,15 +32,25 @@
     syncMenu();
   }
 
-  if ('IntersectionObserver' in window && window.matchMedia('(prefers-reduced-motion: no-preference)').matches) {
-    const observer = new IntersectionObserver((entries) => {
-      for (const entry of entries) {
-        if (!entry.isIntersecting) continue;
-        entry.target.classList.add('is-revealed');
-        observer.unobserve(entry.target);
-      }
-    }, { threshold: .15 });
-    document.querySelectorAll('[data-reveal]').forEach(element => observer.observe(element));
+  if (window.matchMedia('(prefers-reduced-motion: no-preference)').matches) {
+    const heroImage = document.querySelector('.home-hero-photo img');
+    if (heroImage) {
+      const revealImage = () => heroImage.classList.add('is-revealed');
+      if (heroImage.complete && heroImage.naturalWidth) revealImage();
+      else heroImage.addEventListener('load', revealImage, { once: true });
+    }
+
+    if ('IntersectionObserver' in window) {
+      const threshold = .15;
+      const observer = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          if (entry.intersectionRatio < threshold) continue;
+          entry.target.classList.add('is-revealed');
+          observer.unobserve(entry.target);
+        }
+      }, { threshold, rootMargin: '0px 0px -24px' });
+      document.querySelectorAll('[data-reveal]').forEach(element => observer.observe(element));
+    }
   }
 
   const search = document.querySelector('[data-service-search]');
