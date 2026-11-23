@@ -1,4 +1,4 @@
-<section class="page-hero page-reveal">
+<section class="page-hero">
   <div class="container narrow">
     <span class="section-kicker">Specjalizacje</span>
     <h1>Zakres wsparcia prawnego.</h1>
@@ -6,7 +6,7 @@
   </div>
 </section>
 
-<section class="section muted page-reveal">
+<section class="section muted">
   <div class="container">
     <div class="filter-line">
       <label>

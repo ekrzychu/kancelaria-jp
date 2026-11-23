@@ -1,68 +1,40 @@
 </main>
 <footer class="site-footer">
-  <section class="footer-contact">
-    <div class="container footer-contact-inner">
-      <div>
-        <span class="section-kicker">Kontakt</span>
-        <h2>Porozmawiajmy o sprawie.</h2>
-      </div>
-      <div class="footer-contact-links">
-        <a href="tel:<?= e($site['phone_href']) ?>">
-          <?= icon('phone') ?>
-          <?= e($site['phone']) ?>
-        </a>
-        <a href="mailto:<?= e($site['email']) ?>">
-          <?= icon('mail') ?>
-          <?= e($site['email']) ?>
-        </a>
-      </div>
-    </div>
-  </section>
-
   <div class="container footer-grid">
-    <div class="footer-about">
+    <div class="footer-identity">
       <a class="footer-brand" href="/"><?= e($site['name']) ?></a>
-      <p>
-        <?= e($site['legal_name']) ?><br>
-        <?php foreach ($site['address'] as $line): ?>
-          <?= e($line) ?><br>
+      <p><?= e($site['tagline']) ?></p>
+      <ul class="social-links" aria-label="Portale społecznościowe">
+        <?php foreach ($site['socials'] as $label => $href): ?>
+          <li><a href="<?= e($href) ?>" target="_blank" rel="noopener noreferrer"><?= e($label) ?></a></li>
         <?php endforeach; ?>
-      </p>
+      </ul>
     </div>
 
-    <div>
-      <h3>Strony</h3>
+    <div class="footer-contact">
+      <h2>Porozmawiajmy o sprawie.</h2>
+      <address>
+        <p><?= implode('<br>', array_map('e', $site['address'])) ?></p>
+        <a href="tel:<?= e($site['phone_href']) ?>"><?= e($site['phone']) ?></a><br>
+        <a href="mailto:<?= e($site['email']) ?>"><?= e($site['email']) ?></a>
+      </address>
+    </div>
+
+    <nav class="footer-nav" aria-label="Menu w stopce">
       <ul>
         <?php foreach ($site['nav'] as $item): ?>
           <li><a href="<?= e($item['url']) ?>"><?= e($item['label']) ?></a></li>
         <?php endforeach; ?>
-        <li><a href="/dokumenty/">Dokumenty</a></li>
       </ul>
-    </div>
-
-    <div>
-      <h3>Specjalizacje</h3>
-      <ul>
-        <?php foreach (array_slice($services, 0, 6) as $service): ?>
-          <li><a href="/specjalizacje/<?= e($service['slug']) ?>/"><?= e($service['title']) ?></a></li>
-        <?php endforeach; ?>
-        <li><a href="/specjalizacje/">Wszystkie specjalizacje</a></li>
-      </ul>
-    </div>
-
-    <div>
-      <h3>Portale społecznościowe</h3>
-      <p class="social-links">
-        <?php foreach ($site['socials'] as $label => $href): ?>
-          <a href="<?= e($href) ?>" target="_blank" rel="noopener noreferrer"><?= e($label) ?></a>
-        <?php endforeach; ?>
-      </p>
-    </div>
+    </nav>
   </div>
 
   <div class="container legal-row">
     <p>© <?= date('Y') ?> <?= e($site['legal_name']) ?>. Wszelkie prawa zastrzeżone.</p>
-    <a href="/dokumenty/polityka-prywatnosci/">Polityka prywatności</a>
+    <ul>
+      <li><a href="/dokumenty/">Dokumenty</a></li>
+      <li><a href="/dokumenty/polityka-prywatnosci/">Polityka prywatności</a></li>
+    </ul>
   </div>
 </footer>
 <script src="/assets/js/main.js"></script>

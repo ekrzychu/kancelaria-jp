@@ -1,4 +1,4 @@
-<section class="page-hero page-reveal">
+<section class="page-hero">
   <div class="container narrow">
     <span class="section-kicker">O kancelarii</span>
     <h1>Kancelaria tworzona przez praktyków.</h1>
@@ -6,7 +6,7 @@
   </div>
 </section>
 
-<section class="section page-reveal">
+<section class="section">
   <div class="container editorial-split">
     <div>
       <h2>Kim jesteśmy</h2>
@@ -18,7 +18,7 @@
   </div>
 </section>
 
-<section class="section muted page-reveal">
+<section class="section muted">
   <div class="container timeline">
     <div>
       <span>01</span>
@@ -38,7 +38,7 @@
   </div>
 </section>
 
-<section class="section page-reveal">
+<section class="section">
   <div class="container editorial-split">
     <div>
       <span class="section-kicker">Dokumenty</span>

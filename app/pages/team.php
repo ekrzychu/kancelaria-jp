@@ -1,4 +1,4 @@
-<section class="page-hero page-reveal">
+<section class="page-hero">
   <div class="container narrow">
     <span class="section-kicker">Zespół</span>
     <h1>Ludzie stojący za sprawami.</h1>
@@ -6,7 +6,7 @@
   </div>
 </section>
 
-<section class="section muted page-reveal">
+<section class="section muted">
   <div class="container people-list">
     <?php foreach ($team as $person): ?>
       <article class="person-row">

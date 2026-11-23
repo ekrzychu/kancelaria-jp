@@ -1,4 +1,4 @@
-<section class="page-hero page-reveal">
+<section class="page-hero">
   <div class="container narrow">
     <span class="section-kicker">Kariera</span>
     <h1>Praca w uporządkowanym środowisku prawnym.</h1>
@@ -6,7 +6,7 @@
   </div>
 </section>
 
-<section class="section page-reveal">
+<section class="section">
   <div class="container editorial-split">
     <div>
       <h2>Proces</h2>
@@ -31,7 +31,7 @@
   </div>
 </section>
 
-<section class="section muted page-reveal">
+<section class="section muted">
   <div class="container narrow">
     <span class="section-kicker">Zgłoszenia</span>
     <h2>Wyślij aplikację na adres kancelarii.</h2>

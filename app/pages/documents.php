@@ -1,4 +1,4 @@
-<section class="page-hero page-reveal">
+<section class="page-hero">
   <div class="container narrow">
     <span class="section-kicker">Dokumenty</span>
     <h1>Dokumenty i informacje formalne.</h1>
@@ -6,7 +6,7 @@
   </div>
 </section>
 
-<section class="section muted page-reveal">
+<section class="section muted">
   <div class="container document-list">
     <?php foreach ($site['documents'] as $doc): ?>
       <a class="document-row" href="/dokumenty/<?= e($doc['slug']) ?>/">

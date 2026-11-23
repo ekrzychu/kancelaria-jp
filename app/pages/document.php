@@ -1,4 +1,4 @@
-<section class="page-hero page-reveal">
+<section class="page-hero">
   <div class="container narrow">
     <span class="section-kicker">Dokument</span>
     <h1><?= e($document['title']) ?></h1>
@@ -6,7 +6,7 @@
   </div>
 </section>
 
-<section class="section page-reveal">
+<section class="section">
   <div class="container editorial-split">
     <div>
       <h2>Informacja</h2>

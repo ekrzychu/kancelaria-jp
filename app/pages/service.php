@@ -1,4 +1,4 @@
-<section class="page-hero page-reveal">
+<section class="page-hero">
   <div class="container narrow">
     <span class="section-kicker"><?= e($service['category']) ?></span>
     <h1><?= e($service['title']) ?></h1>
@@ -6,7 +6,7 @@
   </div>
 </section>
 
-<section class="section page-reveal">
+<section class="section">
   <div class="container service-layout">
     <aside class="side-index">
       <span>Specjalizacje</span>

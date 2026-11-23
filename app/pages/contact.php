@@ -1,6 +1,6 @@
 <?php $formFields = $formStatus['fields'] ?? []; ?>
 
-<section class="page-hero page-reveal">
+<section class="page-hero">
   <div class="container narrow">
     <span class="section-kicker">Kontakt</span>
     <h1>Umów spotkanie z kancelarią.</h1>
@@ -8,7 +8,7 @@
   </div>
 </section>
 
-<section class="section page-reveal">
+<section class="section">
   <div class="container contact-layout">
     <div class="contact-details">
       <dl>
