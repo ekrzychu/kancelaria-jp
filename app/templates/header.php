@@ -42,13 +42,17 @@ $styleVersion = filemtime(__DIR__ . '/../../public/assets/css/style.css');
         <small><?= e($site['tagline']) ?></small>
       </span>
     </a>
-    <button class="menu-button" type="button" aria-controls="main-nav" aria-expanded="false" hidden>Menu</button>
-    <nav class="main-nav" id="main-nav" aria-label="Menu główne">
-      <?php foreach ($site['nav'] as $item): ?>
-        <?php $current = $path === $item['url'] ? 'page' : (is_current_section($item['url']) ? 'location' : null); ?>
-        <a class="nav-link" href="<?= e($item['url']) ?>"<?= $current ? ' aria-current="' . e($current) . '"' : '' ?>><?= e($item['label']) ?></a>
-      <?php endforeach; ?>
-    </nav>
+    <button class="menu-button" type="button" aria-controls="main-nav" aria-expanded="false" hidden>
+      Menu <span class="menu-icon" aria-hidden="true"></span>
+    </button>
+    <div class="nav-panel">
+      <nav class="main-nav" id="main-nav" aria-label="Menu główne">
+        <?php foreach ($site['nav'] as $item): ?>
+          <?php $current = $path === $item['url'] ? 'page' : (is_current_section($item['url']) ? 'location' : null); ?>
+          <a class="nav-link" href="<?= e($item['url']) ?>"<?= $current ? ' aria-current="' . e($current) . '"' : '' ?>><?= e($item['label']) ?></a>
+        <?php endforeach; ?>
+      </nav>
+    </div>
   </div>
 </header>
 <main id="main" tabindex="-1">

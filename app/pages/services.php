@@ -18,7 +18,7 @@
     </div>
 
     <div class="practice-list" id="service-list" data-service-list>
-      <?php foreach ($services as $i => $service): ?>
+      <?php foreach ($services as $service): ?>
         <?php $searchText = text_lower($service['title'] . ' ' . $service['summary'] . ' ' . $service['category']); ?>
         <a
           class="practice-row"
@@ -26,7 +26,6 @@
           data-title="<?= e($searchText) ?>"
           href="/specjalizacje/<?= e($service['slug']) ?>/"
         >
-          <span class="row-number"><?= str_pad((string)($i + 1), 2, '0', STR_PAD_LEFT) ?></span>
           <span class="row-main">
             <small><?= e($service['category']) ?></small>
             <strong><?= e($service['title']) ?></strong>

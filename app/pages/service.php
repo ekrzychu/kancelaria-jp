@@ -8,16 +8,6 @@
 
 <section class="section">
   <div class="container service-layout">
-    <aside class="side-index">
-      <span>Specjalizacje</span>
-      <?php foreach ($services as $item): ?>
-        <?php $currentClass = $item['slug'] === $service['slug'] ? 'current' : ''; ?>
-        <a class="<?= $currentClass ?>" href="/specjalizacje/<?= e($item['slug']) ?>/">
-          <?= e($item['title']) ?>
-        </a>
-      <?php endforeach; ?>
-    </aside>
-
     <article class="rich-text service-content">
       <?php foreach ($service['body'] as $paragraph): ?>
         <p><?= e($paragraph) ?></p>
@@ -33,5 +23,14 @@
       <p class="contact-note">Potrzebujesz wsparcia w tym obszarze? Opisz krótko sprawę — kancelaria wróci z informacją o możliwym zakresie współpracy.</p>
       <p><a class="button" href="/kontakt/">Skontaktuj się</a></p>
     </article>
+
+    <nav class="side-index" aria-label="Specjalizacje">
+      <span>Specjalizacje</span>
+      <?php foreach ($services as $item): ?>
+        <a href="/specjalizacje/<?= e($item['slug']) ?>/"<?= $item['slug'] === $service['slug'] ? ' aria-current="page"' : '' ?>>
+          <?= e($item['title']) ?>
+        </a>
+      <?php endforeach; ?>
+    </nav>
   </div>
 </section>

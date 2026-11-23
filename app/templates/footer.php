@@ -1,5 +1,9 @@
 </main>
 <footer class="site-footer">
+  <div class="container footer-callout">
+    <h2>Porozmawiajmy o sprawie.</h2>
+    <a class="button secondary" href="/kontakt/">Skontaktuj się z kancelarią</a>
+  </div>
   <div class="container footer-grid">
     <div class="footer-identity">
       <a class="footer-brand" href="/"><?= e($site['name']) ?></a>
@@ -12,7 +16,6 @@
     </div>
 
     <div class="footer-contact">
-      <h2>Porozmawiajmy o sprawie.</h2>
       <address>
         <p><?= implode('<br>', array_map('e', $site['address'])) ?></p>
         <a href="tel:<?= e($site['phone_href']) ?>"><?= e($site['phone']) ?></a><br>
@@ -37,6 +40,6 @@
     </ul>
   </div>
 </footer>
-<script src="/assets/js/main.js"></script>
+<script src="/assets/js/main.js?v=<?= filemtime(__DIR__ . '/../../public/assets/js/main.js') ?>"></script>
 </body>
 </html>

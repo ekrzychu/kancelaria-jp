@@ -1,9 +1,19 @@
 (() => {
   const menuButton = document.querySelector('.menu-button');
+  const mainNav = document.getElementById('main-nav');
 
-  if (menuButton) {
+  if (menuButton && mainNav) {
+    const compactHeader = window.matchMedia('(max-width: 56rem)');
+    const syncMenu = () => {
+      const closed = compactHeader.matches && menuButton.getAttribute('aria-expanded') === 'false';
+      if (closed && mainNav.contains(document.activeElement)) menuButton.focus();
+      mainNav.inert = closed;
+    };
+
     const setMenuOpen = (open) => {
+      mainNav.parentElement.classList.add('is-interactive');
       menuButton.setAttribute('aria-expanded', String(open));
+      syncMenu();
     };
 
     menuButton.addEventListener('click', () => {
@@ -17,7 +27,20 @@
       }
     });
 
+    compactHeader.addEventListener('change', syncMenu);
     menuButton.hidden = false;
+    syncMenu();
+  }
+
+  if ('IntersectionObserver' in window && window.matchMedia('(prefers-reduced-motion: no-preference)').matches) {
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        entry.target.classList.add('is-revealed');
+        observer.unobserve(entry.target);
+      }
+    }, { threshold: .15 });
+    document.querySelectorAll('[data-reveal]').forEach(element => observer.observe(element));
   }
 
   const search = document.querySelector('[data-service-search]');

@@ -1,8 +1,14 @@
 <section class="page-hero">
-  <div class="container narrow">
-    <span class="section-kicker">O kancelarii</span>
-    <h1>Kancelaria tworzona przez praktyków.</h1>
-    <p>Obsługa prawna oparta na wiedzy, doświadczeniu i odpowiedzialnym prowadzeniu spraw.</p>
+  <div class="container page-hero-grid">
+    <div>
+      <span class="section-kicker">O kancelarii</span>
+      <h1>Kancelaria tworzona przez praktyków.</h1>
+      <p>Obsługa prawna oparta na wiedzy, doświadczeniu i odpowiedzialnym prowadzeniu spraw.</p>
+    </div>
+    <picture class="page-hero-photo">
+      <source type="image/webp" srcset="/assets/img/building-exterior-portrait.webp">
+      <img src="/assets/img/building-exterior-portrait.jpg" alt="Detal fasady siedziby kancelarii we Wrocławiu" width="1000" height="1300">
+    </picture>
   </div>
 </section>
 
