@@ -4,6 +4,7 @@ $description = $description ?? 'Jaroch-Konwent Pakos Kancelaria Radców Prawnych
 $robots = $robots ?? null;
 $canonical = canonical_url($site);
 $path = current_path();
+$styleVersion = filemtime(__DIR__ . '/../../public/assets/css/style.css');
 ?>
 <!doctype html>
 <html lang="pl">
@@ -22,7 +23,7 @@ $path = current_path();
   <?php if ($robots): ?>
     <meta name="robots" content="<?= e($robots) ?>">
   <?php endif; ?>
-  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="/assets/css/style.css?v=<?= $styleVersion ?>">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
 </head>

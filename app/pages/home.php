@@ -6,13 +6,14 @@
       <p class="home-hero-lead">Wspieramy przedsiębiorców, instytucje i&nbsp;klientów indywidualnych w&nbsp;sprawach wymagających jasnej strategii, doświadczenia procesowego oraz odpowiedzialnej komunikacji.</p>
       <div class="home-hero-actions">
         <a class="button" href="/specjalizacje/">Zobacz specjalizacje</a>
-        <a class="text-action" href="/o-kancelarii/">Poznaj kancelarię</a>
+        <a class="text-action" href="/o-kancelarii/">Poznaj kancelarię <?= icon('arrow', 'inline-arrow') ?></a>
       </div>
     </div>
     <figure class="home-hero-photo">
       <picture>
         <source media="(max-width: 42rem)" srcset="/assets/img/office-reception-wide.webp" type="image/webp" width="1800" height="900">
-        <source srcset="/assets/img/office-reception-hero.webp" type="image/webp">
+        <source media="(max-width: 42rem)" srcset="/assets/img/office-reception-wide.jpg" type="image/jpeg" width="1800" height="900">
+        <source srcset="/assets/img/office-reception-hero.webp" type="image/webp" width="1150" height="1480">
         <img src="/assets/img/office-reception-hero.jpg" alt="Recepcja kancelarii z drewnianą ladą i monogramem JP" width="1150" height="1480" fetchpriority="high">
       </picture>
       <figcaption>Recepcja kancelarii we Wrocławiu</figcaption>
@@ -40,7 +41,7 @@
         <p class="section-kicker">Specjalizacje</p>
         <h2>Najważniejsze obszary wsparcia.</h2>
       </div>
-      <a class="text-action" href="/specjalizacje/">Wszystkie specjalizacje</a>
+      <a class="text-action" href="/specjalizacje/">Wszystkie specjalizacje <?= icon('arrow', 'inline-arrow') ?></a>
     </div>
     <ul class="home-practice-list">
       <?php foreach (array_slice($services, 0, 8) as $service): ?>
@@ -65,7 +66,7 @@
       <p class="section-kicker">Siedziba kancelarii</p>
       <h2>Stała obecność w&nbsp;centrum miasta, blisko spraw klientów.</h2>
       <p class="home-address"><?= implode('<br>', array_map('e', $site['address'])) ?></p>
-      <a class="text-action" href="/kontakt/">Zobacz dane kontaktowe</a>
+      <a class="text-action" href="/kontakt/">Zobacz dane kontaktowe <?= icon('arrow', 'inline-arrow') ?></a>
     </div>
   </div>
 </section>
@@ -94,12 +95,12 @@
 </section>
 
 <section class="home-section home-publications">
-  <div class="container home-section-heading">
+  <div class="container home-publications-grid">
     <div>
       <p class="section-kicker">Publikacje</p>
       <h2>Artykuły i&nbsp;komentarze prawne.</h2>
       <p class="home-publications-lead">Publikujemy analizy, komentarze i praktyczne omówienia zmian w prawie. Archiwum jest obecnie aktualizowane.</p>
     </div>
-    <a class="text-action" href="/artykuly/">Przejdź do artykułów</a>
+    <a class="text-action" href="/artykuly/">Przejdź do artykułów <?= icon('arrow', 'inline-arrow') ?></a>
   </div>
 </section>

@@ -6,7 +6,7 @@
   </div>
 </section>
 
-<section class="section muted">
+<section class="section">
   <div class="container">
     <div class="filter-line">
       <label>
