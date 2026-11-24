@@ -51,7 +51,7 @@
   initReveals(homepage);
   if (homepage) {
     initHomeNavigation();
-    initHomeContactFocus();
+    initHomeContact();
     initHomeImageMotion();
     initHomeCursor();
   }
@@ -130,20 +130,67 @@
     update();
   }
 
-  function initHomeContactFocus() {
+  function initHomeContact() {
     const contact = document.querySelector('.home-contact-float');
+    const darkSections = document.querySelectorAll('.home-hero, .home-contact, .site-footer');
+    const heroPhoto = document.querySelector('.home-hero-photo');
+    const motion = window.matchMedia('(prefers-reduced-motion: no-preference)');
+    const entranceScroll = 64;
+    let pending = motion.matches && window.scrollY < entranceScroll;
+    let frame = 0;
+    let entranceTimer;
+
+    const overlaps = (first, second) =>
+      first.right > second.left && first.left < second.right &&
+      first.bottom > second.top && first.top < second.bottom;
+
+    function updateTone() {
+      frame = 0;
+      const button = contact.getBoundingClientRect();
+      const bands = Array.from(darkSections, section => section.getBoundingClientRect());
+      const isDark = y => bands.some(band => band.top <= y && band.bottom >= y);
+      // Use the designed background regions. Over photography use the default high-contrast pill.
+      const onDark = isDark(button.top) && isDark(button.bottom) && !overlaps(button, heroPhoto.getBoundingClientRect());
+      contact.classList.toggle('is-on-dark', onDark);
+    }
+
+    function scheduleTone() {
+      if (!frame) frame = requestAnimationFrame(updateTone);
+    }
+
+    function show() {
+      if (!pending) return;
+      pending = false;
+      contact.classList.replace('is-contact-pending', 'is-contact-ready');
+      window.clearTimeout(entranceTimer);
+      contact.removeEventListener('focus', show);
+      motion.removeEventListener('change', show);
+      scheduleTone();
+    }
+
+    window.addEventListener('scroll', () => {
+      if (window.scrollY >= entranceScroll) show();
+      scheduleTone();
+    }, { passive: true });
+    window.addEventListener('resize', scheduleTone, { passive: true });
+    contact.addEventListener('transitionend', scheduleTone);
+
+    if (pending) {
+      contact.addEventListener('focus', show);
+      motion.addEventListener('change', show);
+      entranceTimer = window.setTimeout(show, 1450);
+      contact.classList.add('is-contact-pending');
+    }
+
     document.addEventListener('focusin', ({ target }) => {
       if (target === contact || !target.matches(':is(a, button):focus-visible') || !target.closest('main, footer')) return;
 
-      const control = contact.getBoundingClientRect();
-      const focused = target.getBoundingClientRect();
-      if (
-        focused.right > control.left && focused.left < control.right &&
-        focused.bottom > control.top && focused.top < control.bottom
-      ) {
+      if (overlaps(contact.getBoundingClientRect(), target.getBoundingClientRect())) {
         target.scrollIntoView({ block: 'center', inline: 'nearest' });
       }
     });
+
+    updateTone();
   }
 
   function initReveals(homepage) {
@@ -259,11 +306,16 @@
     function draw() {
       frame = 0;
       const viewport = window.innerHeight;
+      const pageScroll = Math.max(0, window.scrollY);
       // Read both frames before updating the image transforms.
       const offsets = Array.from(visible, photo => {
         const { top, height } = photo.getBoundingClientRect();
-        const progress = Math.max(0, Math.min(1, (viewport - top) / (viewport + height)));
-        return [photo, (progress - .5) * 3.4];
+        // Start the opening photo at the top of its crop to keep the wall-mounted logo in view.
+        const position = photo.dataset.scrollPhoto === 'hero'
+          ? 1 - pageScroll / (pageScroll + top + height)
+          : (viewport - top) / (viewport + height);
+        const progress = Math.max(0, Math.min(1, position));
+        return [photo, (progress - .5) * 8.8];
       });
       for (const [photo, offset] of offsets) {
         photo.style.setProperty('--photo-scroll-offset', `${offset.toFixed(3)}%`);

@@ -14,10 +14,11 @@ $experienceYears = 6;
       <p class="section-kicker">Kancelaria Radców Prawnych · Wrocław</p>
       <h1 id="home-title">Prawo <span>w&nbsp;praktyce.</span></h1>
     </div>
-    <picture class="home-hero-photo" data-scroll-photo>
-      <source media="(max-width: 56rem)" type="image/webp" srcset="/assets/img/office-reception-mobile.webp" width="840" height="560">
-      <source type="image/webp" srcset="/assets/img/office-reception-wide.webp" width="1800" height="900">
-      <img src="/assets/img/office-reception-wide.jpg" alt="Recepcja kancelarii z drewnianą ladą i monogramem JP" width="1800" height="900" fetchpriority="high">
+    <picture class="home-hero-photo" data-scroll-photo="hero">
+      <img src="/assets/img/office-meeting-1360.webp"
+        srcset="/assets/img/office-meeting-760.webp 760w, /assets/img/office-meeting-1360.webp 1360w, /assets/img/office-meeting-2048.webp 2048w, /assets/img/office-meeting-2880.webp 2880w"
+        sizes="(max-width: 56rem) 95vw, 71vw"
+        alt="Sala spotkań kancelarii z drewnianym stołem i monogramem JP" width="1360" height="796" fetchpriority="high">
     </picture>
     <div class="home-hero-intro">
       <p>Doradzamy firmom, instytucjom i&nbsp;klientom indywidualnym. Reprezentujemy ich również w&nbsp;sporach sądowych.</p>
@@ -88,8 +89,10 @@ $experienceYears = 6;
 <section class="home-office home-section" aria-labelledby="home-office-title">
   <div class="home-frame home-office-layout">
     <picture class="home-office-photo" data-reveal="image" data-scroll-photo>
-      <source type="image/webp" srcset="/assets/img/building-exterior-portrait-760.webp 760w, /assets/img/building-exterior-portrait.webp 1000w" sizes="(max-width: 42rem) 90vw, (max-width: 56rem) 49vw, (min-width: 129rem) 66rem, 52vw">
-      <img src="/assets/img/building-exterior-portrait.jpg" alt="Kamienna fasada budynku kancelarii przy placu Kościuszki we Wrocławiu" width="1000" height="1300" loading="lazy" decoding="async">
+      <img src="/assets/img/office-entrance-1280.webp"
+        srcset="/assets/img/office-entrance-760.webp 760w, /assets/img/office-entrance-1280.webp 1280w, /assets/img/office-entrance-2240.webp 2240w"
+        sizes="(max-width: 42rem) 90vw, (max-width: 56rem) 49vw, (min-width: 129rem) 66rem, 55vw"
+        alt="Drewniane drzwi wejściowe i numer 7–8 na kamiennej fasadzie przy placu Kościuszki" width="1280" height="1990" loading="lazy" decoding="async">
     </picture>
     <div class="home-office-copy" data-reveal>
       <p class="section-kicker">Siedziba kancelarii</p>
