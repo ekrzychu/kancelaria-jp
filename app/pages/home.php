@@ -118,7 +118,7 @@ $experienceYears = 6;
   </section>
 <?php endif; ?>
 
-<section class="home-profile home-section home-expansion" aria-labelledby="home-profile-title">
+<section class="home-profile home-section" aria-labelledby="home-profile-title">
   <div class="home-profile-stage home-expansion-stage">
     <div class="home-profile-backdrop home-expansion-backdrop" aria-hidden="true" data-home-surface="beige"></div>
     <div class="home-frame home-profile-layout home-expansion-layout" data-home-surface="beige">
@@ -174,19 +174,16 @@ $experienceYears = 6;
 </section>
 
 <?php if ($showClientLogos): ?>
-  <section class="home-clients home-expansion" aria-labelledby="home-clients-title">
-    <div class="home-expansion-stage">
-      <div class="home-expansion-backdrop" aria-hidden="true" data-home-surface="beige"></div>
-      <div class="home-frame home-clients-layout home-expansion-layout" data-home-surface="beige">
-        <h2 id="home-clients-title">Współpracujemy z</h2>
-        <ul class="home-client-logos" role="list">
-          <?php foreach ($clientLogos as [$slug, $name, $width, $height]): ?>
-            <li class="home-client-<?= e($slug) ?>">
-              <img src="/assets/img/clients/<?= e($slug) ?>.webp" alt="<?= e($name) ?>" width="<?= $width ?>" height="<?= $height ?>" loading="lazy" decoding="async">
-            </li>
-          <?php endforeach; ?>
-        </ul>
-      </div>
+  <section class="home-clients" aria-labelledby="home-clients-title" data-home-surface="beige">
+    <div class="home-frame home-clients-layout">
+      <h2 id="home-clients-title">Współpracujemy z</h2>
+      <ul class="home-client-logos" role="list">
+        <?php foreach ($clientLogos as [$slug, $name, $width, $height]): ?>
+          <li class="home-client-<?= e($slug) ?>">
+            <img src="/assets/img/clients/<?= e($slug) ?>.webp" alt="<?= e($name) ?>" width="<?= $width ?>" height="<?= $height ?>" loading="lazy" decoding="async">
+          </li>
+        <?php endforeach; ?>
+      </ul>
     </div>
   </section>
 <?php endif; ?>

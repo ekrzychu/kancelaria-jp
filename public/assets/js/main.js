@@ -50,7 +50,7 @@
 
   initReveals(homepage);
   if (homepage) {
-    initHomeExpansion();
+    initHomeEditorialMotion();
     initHomeNavigation();
     initHomeContact();
     initHomeImageMotion();
@@ -339,44 +339,43 @@
     frame = requestAnimationFrame(tick);
   }
 
-  function initHomeExpansion() {
+  function initHomeEditorialMotion() {
     if (
       !('ResizeObserver' in window) ||
       !window.CSS?.supports('view-timeline: --expansion block') ||
       !window.CSS.supports('animation-timeline: --expansion') ||
-      !window.CSS.supports('animation-range: entry 66% contain 55%')
+      !window.CSS.supports('animation-range: entry 70% contain 20%')
     ) return;
 
-    const sections = Array.from(document.querySelectorAll('.home-expansion'), section => ({
-      section,
-      layout: section.querySelector('.home-expansion-layout'),
-    }));
+    const profile = document.querySelector('.home-profile');
+    const profileLayout = profile.querySelector('.home-profile-layout');
+    const practices = document.querySelector('.home-practices');
+    const practicesIntro = practices.querySelector('.home-practices-intro');
+    const practicesList = practices.querySelector('.home-practice-list');
     const desktopMotion = window.matchMedia(
       '(min-width: 57rem) and (min-height: 44rem) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)'
     );
 
-    function updateStages() {
+    function updateMotion() {
       const viewport = window.innerHeight;
-      // Read both layouts before changing either section's height.
-      const freeSpaces = sections.map(({ layout }) => desktopMotion.matches ? viewport - layout.offsetHeight : 0);
-      for (const [index, { section }] of sections.entries()) {
-        const freeSpace = freeSpaces[index];
-        const fits = freeSpace >= viewport * .3;
-        if (fits) {
-          const inset = Math.min(viewport * .2, freeSpace - viewport * .14);
-          section.style.setProperty('--expansion-inset', `${inset}px`);
-        } else {
-          section.style.removeProperty('--expansion-inset');
-        }
-        section.classList.toggle('has-expansion-stage', fits);
-      }
+      const desktop = desktopMotion.matches;
+      const freeSpace = desktop ? viewport - profileLayout.offsetHeight : 0;
+      // The service list supplies the travel. Leave space in its column for focus outlines and release.
+      const travel = desktop ? Math.max(0, Math.min(viewport * .34, practicesList.offsetHeight - practicesIntro.offsetHeight - 64)) : 0;
+      const fits = freeSpace >= viewport * .24 && freeSpace <= viewport * .64;
+      const inset = fits ? Math.min(viewport * .12, freeSpace - viewport * .14) : 0;
+
+      profile.style.setProperty('--expansion-inset', `${inset}px`);
+      profile.classList.toggle('has-expansion-stage', fits);
+      practices.style.setProperty('--heading-descent', `${travel}px`);
+      practices.classList.toggle('has-heading-journey', travel >= 48);
     }
 
-    const observer = new ResizeObserver(updateStages);
-    sections.forEach(({ layout }) => observer.observe(layout));
-    desktopMotion.addEventListener('change', updateStages);
-    window.addEventListener('resize', updateStages, { passive: true });
-    updateStages();
+    const observer = new ResizeObserver(updateMotion);
+    [profileLayout, practicesIntro, practicesList].forEach(element => observer.observe(element));
+    desktopMotion.addEventListener('change', updateMotion);
+    window.addEventListener('resize', updateMotion, { passive: true });
+    updateMotion();
   }
 
   function initHomeImageMotion() {
