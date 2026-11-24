@@ -51,6 +51,8 @@
   initReveals(homepage);
   if (homepage) {
     initHomeNavigation();
+    initHomeContactFocus();
+    initHomeImageMotion();
     initHomeCursor();
   }
 
@@ -128,6 +130,22 @@
     update();
   }
 
+  function initHomeContactFocus() {
+    const contact = document.querySelector('.home-contact-float');
+    document.addEventListener('focusin', ({ target }) => {
+      if (target === contact || !target.matches(':is(a, button):focus-visible') || !target.closest('main, footer')) return;
+
+      const control = contact.getBoundingClientRect();
+      const focused = target.getBoundingClientRect();
+      if (
+        focused.right > control.left && focused.left < control.right &&
+        focused.bottom > control.top && focused.top < control.bottom
+      ) {
+        target.scrollIntoView({ block: 'center', inline: 'nearest' });
+      }
+    });
+  }
+
   function initReveals(homepage) {
     const motion = window.matchMedia('(prefers-reduced-motion: no-preference)');
     if (!motion.matches || !('IntersectionObserver' in window)) return;
@@ -135,27 +153,29 @@
     const targets = document.querySelectorAll('[data-reveal]');
     const listeners = new AbortController();
     const threshold = homepage ? 0 : .15;
+    const countThreshold = .5;
     const bottomMargin = homepage ? 16 : -24;
     let initialObservation = homepage;
     const observer = new IntersectionObserver(entries => {
       let rowOrder = 0;
       for (const { target, isIntersecting, intersectionRatio, boundingClientRect, rootBounds } of entries) {
-        if (!isIntersecting || intersectionRatio < threshold) continue;
+        const type = target.dataset.reveal;
+        if (!isIntersecting || intersectionRatio < (type === 'count' ? countThreshold : threshold)) continue;
         observer.unobserve(target);
-        const alreadyVisible = initialObservation && rootBounds && boundingClientRect.top < rootBounds.bottom - bottomMargin;
-        if (alreadyVisible || (homepage && target.matches(':focus-within'))) continue;
-
-        if (target.dataset.reveal === 'row') {
-          target.style.setProperty('--row-order', rowOrder++);
-        }
-
-        if (target.dataset.reveal === 'count') {
+        if (type === 'count') {
           animateExperience(target, listeners.signal);
           continue;
         }
 
+        const alreadyVisible = initialObservation && rootBounds && boundingClientRect.top < rootBounds.bottom - bottomMargin;
+        if (alreadyVisible || (homepage && target.matches(':focus-within'))) continue;
+
+        if (type === 'row') {
+          target.style.setProperty('--row-order', rowOrder++);
+        }
+
         const reveal = () => target.classList.add('is-revealed');
-        const image = homepage && target.dataset.reveal === 'image' && target.querySelector('img');
+        const image = homepage && type === 'image' && target.querySelector('img');
         if (image && !image.complete) {
           image.addEventListener('load', reveal, { once: true, signal: listeners.signal });
         } else {
@@ -163,7 +183,7 @@
         }
       }
       initialObservation = false;
-    }, { threshold, rootMargin: `0px 0px ${bottomMargin}px` });
+    }, { threshold: homepage ? [threshold, countThreshold] : threshold, rootMargin: `0px 0px ${bottomMargin}px` });
 
     targets.forEach(target => observer.observe(target));
 
@@ -188,6 +208,7 @@
     const number = experience.querySelector('[data-experience]');
     const value = number.firstElementChild;
     const finalValue = number.dataset.experience;
+    const total = Number(finalValue);
     let startedAt;
     let frame;
 
@@ -200,13 +221,13 @@
 
     function tick(time) {
       startedAt ??= time;
-      const progress = (time - startedAt) / 1000;
+      const progress = (time - startedAt) / 950;
       if (progress >= 1) {
         finish();
         return;
       }
 
-      const current = String(Math.floor(progress * Number(finalValue)));
+      const current = String(Math.floor(progress * total));
       if (value.textContent !== current) value.textContent = current;
       frame = requestAnimationFrame(tick);
     }
@@ -215,6 +236,64 @@
     experience.classList.add('is-counting');
     signal.addEventListener('abort', finish, { once: true });
     frame = requestAnimationFrame(tick);
+  }
+
+  function initHomeImageMotion() {
+    if (navigator.maxTouchPoints > 0 || !('IntersectionObserver' in window) || !window.CSS?.supports('translate', '0 1%')) return;
+
+    const motion = window.matchMedia(
+      '(min-width: 57rem) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)'
+    );
+    const photos = document.querySelectorAll('[data-scroll-photo]');
+    const visible = new Set();
+    let frame = 0;
+
+    const observer = new IntersectionObserver(entries => {
+      for (const { target, isIntersecting } of entries) {
+        if (isIntersecting) visible.add(target);
+        else visible.delete(target);
+      }
+      schedule();
+    });
+
+    function draw() {
+      frame = 0;
+      const viewport = window.innerHeight;
+      // Read both frames before updating the image transforms.
+      const offsets = Array.from(visible, photo => {
+        const { top, height } = photo.getBoundingClientRect();
+        const progress = Math.max(0, Math.min(1, (viewport - top) / (viewport + height)));
+        return [photo, (progress - .5) * 3.4];
+      });
+      for (const [photo, offset] of offsets) {
+        photo.style.setProperty('--photo-scroll-offset', `${offset.toFixed(3)}%`);
+      }
+    }
+
+    function schedule() {
+      if (visible.size && !frame) frame = requestAnimationFrame(draw);
+    }
+
+    function sync() {
+      document.body.classList.toggle('has-photo-scroll', motion.matches);
+      if (motion.matches) {
+        photos.forEach(photo => observer.observe(photo));
+        window.addEventListener('scroll', schedule, { passive: true });
+        window.addEventListener('resize', schedule, { passive: true });
+        return;
+      }
+
+      observer.disconnect();
+      visible.clear();
+      cancelAnimationFrame(frame);
+      frame = 0;
+      photos.forEach(photo => photo.style.removeProperty('--photo-scroll-offset'));
+      window.removeEventListener('scroll', schedule);
+      window.removeEventListener('resize', schedule);
+    }
+
+    motion.addEventListener('change', sync);
+    sync();
   }
 
   function initHomeCursor() {
@@ -266,10 +345,15 @@
         return;
       }
 
-      const ease = 1 - Math.exp(-elapsed / 30);
+      const ease = 1 - Math.exp(-elapsed / 23);
       x += (targetX - x) * ease;
       y += (targetY - y) * ease;
-      const moving = Math.abs(targetX - x) > .35 || Math.abs(targetY - y) > .35;
+      const distance = Math.hypot(x - targetX, y - targetY);
+      if (distance > 12) {
+        x = targetX + (x - targetX) * 12 / distance;
+        y = targetY + (y - targetY) * 12 / distance;
+      }
+      const moving = distance > .35;
       if (!moving) {
         x = targetX;
         y = targetY;
