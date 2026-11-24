@@ -50,7 +50,7 @@
 
   initReveals(homepage);
   if (homepage) {
-    initHomeProfile();
+    initHomeExpansion();
     initHomeNavigation();
     initHomeContact();
     initHomeImageMotion();
@@ -265,7 +265,6 @@
     const bottomMargin = homepage ? 16 : -24;
     let initialObservation = homepage;
     const observer = new IntersectionObserver(entries => {
-      let rowOrder = 0;
       for (const { target, isIntersecting, intersectionRatio, boundingClientRect, rootBounds } of entries) {
         const type = target.dataset.reveal;
         if (!isIntersecting || intersectionRatio < (type === 'count' ? countThreshold : threshold)) continue;
@@ -277,10 +276,6 @@
 
         const alreadyVisible = initialObservation && rootBounds && boundingClientRect.top < rootBounds.bottom - bottomMargin;
         if (alreadyVisible || (homepage && target.matches(':focus-within'))) continue;
-
-        if (type === 'row') {
-          target.style.setProperty('--reveal-order', rowOrder++);
-        }
 
         const reveal = () => target.classList.add('is-revealed');
         const image = homepage && type === 'image' && target.querySelector('img');
@@ -344,38 +339,44 @@
     frame = requestAnimationFrame(tick);
   }
 
-  function initHomeProfile() {
+  function initHomeExpansion() {
     if (
       !('ResizeObserver' in window) ||
-      !window.CSS?.supports('view-timeline: --profile block') ||
-      !window.CSS.supports('animation-timeline: --profile') ||
-      !window.CSS.supports('animation-range: contain 0% contain 68%')
+      !window.CSS?.supports('view-timeline: --expansion block') ||
+      !window.CSS.supports('animation-timeline: --expansion') ||
+      !window.CSS.supports('animation-range: entry 66% contain 55%')
     ) return;
 
-    const profile = document.querySelector('.home-profile');
-    const layout = profile.querySelector('.home-profile-layout');
+    const sections = Array.from(document.querySelectorAll('.home-expansion'), section => ({
+      section,
+      layout: section.querySelector('.home-expansion-layout'),
+    }));
     const desktopMotion = window.matchMedia(
       '(min-width: 57rem) and (min-height: 44rem) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)'
     );
 
-    function updateStage() {
+    function updateStages() {
       const viewport = window.innerHeight;
-      const freeSpace = viewport - layout.offsetHeight;
-      const fits = desktopMotion.matches && freeSpace >= viewport * .3;
-      if (fits) {
-        // Keep the layout centered in the visible beige surface with room for focus outlines.
-        const inset = Math.min(viewport * .5, freeSpace - viewport * .14);
-        profile.style.setProperty('--profile-inset', `${inset}px`);
-      } else {
-        profile.style.removeProperty('--profile-inset');
+      // Read both layouts before changing either section's height.
+      const freeSpaces = sections.map(({ layout }) => desktopMotion.matches ? viewport - layout.offsetHeight : 0);
+      for (const [index, { section }] of sections.entries()) {
+        const freeSpace = freeSpaces[index];
+        const fits = freeSpace >= viewport * .3;
+        if (fits) {
+          const inset = Math.min(viewport * .2, freeSpace - viewport * .14);
+          section.style.setProperty('--expansion-inset', `${inset}px`);
+        } else {
+          section.style.removeProperty('--expansion-inset');
+        }
+        section.classList.toggle('has-expansion-stage', fits);
       }
-      profile.classList.toggle('has-profile-stage', fits);
     }
 
-    new ResizeObserver(updateStage).observe(layout);
-    desktopMotion.addEventListener('change', updateStage);
-    window.addEventListener('resize', updateStage, { passive: true });
-    updateStage();
+    const observer = new ResizeObserver(updateStages);
+    sections.forEach(({ layout }) => observer.observe(layout));
+    desktopMotion.addEventListener('change', updateStages);
+    window.addEventListener('resize', updateStages, { passive: true });
+    updateStages();
   }
 
   function initHomeImageMotion() {

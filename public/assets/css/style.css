@@ -636,7 +636,7 @@ html:has(> .homepage) {
 }
 
 .home-practices {
-  padding-block-start: clamp(3.2rem, 5vw, 7.25rem);
+  padding-block: clamp(3.2rem, 5vw, 7.25rem) clamp(2rem, 3.25vw, 4rem);
 }
 
 .home-practices:focus-visible {
@@ -736,20 +736,23 @@ html:has(> .homepage) {
   padding-block: 0;
 }
 
-.home-profile-stage {
+.home-expansion-stage {
   position: relative;
   isolation: isolate;
   padding-block: var(--home-space);
 }
 
-.home-profile-backdrop {
+.home-expansion-backdrop {
   position: absolute;
   inset: 0;
   background: var(--surface);
 }
 
-.home-profile-layout {
+.home-expansion-layout {
   position: relative;
+}
+
+.home-profile-layout {
   grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
   align-items: start;
 }
@@ -845,7 +848,7 @@ html:has(> .homepage) {
 }
 
 .home-office {
-  padding-block: var(--office-entry-space, clamp(1.75rem, 3.25vw, 3.5rem)) clamp(3.25rem, 5.1vw, 7rem);
+  padding-block: clamp(1.5rem, 2.45vw, 2.75rem) clamp(2rem, 3.5vw, 4rem);
 }
 
 .home-office-photo {
@@ -877,27 +880,26 @@ html:has(> .homepage) {
 }
 
 .home-clients {
-  padding-block-end: clamp(1.5rem, 2.8vw, 3rem);
-  background: var(--paper);
+  --expansion-height: 133svh;
 }
 
 .home-clients-layout {
-  border-block-start: 1px solid var(--line);
-  padding-block-start: clamp(1.8rem, 3vw, 3.5rem);
-  grid-template-columns: minmax(0, .68fr) minmax(0, 1.32fr);
-  align-items: start;
-  row-gap: 1.35rem;
+  grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+  align-items: center;
+  row-gap: 1.75rem;
 }
 
 .home-clients h2 {
-  font-size: clamp(2rem, 2.85vw, 4rem);
-  line-height: 1.02;
+  font-size: clamp(2.35rem, 5.05vw, 7rem);
+  letter-spacing: -.055em;
+  line-height: .98;
+  text-wrap: balance;
 }
 
 .home-client-logos {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: clamp(.55rem, 1vw, .9rem) clamp(1rem, 2.2vw, 2rem);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(.9rem, 2vw, 2.5rem) clamp(.55rem, 1.3vw, 1.5rem);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -905,15 +907,39 @@ html:has(> .homepage) {
 
 .home-client-logos li {
   display: grid;
-  min-height: clamp(3.35rem, 5.15vw, 4.65rem);
+  min-block-size: clamp(3.35rem, 4.6vw, 4.7rem);
   place-items: center;
+}
+
+@media (min-width: 57rem) {
+  .home-client-logos {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-auto-rows: 1fr;
+    min-block-size: clamp(16rem, 30svh, 25rem);
+  }
+
+  .home-client-logos li {
+    grid-column: span 2;
+  }
+
+  .home-client-logos li:nth-child(4) {
+    grid-column: 2 / span 2;
+  }
+
+  .home-client-logos li:nth-child(5) {
+    grid-column: 4 / span 3;
+  }
+
+  .home-client-logos li:nth-child(3n + 2) {
+    padding-block-start: .85rem;
+  }
 }
 
 .home-client-logos img {
   width: auto;
   height: auto;
   max-width: min(100%, var(--logo-width, clamp(9.25rem, 14vw, 13.5rem)));
-  max-height: var(--logo-height, clamp(2.6rem, 3.5vw, 3.7rem));
+  max-height: var(--logo-height, clamp(2.65rem, 4vw, 4.15rem));
 }
 
 .home-client-ergo-hestia {
@@ -930,7 +956,7 @@ html:has(> .homepage) {
 }
 
 .home-publications {
-  padding-block: 0 clamp(2.5rem, 4.5vw, 5.5rem);
+  padding-block: 0 clamp(1.5rem, 2.35vw, 3.25rem);
 }
 
 .home-publications-layout {
@@ -1249,10 +1275,6 @@ html:has(> .homepage) {
   .home-office-copy {
     margin: -1.25rem 0 0 .85rem;
     padding: 1.25rem 1rem 1rem;
-  }
-
-  .home-client-logos {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .home-contact-layout {
@@ -2278,7 +2300,6 @@ main:has(.archive-empty) + .site-footer {
 
   [data-reveal].is-revealed:not([data-reveal="image"], [data-reveal="sequence"]),
   .home-hero :is(.home-hero-heading > .section-kicker, h1 span, .home-hero-intro > *),
-  .home-practices-heading.is-revealed > *,
   .home-contact-layout.is-revealed > * {
     animation: editorial-enter var(--enter-duration, 500ms) var(--motion-ease) var(--enter-delay, 0ms) backwards;
   }
@@ -2337,16 +2358,8 @@ main:has(.archive-empty) + .site-footer {
     translate: 0 2px;
   }
 
-  .home-practices-heading > .text-action,
-  .home-contact-detail,
-  .home-publications-list {
+  .home-contact-detail {
     --enter-delay: 80ms;
-  }
-
-  .home-practice-list li {
-    --enter-duration: 510ms;
-    --enter-y: 13px;
-    --enter-delay: calc(35ms + var(--reveal-order, 0) * 60ms);
   }
 
   .home-hero-photo {
@@ -2458,19 +2471,15 @@ main:has(.archive-empty) + .site-footer {
   }
 }
 
-/* The contain range starts at pinning and ends where Wrocław takes over. */
-.home-profile.has-profile-stage {
-  --profile-expansion: contain 0% contain 68%;
-  min-block-size: 145svh;
-  view-timeline: --profile block;
+/* Expand during arrival, then hold while the section covers the viewport. */
+.has-expansion-stage {
+  --expansion-range: entry 66% contain 55%;
+  min-block-size: var(--expansion-height, 136svh);
+  view-timeline: --expansion block;
   view-timeline-inset: 0;
 }
 
-.has-profile-stage + .home-office {
-  --office-entry-space: 0px;
-}
-
-.has-profile-stage .home-profile-stage {
+.has-expansion-stage .home-expansion-stage {
   position: sticky;
   inset-block-start: 0;
   display: grid;
@@ -2479,27 +2488,18 @@ main:has(.archive-empty) + .site-footer {
   padding-block: 0;
 }
 
-.has-profile-stage .home-profile-backdrop {
-  animation: profile-expand auto linear both;
+.has-expansion-stage .home-expansion-backdrop {
+  animation: home-surface-expand auto linear both;
 }
 
-.has-profile-stage .home-profile-layout {
-  animation: profile-rise auto linear both;
+.has-expansion-stage .home-expansion-layout {
+  --rise-distance: calc(var(--expansion-inset) / 2);
+  animation: home-rise auto linear both;
 }
 
-.has-profile-stage :is(.home-profile-backdrop, .home-profile-layout) {
-  animation-timeline: --profile;
-  animation-range: var(--profile-expansion);
-}
-
-@keyframes profile-expand {
-  from { clip-path: inset(var(--profile-inset) 0 0); }
-  to { clip-path: inset(0); }
-}
-
-@keyframes profile-rise {
-  from { translate: 0 calc(var(--profile-inset) / 2); }
-  to { translate: 0 0; }
+.has-expansion-stage :is(.home-expansion-backdrop, .home-expansion-layout) {
+  animation-timeline: --expansion;
+  animation-range: var(--expansion-range);
 }
 
 @supports (animation-timeline: view()) and (animation-range: entry 0% exit 100%) {
@@ -2509,22 +2509,98 @@ main:has(.archive-empty) + .site-footer {
       animation-timeline: scroll(root block);
       animation-range: 0px 340px;
     }
+  }
 
-    .home-client-logos {
-      animation: clients-rise auto ease-out both;
-      animation-timeline: view();
-      animation-range: entry 0% entry 100%;
+  @media (min-width: 57rem) and (min-height: 44rem) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    .home-practices {
+      display: grid;
+      min-block-size: 100svh;
+      --heading-descent: min(38svh, 32rem);
+      view-timeline: --practices block;
+      view-timeline-inset: 0;
+    }
+
+    .home-practices-heading {
+      inset-block-start: clamp(4.4rem, 8svh, 6rem);
+      padding-block-end: var(--heading-descent);
+    }
+
+    .home-practices-intro {
+      animation: practices-journey auto ease-in-out both;
+      animation-timeline: --practices;
+      animation-range: entry 55% exit 60%;
+    }
+
+    .home-practice-list {
+      display: grid;
+      align-self: stretch;
+      grid-auto-rows: minmax(min-content, 1fr);
+    }
+
+    .home-practice-link {
+      block-size: 100%;
+    }
+
+    .home-publications {
+      view-timeline: --publications block;
+      view-timeline-inset: 0;
+    }
+
+    .home-publications-heading,
+    .home-publications-list > li {
+      animation: home-rise auto linear both;
+      animation-timeline: --publications;
+      animation-range: var(--editorial-range, entry 4% cover 28%);
+    }
+
+    .home-publications-list > :first-child {
+      --rise-distance: 1.65rem;
+      --editorial-range: entry 16% cover 36%;
+    }
+
+    .home-publications-list > :nth-child(2) {
+      --editorial-range: entry 26% cover 42%;
+    }
+
+    .home-publications-list > :nth-child(3) {
+      --editorial-range: entry 43% cover 48%;
+    }
+
+    .home-clients.has-expansion-stage :is(h2, .home-client-logos img) {
+      --rise-distance: .75rem;
+      animation: home-rise auto linear both;
+      animation-timeline: --expansion;
+      animation-range: var(--client-reveal, entry 66% contain 18%);
+    }
+
+    .home-clients.has-expansion-stage .home-client-logos li:nth-child(n + 4) {
+      --client-reveal: entry 77% contain 34%;
+    }
+
+    .home-clients.has-expansion-stage .home-client-logos li:nth-child(n + 6) {
+      --client-reveal: entry 86% contain 49%;
     }
   }
 }
 
-@keyframes hero-heading-scroll {
-  to { translate: 0 clamp(-3rem, -3vw, -1.5rem); }
+@keyframes home-surface-expand {
+  from { clip-path: inset(var(--expansion-inset) 0 0); }
+  to { clip-path: inset(0); }
 }
 
-@keyframes clients-rise {
-  from { translate: 0 1rem; }
+@keyframes home-rise {
+  from { translate: 0 var(--rise-distance, 1.25rem); }
   to { translate: 0 0; }
+}
+
+@keyframes practices-journey {
+  from { translate: 0 1.25rem; }
+  33% { translate: 0 0; }
+  65%, to { translate: 0 var(--heading-descent); }
+}
+
+@keyframes hero-heading-scroll {
+  to { translate: 0 clamp(-3rem, -3vw, -1.5rem); }
 }
 
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) and (forced-colors: none) {

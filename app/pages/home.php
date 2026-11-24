@@ -66,10 +66,12 @@ $experienceYears = 6;
 
 <section class="home-practices home-section" id="specjalizacje" tabindex="-1" aria-labelledby="home-practices-title">
   <div class="home-frame home-practices-layout">
-    <div class="home-practices-heading" data-reveal="sequence">
-      <p class="section-kicker">Specjalizacje</p>
-      <h2 id="home-practices-title">W czym możemy pomóc?</h2>
-      <a class="text-action" href="/specjalizacje/">Pełna lista specjalizacji</a>
+    <div class="home-practices-heading">
+      <div class="home-practices-intro">
+        <p class="section-kicker">Specjalizacje</p>
+        <h2 id="home-practices-title">W czym możemy pomóc?</h2>
+        <a class="text-action" href="/specjalizacje/">Pełna lista specjalizacji</a>
+      </div>
     </div>
     <ul class="home-practice-list" role="list">
       <?php foreach (array_slice($services, 0, 8) as $service): ?>
@@ -77,7 +79,7 @@ $experienceYears = 6;
         $summary = $service['home_summary'] ?? $service['summary'];
         $summary = preg_replace('/(?<!\p{L})([aiouwz]) (?=\p{L})/iu', '$1' . "\u{00A0}", $summary) ?? $summary;
         ?>
-        <li data-reveal="row">
+        <li>
           <a class="home-practice-link" href="/specjalizacje/<?= e($service['slug']) ?>/" data-home-surface-interactive="beige">
             <span><?= e($service['title']) ?></span>
             <small><?= e($summary) ?></small>
@@ -91,11 +93,11 @@ $experienceYears = 6;
 <?php if ($publications): ?>
   <section class="home-publications home-section" aria-labelledby="home-publications-title">
     <div class="home-frame home-publications-layout">
-      <div class="home-publications-heading" data-reveal>
+      <div class="home-publications-heading">
         <h2 id="home-publications-title">Publikacje</h2>
         <a class="text-action" href="/artykuly/">Wszystkie publikacje</a>
       </div>
-      <ol class="home-publications-list" role="list" data-reveal>
+      <ol class="home-publications-list" role="list">
         <?php foreach (array_slice($publications, 0, 3) as $publication): ?>
           <li>
             <article>
@@ -116,10 +118,10 @@ $experienceYears = 6;
   </section>
 <?php endif; ?>
 
-<section class="home-profile home-section" aria-labelledby="home-profile-title">
-  <div class="home-profile-stage">
-    <div class="home-profile-backdrop" aria-hidden="true" data-home-surface="beige"></div>
-    <div class="home-frame home-profile-layout" data-home-surface="beige">
+<section class="home-profile home-section home-expansion" aria-labelledby="home-profile-title">
+  <div class="home-profile-stage home-expansion-stage">
+    <div class="home-profile-backdrop home-expansion-backdrop" aria-hidden="true" data-home-surface="beige"></div>
+    <div class="home-frame home-profile-layout home-expansion-layout" data-home-surface="beige">
       <div class="home-profile-statement">
         <p class="section-kicker">O kancelarii</p>
         <h2 id="home-profile-title">Najpierw sprawa.<br>Potem strategia.</h2>
@@ -172,16 +174,19 @@ $experienceYears = 6;
 </section>
 
 <?php if ($showClientLogos): ?>
-  <section class="home-clients" aria-labelledby="home-clients-title" data-home-surface="light">
-    <div class="home-frame home-clients-layout">
-      <h2 id="home-clients-title">Współpracujemy z</h2>
-      <ul class="home-client-logos" role="list">
-        <?php foreach ($clientLogos as [$slug, $name, $width, $height]): ?>
-          <li class="home-client-<?= e($slug) ?>">
-            <img src="/assets/img/clients/<?= e($slug) ?>.webp" alt="<?= e($name) ?>" width="<?= $width ?>" height="<?= $height ?>" loading="lazy" decoding="async">
-          </li>
-        <?php endforeach; ?>
-      </ul>
+  <section class="home-clients home-expansion" aria-labelledby="home-clients-title">
+    <div class="home-expansion-stage">
+      <div class="home-expansion-backdrop" aria-hidden="true" data-home-surface="beige"></div>
+      <div class="home-frame home-clients-layout home-expansion-layout" data-home-surface="beige">
+        <h2 id="home-clients-title">Współpracujemy z</h2>
+        <ul class="home-client-logos" role="list">
+          <?php foreach ($clientLogos as [$slug, $name, $width, $height]): ?>
+            <li class="home-client-<?= e($slug) ?>">
+              <img src="/assets/img/clients/<?= e($slug) ?>.webp" alt="<?= e($name) ?>" width="<?= $width ?>" height="<?= $height ?>" loading="lazy" decoding="async">
+            </li>
+          <?php endforeach; ?>
+        </ul>
+      </div>
     </div>
   </section>
 <?php endif; ?>
