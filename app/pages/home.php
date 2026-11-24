@@ -3,6 +3,16 @@ $partners = array_filter($team, static fn ($person) => str_starts_with(text_lowe
 $publications = array_filter($articles, static fn ($article) =>
     is_array($article) && is_string($article['title'] ?? null) && trim($article['title']) !== ''
 );
+$clientLogos = [
+    ['bank-millennium', 'Bank Millennium', 440, 94],
+    ['nest-bank', 'Nest Bank', 440, 174],
+    ['ergo-hestia', 'ERGO Hestia', 317, 176],
+    ['gowhistle', 'GoWhistle', 440, 115],
+    ['asps-budownictwo', 'ASPS Budownictwo', 440, 67],
+    ['wsb-merito', 'Uniwersytety WSB Merito', 440, 93],
+    ['ultimo', 'Ultimo', 440, 142],
+    ['takto-finanse', 'Takto Finanse', 200, 68],
+];
 // Temporary value for this experiment. Verify the experience figure before production.
 $experienceYears = 6;
 ?>
@@ -14,7 +24,7 @@ $experienceYears = 6;
 <section class="home-hero" aria-labelledby="home-title" data-home-surface="burgundy">
   <div class="home-frame home-hero-layout">
     <div class="home-hero-heading">
-      <p class="section-kicker">Kancelaria Radców Prawnych · Wrocław</p>
+      <p class="section-kicker">Kancelaria radców prawnych we Wrocławiu</p>
       <h1 id="home-title">Prawo <span>w&nbsp;praktyce.</span></h1>
     </div>
     <picture class="home-hero-photo" data-scroll-photo="hero" data-home-surface="photo">
@@ -28,7 +38,12 @@ $experienceYears = 6;
         <p class="home-hero-lead">Doradzamy firmom, instytucjom i&nbsp;klientom&nbsp;indywidualnym.</p>
         <p>Reprezentujemy ich również w&nbsp;sporach&nbsp;sądowych.</p>
       </div>
-      <a class="button home-hero-action" href="#specjalizacje" data-home-surface="light">Zobacz specjalizacje</a>
+      <div class="home-hero-actions">
+        <a class="button home-hero-action" href="#specjalizacje" data-home-surface-interactive="light">
+          Zobacz specjalizacje <span aria-hidden="true">↓</span>
+        </a>
+        <a class="text-action" href="/o-kancelarii/">Poznaj kancelarię</a>
+      </div>
     </div>
   </div>
 </section>
@@ -47,7 +62,7 @@ $experienceYears = 6;
         $summary = preg_replace('/(?<!\p{L})([aiouwz]) (?=\p{L})/iu', '$1' . "\u{00A0}", $summary) ?? $summary;
         ?>
         <li data-reveal="row">
-          <a class="home-practice-link" href="/specjalizacje/<?= e($service['slug']) ?>/">
+          <a class="home-practice-link" href="/specjalizacje/<?= e($service['slug']) ?>/" data-home-surface-interactive="beige">
             <span><?= e($service['title']) ?></span>
             <small><?= e($summary) ?></small>
           </a>
@@ -106,6 +121,19 @@ $experienceYears = 6;
       <address><?= implode('<br>', array_map('e', $site['address'])) ?></address>
       <a class="text-action" href="/kontakt/">Dane kontaktowe i godziny pracy</a>
     </div>
+  </div>
+</section>
+
+<section class="home-clients home-section" aria-labelledby="home-clients-title" data-home-surface="beige">
+  <div class="home-frame home-clients-layout">
+    <h2 id="home-clients-title" data-reveal>Wybrane współprace</h2>
+    <ul class="home-client-logos" role="list" data-reveal>
+      <?php foreach ($clientLogos as [$slug, $name, $width, $height]): ?>
+        <li class="home-client-<?= e($slug) ?>">
+          <img src="/assets/img/clients/<?= e($slug) ?>.webp" alt="<?= e($name) ?>" width="<?= $width ?>" height="<?= $height ?>" loading="lazy" decoding="async">
+        </li>
+      <?php endforeach; ?>
+    </ul>
   </div>
 </section>
 

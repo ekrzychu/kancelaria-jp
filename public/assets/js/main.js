@@ -81,7 +81,15 @@
 
   function initHomeNavigation() {
     const header = document.querySelector('.site-header');
+    const heroHeading = document.querySelector('.home-hero-heading');
     header.classList.add('is-scroll-aware');
+
+    if ('ResizeObserver' in window) {
+      // The expanded top menu ends at the photo rather than crossing the headline.
+      new ResizeObserver(() => {
+        header.style.setProperty('--home-menu-cover', `${heroHeading.getBoundingClientRect().height}px`);
+      }).observe(heroHeading);
+    }
 
     let compact = false;
     let visible = false;
@@ -131,8 +139,10 @@
   }
 
   function homeSurfaceFor(element) {
-    if (element?.closest('.home-practice-link:is(:hover, :focus-visible, :active)')) return 'beige';
-    return element?.closest('[data-home-surface]')?.dataset.homeSurface ?? 'light';
+    const interactive = element?.closest('[data-home-surface-interactive]:is(:hover, :focus-visible, :active)');
+    return interactive?.dataset.homeSurfaceInteractive
+      ?? element?.closest('[data-home-surface]')?.dataset.homeSurface
+      ?? 'light';
   }
 
   function initHomeContact() {
@@ -365,7 +375,7 @@
           ? 1 - pageScroll / (pageScroll + top + height)
           : (viewport - top) / (viewport + height);
         const progress = Math.max(0, Math.min(1, position));
-        return [photo, (progress - .5) * 14.8];
+        return [photo, (progress - .5) * 16];
       });
       for (const [photo, offset] of offsets) {
         photo.style.setProperty('--photo-scroll-offset', `${offset.toFixed(3)}%`);
