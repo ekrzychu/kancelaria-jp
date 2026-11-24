@@ -41,7 +41,7 @@ $experienceYears = 6;
   <div class="home-frame home-hero-layout">
     <div class="home-hero-heading">
       <p class="section-kicker">Kancelaria radców prawnych we Wrocławiu</p>
-      <h1 id="home-title">Prawo <span>w&nbsp;praktyce.</span></h1>
+      <h1 id="home-title"><span>Prawo</span> <span class="home-hero-title-accent">w&nbsp;praktyce.</span></h1>
     </div>
     <picture class="home-hero-photo" data-scroll-photo="hero" data-home-surface="photo">
       <img src="/assets/img/office-meeting-1360.webp"
@@ -54,10 +54,12 @@ $experienceYears = 6;
         <p class="home-hero-lead">Doradzamy firmom, instytucjom i&nbsp;klientom&nbsp;indywidualnym.</p>
         <p>Reprezentujemy ich również w&nbsp;sporach&nbsp;sądowych.</p>
       </div>
-      <div class="home-hero-actions">
-        <a class="home-hero-action" href="#specjalizacje">Zobacz specjalizacje</a>
-        <a class="text-action" href="/o-kancelarii/">Poznaj kancelarię</a>
-      </div>
+      <a class="home-hero-action" href="#specjalizacje" data-home-surface="light">
+        Zobacz specjalizacje
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true" focusable="false">
+          <path d="M9 3.25v10.75m-3.75-3.75L9 14l3.75-3.75" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
     </div>
   </div>
 </section>
@@ -86,74 +88,6 @@ $experienceYears = 6;
   </div>
 </section>
 
-<section class="home-profile home-section" aria-labelledby="home-profile-title">
-  <div class="home-profile-backdrop" aria-hidden="true" data-home-surface="beige"></div>
-  <div class="home-frame home-profile-layout" data-home-surface="beige">
-    <div class="home-profile-statement" data-reveal="sequence">
-      <p class="section-kicker">O kancelarii</p>
-      <h2 id="home-profile-title">Najpierw sprawa.<br>Potem strategia.</h2>
-    </div>
-    <div class="home-profile-side">
-      <div class="home-profile-detail" data-reveal>
-        <p>Ustalamy, co jest dla klienta najważniejsze, i&nbsp;przedstawiamy możliwe działania oraz ich konsekwencje. Wspieramy w&nbsp;pojedynczych sprawach i&nbsp;w&nbsp;stałej współpracy.</p>
-        <a class="text-action" href="/o-kancelarii/">Jak pracujemy</a>
-      </div>
-      <p class="home-experience" data-reveal="count">
-        <span class="visually-hidden"><?= $experienceYears ?>+</span>
-        <span class="home-experience-value" aria-hidden="true">
-          <span class="home-experience-number" data-experience="<?= $experienceYears ?>"><span><?= $experienceYears ?></span></span><span class="home-experience-plus">+</span>
-        </span>
-        <span>lat doświadczenia</span>
-      </p>
-    </div>
-    <div class="home-team" data-reveal>
-      <div>
-        <h3>Zespół kancelarii</h3>
-        <a class="text-action" href="/zespol/">Poznaj cały zespół</a>
-      </div>
-      <?php if ($partners): ?>
-        <ul role="list">
-          <?php foreach (array_slice($partners, 0, 2) as $person): ?>
-            <li><p><?= e($person['name']) ?></p><span><?= e($person['role']) ?></span></li>
-          <?php endforeach; ?>
-        </ul>
-      <?php endif; ?>
-    </div>
-  </div>
-</section>
-
-<?php if ($showClientLogos): ?>
-  <section class="home-clients" aria-labelledby="home-clients-title" data-home-surface="light">
-    <div class="home-frame home-clients-layout">
-      <h2 id="home-clients-title">Współpracujemy z</h2>
-      <ul class="home-client-logos" role="list">
-        <?php foreach ($clientLogos as [$slug, $name, $width, $height]): ?>
-          <li class="home-client-<?= e($slug) ?>">
-            <img src="/assets/img/clients/<?= e($slug) ?>.webp" alt="<?= e($name) ?>" width="<?= $width ?>" height="<?= $height ?>" loading="lazy" decoding="async">
-          </li>
-        <?php endforeach; ?>
-      </ul>
-    </div>
-  </section>
-<?php endif; ?>
-
-<section class="home-office home-section" aria-labelledby="home-office-title">
-  <div class="home-frame home-office-layout">
-    <picture class="home-office-photo" data-reveal="image" data-scroll-photo data-home-surface="photo">
-      <img src="/assets/img/office-entrance-1280.webp"
-        srcset="/assets/img/office-entrance-760.webp 760w, /assets/img/office-entrance-1280.webp 1280w, /assets/img/office-entrance-2240.webp 2240w"
-        sizes="(max-width: 42rem) 90vw, (max-width: 56rem) 49vw, (min-width: 129rem) 66rem, 55vw"
-        alt="Drewniane drzwi wejściowe i numer 7–8 na kamiennej fasadzie przy placu Kościuszki" width="1280" height="1990" loading="lazy" decoding="async">
-    </picture>
-    <div class="home-office-copy" data-reveal data-home-surface="beige">
-      <p class="section-kicker">Siedziba kancelarii</p>
-      <h2 id="home-office-title">Wrocław.</h2>
-      <address><?= implode('<br>', array_map('e', $site['address'])) ?></address>
-      <a class="text-action" href="/kontakt/">Dane kontaktowe i godziny pracy</a>
-    </div>
-  </div>
-</section>
-
 <?php if ($publications): ?>
   <section class="home-publications home-section" aria-labelledby="home-publications-title">
     <div class="home-frame home-publications-layout">
@@ -178,6 +112,76 @@ $experienceYears = 6;
           </li>
         <?php endforeach; ?>
       </ol>
+    </div>
+  </section>
+<?php endif; ?>
+
+<section class="home-profile home-section" aria-labelledby="home-profile-title">
+  <div class="home-profile-stage">
+    <div class="home-profile-backdrop" aria-hidden="true" data-home-surface="beige"></div>
+    <div class="home-frame home-profile-layout" data-home-surface="beige">
+      <div class="home-profile-statement" data-reveal="sequence">
+        <p class="section-kicker">O kancelarii</p>
+        <h2 id="home-profile-title">Najpierw sprawa.<br>Potem strategia.</h2>
+      </div>
+      <div class="home-profile-side">
+        <div class="home-profile-detail" data-reveal>
+          <p>Ustalamy, co jest dla klienta najważniejsze, i&nbsp;przedstawiamy możliwe działania oraz ich konsekwencje. Wspieramy w&nbsp;pojedynczych sprawach i&nbsp;w&nbsp;stałej współpracy.</p>
+          <a class="text-action" href="/o-kancelarii/">Poznaj kancelarię</a>
+        </div>
+        <p class="home-experience" data-reveal="count">
+          <span class="visually-hidden"><?= $experienceYears ?>+</span>
+          <span class="home-experience-value" aria-hidden="true">
+            <span class="home-experience-number" data-experience="<?= $experienceYears ?>"><span><?= $experienceYears ?></span></span><span class="home-experience-plus">+</span>
+          </span>
+          <span>lat doświadczenia</span>
+        </p>
+      </div>
+      <div class="home-team" data-reveal>
+        <div>
+          <h3>Zespół kancelarii</h3>
+          <a class="text-action" href="/zespol/">Poznaj cały zespół</a>
+        </div>
+        <?php if ($partners): ?>
+          <ul role="list">
+            <?php foreach (array_slice($partners, 0, 2) as $person): ?>
+              <li><p><?= e($person['name']) ?></p><span><?= e($person['role']) ?></span></li>
+            <?php endforeach; ?>
+          </ul>
+        <?php endif; ?>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="home-office home-section" aria-labelledby="home-office-title">
+  <div class="home-frame home-office-layout">
+    <picture class="home-office-photo" data-reveal="image" data-scroll-photo data-home-surface="photo">
+      <img src="/assets/img/office-entrance-1280.webp"
+        srcset="/assets/img/office-entrance-760.webp 760w, /assets/img/office-entrance-1280.webp 1280w, /assets/img/office-entrance-2240.webp 2240w"
+        sizes="(max-width: 42rem) 90vw, (max-width: 56rem) 49vw, (min-width: 129rem) 66rem, 55vw"
+        alt="Drewniane drzwi wejściowe i numer 7–8 na kamiennej fasadzie przy placu Kościuszki" width="1280" height="1990" loading="lazy" decoding="async">
+    </picture>
+    <div class="home-office-copy" data-reveal data-home-surface="beige">
+      <p class="section-kicker">Siedziba kancelarii</p>
+      <h2 id="home-office-title">Wrocław.</h2>
+      <address><?= implode('<br>', array_map('e', $site['address'])) ?></address>
+      <a class="text-action" href="/kontakt/">Dane kontaktowe i godziny pracy</a>
+    </div>
+  </div>
+</section>
+
+<?php if ($showClientLogos): ?>
+  <section class="home-clients" aria-labelledby="home-clients-title" data-home-surface="light">
+    <div class="home-frame home-clients-layout">
+      <h2 id="home-clients-title">Współpracujemy z</h2>
+      <ul class="home-client-logos" role="list">
+        <?php foreach ($clientLogos as [$slug, $name, $width, $height]): ?>
+          <li class="home-client-<?= e($slug) ?>">
+            <img src="/assets/img/clients/<?= e($slug) ?>.webp" alt="<?= e($name) ?>" width="<?= $width ?>" height="<?= $height ?>" loading="lazy" decoding="async">
+          </li>
+        <?php endforeach; ?>
+      </ul>
     </div>
   </section>
 <?php endif; ?>

@@ -502,7 +502,7 @@ html:has(> .homepage) {
   position: relative;
   z-index: 1;
   grid-column: 1 / -1;
-  padding-block: clamp(1.6rem, 3.3vw, 4.25rem) clamp(1.45rem, 2.55vw, 3.8rem);
+  padding-block: clamp(1.6rem, 3.3vw, 4.25rem) clamp(1.2rem, 1.8vw, 2.25rem);
   padding-inline-end: var(--home-gutter);
 }
 
@@ -530,6 +530,10 @@ html:has(> .homepage) {
 }
 
 .home-hero h1 span {
+  display: inline-block;
+}
+
+.home-hero-title-accent {
   color: #e4d1bf;
 }
 
@@ -543,7 +547,6 @@ html:has(> .homepage) {
 .home-hero-photo {
   grid-column: 2;
   grid-row: 2;
-  margin-block-start: clamp(-8rem, -5.9vw, -3.5rem);
   aspect-ratio: 1.98;
   background: var(--burgundy);
 }
@@ -555,15 +558,6 @@ html:has(> .homepage) {
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-
-.home-hero-photo::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(to bottom, var(--burgundy), transparent 16%),
-    linear-gradient(to right, var(--burgundy), transparent 9%);
 }
 
 .home-hero-photo img {
@@ -611,37 +605,25 @@ html:has(> .homepage) {
   background: #e4d1bf;
 }
 
-.home-hero-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: .75rem 1.25rem;
-}
-
-.home-hero-actions .text-action {
-  color: #e7dacf;
-  font-weight: 500;
-}
-
-.home-hero-actions .text-action:is(:hover, :focus-visible) {
-  color: var(--light-text);
-}
-
 .home-hero-action {
   display: inline-flex;
   align-items: center;
+  gap: .8rem;
   min-height: 3rem;
-  color: var(--light-text);
-  font: 500 clamp(1.4rem, 1.8vw, 1.85rem)/1.15 var(--serif);
-  letter-spacing: -.025em;
-  text-decoration: underline;
-  text-decoration-color: transparent;
-  text-decoration-thickness: 1px;
-  text-underline-offset: .2em;
+  padding: .65rem 1rem;
+  background: var(--light-text);
+  color: var(--burgundy);
+  font-size: var(--type-small);
+  font-weight: 600;
+  line-height: 1.2;
 }
 
-.home-hero-action:is(:hover, :focus-visible) {
-  text-decoration-color: var(--taupe);
+.home-hero-action svg {
+  flex: none;
+}
+
+.home-hero-action:is(:hover, :active) {
+  background: #e4d1bf;
 }
 
 .home-section {
@@ -751,8 +733,13 @@ html:has(> .homepage) {
 }
 
 .home-profile {
+  padding-block: 0;
+}
+
+.home-profile-stage {
   position: relative;
   isolation: isolate;
+  padding-block: var(--home-space);
 }
 
 .home-profile-backdrop {
@@ -943,11 +930,12 @@ html:has(> .homepage) {
 }
 
 .home-publications {
-  border-top: 1px solid var(--line);
-  padding-block: clamp(2.5rem, 4.5vw, 5.5rem);
+  padding-block: 0 clamp(2.5rem, 4.5vw, 5.5rem);
 }
 
 .home-publications-layout {
+  border-block-start: 1px solid var(--line);
+  padding-block-start: clamp(1.8rem, 3vw, 3.5rem);
   grid-template-columns: minmax(0, 1fr);
   row-gap: clamp(1.4rem, 2.9vw, 3rem);
 }
@@ -1168,7 +1156,6 @@ html:has(> .homepage) {
 
   .home-hero-photo {
     grid-column: 1;
-    margin-block-start: -1.4rem;
     aspect-ratio: 1.67;
   }
 
@@ -2290,7 +2277,7 @@ main:has(.archive-empty) + .site-footer {
   }
 
   [data-reveal].is-revealed:not([data-reveal="image"], [data-reveal="sequence"]),
-  .home-hero :is(.home-hero-heading > *, .home-hero-intro > *),
+  .home-hero :is(.home-hero-heading > .section-kicker, h1 span, .home-hero-intro > *),
   .home-practices-heading.is-revealed > *,
   .home-profile-statement.is-revealed > *,
   .home-contact-layout.is-revealed > * {
@@ -2317,25 +2304,38 @@ main:has(.archive-empty) + .site-footer {
     --enter-y: 7px;
   }
 
-  .home-hero h1 {
-    --enter-duration: 720ms;
-    --enter-delay: 85ms;
-    --enter-y: .18em;
-    --enter-mask-start: inset(-.14em -.12em 36%);
-    --enter-mask-end: inset(-.14em -.12em -.3em);
+  .home-hero h1 span {
+    --enter-duration: 760ms;
+    --enter-delay: 80ms;
+    --enter-y: .25em;
+    --enter-mask-start: inset(-.18em -.12em 34%);
+    --enter-mask-end: inset(-.18em -.12em -.32em);
   }
 
-  .home-hero-intro > * {
-    --enter-delay: 185ms;
+  .home-hero h1 .home-hero-title-accent {
+    --enter-delay: 165ms;
   }
 
-  .home-hero-actions {
-    --enter-delay: 245ms;
+  .home-hero-copy {
+    --enter-delay: 220ms;
   }
 
-  .home-hero-actions:has(:focus-visible) {
-    --enter-y: 0px;
-    --enter-opacity: 1;
+  .home-hero-action {
+    --enter-delay: 280ms;
+    --enter-y: 7px;
+    transition: background-color 180ms ease;
+  }
+
+  .home-hero .home-hero-action:focus-visible {
+    animation: none;
+  }
+
+  .home-hero-action svg {
+    transition: translate 180ms var(--motion-ease);
+  }
+
+  .home-hero-action:is(:hover, :focus-visible) svg {
+    translate: 0 2px;
   }
 
   .home-practices-heading > .text-action,
@@ -2458,7 +2458,7 @@ main:has(.archive-empty) + .site-footer {
       --enter-opacity: .75;
     }
 
-    .home-hero h1,
+    .home-hero h1 span,
     .home-profile-statement h2 {
       --enter-duration: 540ms;
       --enter-y: 12px;
@@ -2478,41 +2478,80 @@ main:has(.archive-empty) + .site-footer {
   }
 }
 
+/* The contain range spans the time the taller section covers the viewport. */
+.home-profile.has-profile-stage {
+  min-block-size: 185svh;
+  view-timeline: --profile block;
+  view-timeline-inset: 0;
+}
+
+.has-profile-stage .home-profile-stage {
+  position: sticky;
+  inset-block-start: 0;
+  display: grid;
+  align-items: center;
+  block-size: 100svh;
+  padding-block: 0;
+}
+
+.has-profile-stage .home-profile-backdrop {
+  animation: profile-aperture auto linear both;
+  animation-timeline: --profile;
+  animation-range: contain;
+}
+
+.has-profile-stage .home-profile-statement.is-revealed > *,
+.has-profile-stage .home-profile-detail.is-revealed {
+  animation: none;
+}
+
+.has-profile-stage .home-profile-layout > :is(.home-profile-statement, .home-profile-side, .home-team) {
+  animation: profile-rise auto ease-out both;
+  animation-timeline: --profile;
+  animation-range: contain var(--profile-entry) contain 100%;
+}
+
+.home-profile-statement {
+  --profile-entry: 0%;
+  --profile-rise: 2rem;
+}
+
+.home-profile-side {
+  --profile-entry: 7%;
+  --profile-rise: 2.5rem;
+}
+
+.home-team {
+  --profile-entry: 13%;
+  --profile-rise: 1.5rem;
+}
+
+@keyframes profile-aperture {
+  from { clip-path: inset(18% 0); }
+  32%, 68% { clip-path: inset(0); }
+  to { clip-path: inset(16% 0); }
+}
+
+@keyframes profile-rise {
+  from {
+    opacity: .76;
+    translate: 0 var(--profile-rise);
+  }
+
+  32%, 68% {
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  to { translate: 0 -1rem; }
+}
+
 @supports (animation-timeline: view()) and (animation-range: entry 0% exit 100%) {
-  @media (min-width: 57rem) and (min-height: 42rem) and (prefers-reduced-motion: no-preference) {
-    .home-profile {
-      display: grid;
-      align-items: center;
-      min-block-size: 84svh;
-      view-timeline: --profile block;
-    }
-
-    .home-profile-backdrop {
-      animation: profile-aperture auto linear both;
-      animation-timeline: --profile;
-    }
-
-    .home-profile-statement.is-revealed > *,
-    .home-profile :is(.home-profile-detail, .home-team).is-revealed {
-      animation: none;
-    }
-
-    .home-profile :is(.home-profile-statement, .home-profile-side, .home-experience) {
-      animation: profile-rise auto ease-out both;
-      animation-timeline: --profile;
-    }
-
-    .home-profile-statement {
-      --entry-rise: 2rem;
-    }
-
-    .home-profile-side {
-      --entry-rise: 3rem;
-    }
-
-    .home-profile .home-experience {
-      --entry-rise: 1rem;
-      animation-range: entry 18% exit 100%;
+  @media (min-width: 57rem) and (min-height: 44rem) and (prefers-reduced-motion: no-preference) {
+    .home-hero-heading {
+      animation: hero-heading-scroll auto linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 0px 340px;
     }
 
     .home-client-logos {
@@ -2523,16 +2562,8 @@ main:has(.archive-empty) + .site-footer {
   }
 }
 
-@keyframes profile-aperture {
-  from { clip-path: inset(18% 0 12%); }
-  40%, 60% { clip-path: inset(0); }
-  to { clip-path: inset(12% 0 18%); }
-}
-
-@keyframes profile-rise {
-  from { translate: 0 var(--entry-rise); }
-  45%, 60% { translate: 0 0; }
-  to { translate: 0 -1.25rem; }
+@keyframes hero-heading-scroll {
+  to { translate: 0 clamp(-3rem, -3vw, -1.5rem); }
 }
 
 @keyframes clients-rise {

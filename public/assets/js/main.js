@@ -50,6 +50,7 @@
 
   initReveals(homepage);
   if (homepage) {
+    initHomeProfile();
     initHomeNavigation();
     initHomeContact();
     initHomeImageMotion();
@@ -343,6 +344,31 @@
     experience.classList.add('is-counting');
     signal.addEventListener('abort', finish, { once: true });
     frame = requestAnimationFrame(tick);
+  }
+
+  function initHomeProfile() {
+    if (
+      !('ResizeObserver' in window) ||
+      !window.CSS?.supports('view-timeline: --profile block') ||
+      !window.CSS.supports('animation-range: contain')
+    ) return;
+
+    const profile = document.querySelector('.home-profile');
+    const layout = profile.querySelector('.home-profile-layout');
+    const desktopMotion = window.matchMedia(
+      '(min-width: 57rem) and (min-height: 44rem) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)'
+    );
+
+    function updateStage() {
+      // Reserve enough room around the content for both inset phases and keyboard focus.
+      const fits = desktopMotion.matches && layout.offsetHeight <= window.innerHeight * .7;
+      profile.classList.toggle('has-profile-stage', fits);
+    }
+
+    new ResizeObserver(updateStage).observe(layout);
+    desktopMotion.addEventListener('change', updateStage);
+    window.addEventListener('resize', updateStage, { passive: true });
+    updateStage();
   }
 
   function initHomeImageMotion() {
