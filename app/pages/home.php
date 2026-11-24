@@ -32,7 +32,7 @@ $clientLogos = [
 // Temporary value for this experiment. Verify the experience figure before production.
 $experienceYears = 6;
 ?>
-<a class="home-contact-float" href="/kontakt/" aria-label="Kontakt z kancelarią" data-home-surface="beige">
+<a class="home-contact-float" href="/kontakt/" aria-label="Kontakt z kancelarią" data-control-tone="burgundy" data-home-surface="light">
   <span class="home-contact-label">Kontakt</span>
   <span class="home-contact-face" aria-hidden="true" hidden><span class="home-contact-label">Kontakt</span></span>
 </a>
@@ -84,7 +84,7 @@ $experienceYears = 6;
               $summary = preg_replace('/(?<!\p{L})([aiouwz]) (?=\p{L})/iu', '$1' . "\u{00A0}", $summary) ?? $summary;
               ?>
               <li>
-                <a class="home-practice-link" href="/specjalizacje/<?= e($service['slug']) ?>/" data-home-surface-interactive="beige">
+                <a class="home-practice-link" href="/specjalizacje/<?= e($service['slug']) ?>/">
                   <span><?= e($service['title']) ?></span>
                   <small><?= e($summary) ?></small>
                 </a>
@@ -172,19 +172,24 @@ $experienceYears = 6;
   </section>
 </div>
 
-<section class="home-office home-section" aria-labelledby="home-office-title">
-  <div class="home-frame home-office-layout">
-    <picture class="home-office-photo" data-reveal="image" data-scroll-photo data-home-surface="photo">
-      <img src="/assets/img/office-entrance-1280.webp"
-        srcset="/assets/img/office-entrance-760.webp 760w, /assets/img/office-entrance-1280.webp 1280w, /assets/img/office-entrance-2240.webp 2240w"
-        sizes="(max-width: 42rem) 90vw, (max-width: 56rem) 49vw, (min-width: 129rem) 66rem, 55vw"
-        alt="Drewniane drzwi wejściowe i numer 7–8 na kamiennej fasadzie przy placu Kościuszki" width="1280" height="1990" loading="lazy" decoding="async">
-    </picture>
-    <div class="home-office-copy" data-reveal data-home-surface="beige">
-      <p class="section-kicker">Siedziba kancelarii</p>
-      <h2 id="home-office-title">Wrocław.</h2>
-      <address><?= implode('<br>', array_map('e', $site['address'])) ?></address>
-      <a class="text-action" href="/kontakt/">Dane kontaktowe i godziny pracy</a>
+<section class="home-office home-section" aria-labelledby="home-office-title" data-home-stage="office" data-home-surface="light">
+  <div class="home-stage-viewport">
+    <div class="home-stage-backdrop" aria-hidden="true"></div>
+    <div class="home-stage-content">
+      <div class="home-frame home-office-layout">
+        <picture class="home-office-photo" data-reveal="image" data-scroll-photo data-home-surface="photo">
+          <img src="/assets/img/office-entrance-1280.webp"
+            srcset="/assets/img/office-entrance-760.webp 760w, /assets/img/office-entrance-1280.webp 1280w, /assets/img/office-entrance-2240.webp 2240w"
+            sizes="(max-width: 42rem) 90vw, (max-width: 56rem) 49vw, (min-width: 129rem) 66rem, 55vw"
+            alt="Drewniane drzwi wejściowe i numer 7–8 na kamiennej fasadzie przy placu Kościuszki" width="1280" height="1990" loading="lazy" decoding="async">
+        </picture>
+        <div class="home-office-copy" data-reveal data-home-surface="beige">
+          <p class="section-kicker">Siedziba kancelarii</p>
+          <h2 id="home-office-title">Wrocław.</h2>
+          <address><?= implode('<br>', array_map('e', $site['address'])) ?></address>
+          <a class="text-action" href="/kontakt/">Dane kontaktowe i godziny pracy</a>
+        </div>
+      </div>
     </div>
   </div>
 </section>

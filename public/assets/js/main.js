@@ -140,10 +140,7 @@
   }
 
   function homeSurfaceFor(element) {
-    const interactive = element?.closest('[data-home-surface-interactive]:is(:hover, :focus-visible, :active)');
-    return interactive?.dataset.homeSurfaceInteractive
-      ?? element?.closest('[data-home-surface]')?.dataset.homeSurface
-      ?? 'light';
+    return element?.closest('[data-home-surface]')?.dataset.homeSurface ?? 'light';
   }
 
   function initHomeContact() {
@@ -152,10 +149,7 @@
     const faceSurfaces = { light: 'beige', beige: 'burgundy', burgundy: 'light', photo: 'burgundy' };
     const motion = window.matchMedia('(prefers-reduced-motion: no-preference)');
     const canAnimateTone = typeof face.animate === 'function' && window.CSS?.supports('clip-path', 'inset(0)');
-    const entranceScroll = 64;
-    let pending = motion.matches && window.scrollY < entranceScroll;
     let frame = 0;
-    let entranceTimer;
     let requestedTone;
     let toneAnimation;
 
@@ -171,7 +165,7 @@
 
     function renderTone() {
       if (toneAnimation || requestedTone === contact.dataset.controlTone) return;
-      if (pending || !contact.dataset.controlTone || !motion.matches || !canAnimateTone) {
+      if (!motion.matches || !canAnimateTone) {
         applyTone(requestedTone);
         return;
       }
@@ -216,32 +210,12 @@
       if (!frame) frame = requestAnimationFrame(updateTone);
     }
 
-    function show() {
-      if (!pending) return;
-      pending = false;
-      contact.classList.replace('is-contact-pending', 'is-contact-ready');
-      window.clearTimeout(entranceTimer);
-      contact.removeEventListener('focus', show);
-      motion.removeEventListener('change', show);
-      scheduleTone();
-    }
-
-    window.addEventListener('scroll', () => {
-      if (window.scrollY >= entranceScroll) show();
-      scheduleTone();
-    }, { passive: true });
+    window.addEventListener('scroll', scheduleTone, { passive: true });
     window.addEventListener('resize', scheduleTone, { passive: true });
     contact.addEventListener('transitionend', scheduleTone);
     motion.addEventListener('change', () => {
       if (!motion.matches) toneAnimation?.finish();
     });
-
-    if (pending) {
-      contact.addEventListener('focus', show);
-      motion.addEventListener('change', show);
-      entranceTimer = window.setTimeout(show, 1450);
-      contact.classList.add('is-contact-pending');
-    }
 
     document.addEventListener('focusin', ({ target }) => {
       if (target === contact || !target.matches(':is(a, button):focus-visible') || !target.closest('main, footer')) return;
@@ -346,9 +320,6 @@
         const travel = -top - (stage === about ? expansion : 0);
         setProgress(stage, '--stage-entry', entry);
         setProgress(stage, '--stage-progress', clamp(travel / stage.hold));
-        if (stage === practices) {
-          setProgress(stage, '--practice-offset', `${clamp(travel, stage.listTravel)}px`);
-        }
       });
     }
 
@@ -370,14 +341,12 @@
 
       height = stages[0].viewport.clientHeight;
       const practiceWindow = rail.clientHeight - 12; // The rail leaves 6px around focus outlines.
-      practices.listTravel = Math.max(0, list.offsetHeight - practiceWindow);
       const headingTravel = Math.max(0, practiceWindow - practiceIntro.offsetHeight - height * .055);
       practices.section.style.setProperty('--heading-travel', `${headingTravel}px`);
 
       active = stages.filter(stage => {
         if (stage === practices) {
-          return practiceIntro.offsetHeight <= practiceWindow && Array.from(list.children)
-            .every(item => item.offsetHeight <= practiceWindow);
+          return practiceIntro.offsetHeight <= practiceWindow && list.scrollHeight <= practiceWindow + 1;
         }
         const style = getComputedStyle(stage.content);
         const room = stage.content.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
@@ -387,9 +356,10 @@
       for (const stage of stages) stage.section.toggleAttribute('data-pinned', active.includes(stage));
       const holds = {
         hero: height * .32,
-        practices: practices.listTravel + height * .16,
+        practices: height * .5,
         publications: height * .36,
         profile: height * .31,
+        office: height * .22,
         clients: height * .36,
       };
       for (const stage of active) {
@@ -422,14 +392,7 @@
       const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
       if (box.top >= safeTop && box.bottom <= safeBottom && target.contains(hit)) return;
 
-      let offset = stage.hold * .4;
-      if (railLink) {
-        const center = box.top - list.getBoundingClientRect().top + box.height / 2;
-        offset = clamp(center - rail.clientHeight / 2, practices.listTravel);
-      } else if (stage === about) {
-        offset += expansion;
-      }
-
+      const offset = stage.hold * .4 + (stage === about ? expansion : 0);
       window.scrollTo({ top: window.scrollY + stage.section.getBoundingClientRect().top + offset, behavior: 'instant' });
       if (frame) cancelAnimationFrame(frame);
       draw();
