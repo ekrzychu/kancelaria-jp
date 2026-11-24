@@ -24,17 +24,21 @@ $publications = array_filter($articles, static fn ($article) =>
 
 <section class="home-practices home-section" id="specjalizacje" tabindex="-1" aria-labelledby="home-practices-title">
   <div class="home-frame home-practices-layout">
-    <div class="home-practices-heading" data-reveal>
+    <div class="home-practices-heading" data-reveal="sequence">
       <p class="section-kicker">Specjalizacje</p>
       <h2 id="home-practices-title">W czym możemy pomóc?</h2>
       <a class="text-action" href="/specjalizacje/">Pełna lista specjalizacji</a>
     </div>
     <ul class="home-practice-list" role="list">
       <?php foreach (array_slice($services, 0, 8) as $service): ?>
-        <li>
+        <?php
+        $summary = $service['home_summary'] ?? $service['summary'];
+        $summary = preg_replace('/(?<!\p{L})([aiouwz]) (?=\p{L})/iu', '$1' . "\u{00A0}", $summary) ?? $summary;
+        ?>
+        <li data-reveal="row">
           <a class="home-practice-link" href="/specjalizacje/<?= e($service['slug']) ?>/">
             <span><?= e($service['title']) ?></span>
-            <small><?= e($service['summary']) ?></small>
+            <small><?= e($summary) ?></small>
           </a>
         </li>
       <?php endforeach; ?>
@@ -44,7 +48,7 @@ $publications = array_filter($articles, static fn ($article) =>
 
 <section class="home-profile home-section" aria-labelledby="home-profile-title">
   <div class="home-frame home-profile-layout">
-    <div class="home-profile-statement" data-reveal>
+    <div class="home-profile-statement" data-reveal="sequence">
       <p class="section-kicker">O kancelarii</p>
       <h2 id="home-profile-title">Najpierw sprawa.<br>Potem strategia.</h2>
     </div>
@@ -52,7 +56,7 @@ $publications = array_filter($articles, static fn ($article) =>
       <p>Ustalamy, co jest dla klienta najważniejsze, i&nbsp;przedstawiamy możliwe działania oraz ich konsekwencje. Wspieramy w&nbsp;pojedynczych sprawach i&nbsp;w&nbsp;stałej współpracy.</p>
       <a class="text-action" href="/o-kancelarii/">Jak pracujemy</a>
     </div>
-    <div class="home-team">
+    <div class="home-team" data-reveal>
       <div>
         <h3>Zespół kancelarii</h3>
         <a class="text-action" href="/zespol/">Poznaj cały zespół</a>
@@ -86,11 +90,11 @@ $publications = array_filter($articles, static fn ($article) =>
 <?php if ($publications): ?>
   <section class="home-publications home-section" aria-labelledby="home-publications-title">
     <div class="home-frame home-publications-layout">
-      <div>
+      <div data-reveal>
         <h2 id="home-publications-title">Publikacje</h2>
         <a class="text-action" href="/artykuly/">Wszystkie publikacje</a>
       </div>
-      <ul role="list">
+      <ul role="list" data-reveal>
         <?php foreach (array_slice($publications, 0, 3) as $article): ?>
           <li><h3><?= e($article['title']) ?></h3></li>
         <?php endforeach; ?>

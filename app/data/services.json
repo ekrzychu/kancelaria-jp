@@ -4,6 +4,7 @@
     "category": "Rynek finansowy",
     "title": "Bankowość i finanse",
     "summary": "Procedury, ryzyko i spory banków oraz innych podmiotów rynku finansowego.",
+    "home_summary": "Obsługa banków i instytucji finansowych — od bieżącego doradztwa po spory.",
     "body": [
       "Doradzamy instytucjom finansowym oraz przedsiębiorcom działającym w obszarze finansowania, obsługi wierzytelności i procesów reklamacyjnych.",
       "Łączymy znajomość praktyki rynkowej z doświadczeniem w postępowaniach sądowych i bieżącej obsłudze prawnej."
@@ -19,6 +20,7 @@
     "category": "Ubezpieczenia",
     "title": "Prawo ubezpieczeniowe",
     "summary": "Bieżące sprawy, spory i regulacje dla ubezpieczycieli, agentów i multiagentów.",
+    "home_summary": "Wsparcie ubezpieczycieli i pośredników w kwestiach regulacyjnych i sporach.",
     "body": [
       "Pomagamy podmiotom rynku ubezpieczeniowego w prowadzeniu spraw, w których liczy się precyzyjna ocena ryzyka oraz znajomość praktyki instytucji nadzoru.",
       "Reprezentujemy klientów w sporach i wspieramy ich w kontaktach z partnerami biznesowymi oraz organami."
@@ -34,6 +36,7 @@
     "category": "Należności",
     "title": "Windykacja należności",
     "summary": "Odzyskiwanie należności od ugody po proces i egzekucję komorniczą.",
+    "home_summary": "Odzyskiwanie należności na drodze ugodowej, sądowej i egzekucyjnej.",
     "body": [
       "Odzyskiwanie należności wymaga szybkiej decyzji, właściwej strategii i sprawnej komunikacji z klientem.",
       "Prowadzimy sprawy przedsiębiorców i klientów indywidualnych, dobierając środki do charakteru długu i celu sprawy."
@@ -49,6 +52,7 @@
     "category": "Przedsiębiorcy",
     "title": "Prawo gospodarcze",
     "summary": "Stała i projektowa obsługa firm, spółek i osób zarządzających.",
+    "home_summary": "Umowy, negocjacje i przekształcenia w bieżącej obsłudze firm i spółek.",
     "body": [
       "Wspieramy przedsiębiorców w decyzjach, które mają znaczenie operacyjne i strategiczne: od umów, przez strukturę spółki, po spory z kontrahentami.",
       "Doradztwo prowadzone jest w sposób praktyczny, z uwzględnieniem realiów działania firmy."
@@ -64,6 +68,7 @@
     "category": "Klienci indywidualni",
     "title": "Prawo rodzinne",
     "summary": "Rozwody, alimenty, opieka nad dziećmi i sprawy majątkowe.",
+    "home_summary": "Prowadzenie spraw o rozwód, alimenty, kontakty z dziećmi i podział majątku.",
     "body": [
       "Sprawy rodzinne wymagają połączenia wiedzy prawnej, dyskrecji i spokojnego prowadzenia klienta przez kolejne etapy postępowania.",
       "Przygotowujemy pisma, reprezentujemy strony i pomagamy uporządkować strategię działania."
@@ -79,6 +84,7 @@
     "category": "Dziedziczenie",
     "title": "Prawo spadkowe",
     "summary": "Dziedziczenie, zachowek, testamenty i dział spadku.",
+    "home_summary": "Testamenty, zachowek, dział spadku i odpowiedzialność za długi spadkowe.",
     "body": [
       "Pomagamy uporządkować formalności po śmierci bliskiej osoby oraz rozwiązać spory między spadkobiercami.",
       "Doradzamy również w zakresie odpowiedzialności za długi spadkowe i zabezpieczenia interesów klienta."
@@ -94,6 +100,7 @@
     "category": "Spory",
     "title": "Postępowania sądowe",
     "summary": "Reprezentacja przed sądami cywilnymi, rodzinnymi i administracyjnymi.",
+    "home_summary": "Reprezentacja przed sądami w sprawach cywilnych, rodzinnych i administracyjnych.",
     "body": [
       "Postępowanie sądowe wymaga dobrej strategii, pełnego przygotowania dokumentów i konsekwencji na każdym etapie.",
       "Kancelaria prowadzi zarówno sprawy gospodarcze, jak i indywidualne, z naciskiem na realny cel klienta."
@@ -109,6 +116,7 @@
     "category": "Praca",
     "title": "Prawo pracy",
     "summary": "Dokumentacja i spory pracownicze. Doradztwo pracownikom i pracodawcom.",
+    "home_summary": "Doradztwo dla pracowników i pracodawców przy umowach o pracę, zwolnieniach i sporach.",
     "body": [
       "Wspieramy pracodawców w organizacji relacji z pracownikami oraz pracowników w ochronie ich praw.",
       "Pomagamy przy dokumentach, rozwiązaniu umów, sporach, mobbingu i odpowiedzialności pracowniczej."
