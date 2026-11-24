@@ -11,7 +11,7 @@ $publications = array_filter($articles, static fn ($article) =>
   </div>
 </section>
 
-<section class="section">
+<section class="section<?= $publications ? '' : ' archive-empty' ?>">
   <?php if ($publications): ?>
     <div class="container editorial-list" aria-label="Publikacje">
       <?php foreach ($publications as $article): ?>
@@ -53,10 +53,10 @@ $publications = array_filter($articles, static fn ($article) =>
       <?php endforeach; ?>
     </div>
   <?php else: ?>
-    <div class="container archive-note editorial-split">
-      <h2 data-reveal>Archiwum w przygotowaniu</h2>
-      <div>
-        <p>Aktualizujemy publikacje. W sprawie konkretnego zagadnienia napisz lub zadzwoń.</p>
+    <div class="container">
+      <div class="archive-note" data-reveal>
+        <h2>Archiwum w przygotowaniu</h2>
+        <p>W sprawie konkretnego zagadnienia napisz lub zadzwoń.</p>
         <a class="text-action" href="/kontakt/">Skontaktuj się</a>
       </div>
     </div>

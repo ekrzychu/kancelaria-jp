@@ -27,7 +27,7 @@ $styleVersion = filemtime(__DIR__ . '/../../public/assets/css/style.css');
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
 </head>
-<body>
+<body<?= $path === '/' ? ' class="homepage"' : '' ?>>
 <a class="skip-link" href="#main">Przejdź do treści</a>
 <header class="site-header">
   <div class="container header-inner">

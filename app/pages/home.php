@@ -1,99 +1,100 @@
-<section class="home-hero">
-  <div class="home-hero-grid">
-    <div class="home-hero-copy">
+<?php
+$partners = array_filter($team, static fn ($person) => str_starts_with(text_lower($person['role']), 'wspólnik'));
+$publications = array_filter($articles, static fn ($article) =>
+    is_array($article) && is_string($article['title'] ?? null) && trim($article['title']) !== ''
+);
+?>
+<section class="home-hero" aria-labelledby="home-title">
+  <div class="home-frame home-hero-layout">
+    <div class="home-hero-heading">
       <p class="section-kicker">Kancelaria Radców Prawnych · Wrocław</p>
-      <h1>Prawo prowadzone spokojnie, precyzyjnie <span>i&nbsp;skutecznie.</span></h1>
-      <p class="home-hero-lead">Doradzamy firmom, instytucjom i&nbsp;klientom indywidualnym. Łączymy jasną strategię z&nbsp;doświadczeniem procesowym.</p>
-      <a class="button" href="/specjalizacje/">Zobacz specjalizacje</a>
+      <h1 id="home-title">Prawo <span>w&nbsp;praktyce.</span></h1>
     </div>
-    <figure class="home-hero-photo">
-      <picture>
-        <source media="(max-width: 42rem)" type="image/webp" srcset="/assets/img/office-reception-mobile.webp" width="840" height="560">
-        <source type="image/webp" srcset="/assets/img/office-reception-800.webp 800w, /assets/img/office-reception-hero.webp 1150w" sizes="49vw">
-        <img src="/assets/img/office-reception-hero.jpg" alt="Recepcja kancelarii z drewnianą ladą i monogramem JP" width="1150" height="1480" fetchpriority="high">
-      </picture>
-    </figure>
+    <picture class="home-hero-photo">
+      <source media="(max-width: 56rem)" type="image/webp" srcset="/assets/img/office-reception-mobile.webp" width="840" height="560">
+      <source type="image/webp" srcset="/assets/img/office-reception-wide.webp" width="1800" height="900">
+      <img src="/assets/img/office-reception-wide.jpg" alt="Recepcja kancelarii z drewnianą ladą i monogramem JP" width="1800" height="900" fetchpriority="high">
+    </picture>
+    <div class="home-hero-intro">
+      <p>Doradzamy firmom, instytucjom i&nbsp;klientom indywidualnym. Reprezentujemy ich również w&nbsp;sporach sądowych.</p>
+      <a class="button home-hero-action" href="#specjalizacje">Zobacz specjalizacje</a>
+    </div>
   </div>
 </section>
 
-<section class="home-section home-practices">
-  <div class="container home-practices-grid">
-    <div data-reveal>
+<section class="home-practices home-section" id="specjalizacje" tabindex="-1" aria-labelledby="home-practices-title">
+  <div class="home-frame home-practices-layout">
+    <div class="home-practices-heading" data-reveal>
       <p class="section-kicker">Specjalizacje</p>
-      <h2>W czym pomagamy</h2>
-      <a class="text-action" href="/specjalizacje/">Wszystkie specjalizacje</a>
+      <h2 id="home-practices-title">W czym możemy pomóc?</h2>
+      <a class="text-action" href="/specjalizacje/">Pełna lista specjalizacji</a>
     </div>
     <ul class="home-practice-list" role="list">
       <?php foreach (array_slice($services, 0, 8) as $service): ?>
-        <li><a class="home-practice-link" href="/specjalizacje/<?= e($service['slug']) ?>/"><?= e($service['title']) ?></a></li>
+        <li>
+          <a class="home-practice-link" href="/specjalizacje/<?= e($service['slug']) ?>/">
+            <span><?= e($service['title']) ?></span>
+            <small><?= e($service['summary']) ?></small>
+          </a>
+        </li>
       <?php endforeach; ?>
     </ul>
   </div>
 </section>
 
-<section class="home-section home-about">
-  <div class="container">
-    <div class="editorial-split">
-      <div data-reveal>
-        <p class="section-kicker">O kancelarii</p>
-        <h2>Formalnie tam, gdzie trzeba. Praktycznie tam, gdzie to&nbsp;możliwe.</h2>
-      </div>
-      <div class="rich-text">
-        <p>Łączymy doświadczenie w&nbsp;obsłudze firm i&nbsp;rynku finansowego z&nbsp;praktyką w&nbsp;sprawach rodzinnych, spadkowych i&nbsp;sądowych. Wspieramy klientów stale lub w&nbsp;konkretnej sprawie.</p>
-        <a class="text-action" href="/o-kancelarii/">Poznaj kancelarię</a>
-      </div>
+<section class="home-profile home-section" aria-labelledby="home-profile-title">
+  <div class="home-frame home-profile-layout">
+    <div class="home-profile-statement" data-reveal>
+      <p class="section-kicker">O kancelarii</p>
+      <h2 id="home-profile-title">Najpierw sprawa.<br>Potem strategia.</h2>
     </div>
-    <dl class="home-standards-list" aria-label="Jak pracujemy">
+    <div class="home-profile-detail" data-reveal>
+      <p>Ustalamy, co jest dla klienta najważniejsze, i&nbsp;przedstawiamy możliwe działania oraz ich konsekwencje. Wspieramy w&nbsp;pojedynczych sprawach i&nbsp;w&nbsp;stałej współpracy.</p>
+      <a class="text-action" href="/o-kancelarii/">Jak pracujemy</a>
+    </div>
+    <div class="home-team">
       <div>
-        <dt>Analiza</dt>
-        <dd>Porządkujemy fakty, dokumenty i&nbsp;cel sprawy.</dd>
+        <h3>Zespół kancelarii</h3>
+        <a class="text-action" href="/zespol/">Poznaj cały zespół</a>
       </div>
-      <div>
-        <dt>Strategia</dt>
-        <dd>Dobieramy działania do ryzyka, czasu i&nbsp;oczekiwanego rezultatu.</dd>
-      </div>
-      <div>
-        <dt>Komunikacja</dt>
-        <dd>Omawiamy etapy i&nbsp;decyzje wymagające udziału klienta.</dd>
-      </div>
-    </dl>
+      <?php if ($partners): ?>
+        <ul role="list">
+          <?php foreach (array_slice($partners, 0, 2) as $person): ?>
+            <li><p><?= e($person['name']) ?></p><span><?= e($person['role']) ?></span></li>
+          <?php endforeach; ?>
+        </ul>
+      <?php endif; ?>
+    </div>
   </div>
 </section>
 
-<section class="home-team">
-  <div class="container" data-reveal>
-    <h2>Radcowie prawni, adwokaci i&nbsp;specjaliści.</h2>
-    <a class="text-action" href="/zespol/">Poznaj zespół</a>
-  </div>
-</section>
-
-<section class="home-section home-location">
-  <div class="container home-location-grid">
-    <figure class="home-location-photo" data-reveal="image">
-      <picture>
-        <source type="image/webp" srcset="/assets/img/building-exterior-800.webp 800w, /assets/img/building-exterior-wide.webp 1800w" sizes="(max-width: 56rem) 91vw, (min-width: 91rem) 62rem, 69vw">
-        <img src="/assets/img/building-exterior-wide.jpg" alt="Kamienna fasada budynku kancelarii przy placu Kościuszki we Wrocławiu" width="1800" height="980" loading="lazy" decoding="async">
-      </picture>
-    </figure>
-    <div class="home-location-copy">
+<section class="home-office home-section" aria-labelledby="home-office-title">
+  <div class="home-frame home-office-layout">
+    <picture class="home-office-photo" data-reveal="image">
+      <source type="image/webp" srcset="/assets/img/building-exterior-800.webp 800w, /assets/img/building-exterior-wide.webp 1800w" sizes="(max-width: 42rem) 95vw, (max-width: 56rem) 53vw, (min-width: 150rem) 86rem, 57vw">
+      <img src="/assets/img/building-exterior-wide.jpg" alt="Kamienna fasada budynku kancelarii przy placu Kościuszki we Wrocławiu" width="1800" height="980" loading="lazy" decoding="async">
+    </picture>
+    <div class="home-office-copy" data-reveal>
       <p class="section-kicker">Siedziba kancelarii</p>
-      <h2>W centrum Wrocławia.</h2>
-      <address class="home-address"><?= implode('<br>', array_map('e', $site['address'])) ?></address>
-      <a class="text-action" href="/kontakt/">Dane kontaktowe</a>
+      <h2 id="home-office-title">Wrocław.</h2>
+      <address><?= implode('<br>', array_map('e', $site['address'])) ?></address>
+      <a class="text-action" href="/kontakt/">Dane kontaktowe i godziny pracy</a>
     </div>
   </div>
 </section>
 
-<div class="container home-section home-resources">
-  <section>
-    <h2>Standardy i&nbsp;dokumenty</h2>
-    <a class="text-action" href="/dokumenty/">Zobacz dokumenty</a>
+<?php if ($publications): ?>
+  <section class="home-publications home-section" aria-labelledby="home-publications-title">
+    <div class="home-frame home-publications-layout">
+      <div>
+        <h2 id="home-publications-title">Publikacje</h2>
+        <a class="text-action" href="/artykuly/">Wszystkie publikacje</a>
+      </div>
+      <ul role="list">
+        <?php foreach (array_slice($publications, 0, 3) as $article): ?>
+          <li><h3><?= e($article['title']) ?></h3></li>
+        <?php endforeach; ?>
+      </ul>
+    </div>
   </section>
-  <section>
-    <h2>Artykuły i&nbsp;komentarze prawne</h2>
-    <?php if (!$articles): ?>
-      <p>Archiwum w przygotowaniu.</p>
-    <?php endif; ?>
-    <a class="text-action" href="/artykuly/">Przejdź do artykułów</a>
-  </section>
-</div>
+<?php endif; ?>
