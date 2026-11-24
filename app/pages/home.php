@@ -3,6 +3,8 @@ $partners = array_filter($team, static fn ($person) => str_starts_with(text_lowe
 $publications = array_filter($articles, static fn ($article) =>
     is_array($article) && is_string($article['title'] ?? null) && trim($article['title']) !== ''
 );
+// Set to false until the firm confirms permission to publish the logos.
+$showClientLogos = true;
 $clientLogos = [
     ['bank-millennium', 'Bank Millennium', 440, 94],
     ['nest-bank', 'Nest Bank', 440, 174],
@@ -17,8 +19,8 @@ $clientLogos = [
 $experienceYears = 6;
 ?>
 <a class="home-contact-float" href="/kontakt/" aria-label="Kontakt z kancelarią" data-home-surface="beige">
-  Kontakt
-  <span class="home-contact-face" aria-hidden="true" hidden>Kontakt</span>
+  <span class="home-contact-label">Kontakt</span>
+  <span class="home-contact-face" aria-hidden="true" hidden><span class="home-contact-label">Kontakt</span></span>
 </a>
 
 <section class="home-hero" aria-labelledby="home-title" data-home-surface="burgundy">
@@ -39,8 +41,11 @@ $experienceYears = 6;
         <p>Reprezentujemy ich również w&nbsp;sporach&nbsp;sądowych.</p>
       </div>
       <div class="home-hero-actions">
-        <a class="button home-hero-action" href="#specjalizacje" data-home-surface-interactive="light">
-          Zobacz specjalizacje <span aria-hidden="true">↓</span>
+        <a class="button home-hero-action" href="#specjalizacje" data-home-surface="light">
+          Zobacz specjalizacje
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false">
+            <path d="M8 2.75v10.5m-3.5-3.5L8 13.25l3.5-3.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
         </a>
         <a class="text-action" href="/o-kancelarii/">Poznaj kancelarię</a>
       </div>
@@ -124,18 +129,20 @@ $experienceYears = 6;
   </div>
 </section>
 
-<section class="home-clients home-section" aria-labelledby="home-clients-title" data-home-surface="beige">
-  <div class="home-frame home-clients-layout">
-    <h2 id="home-clients-title" data-reveal>Wybrane współprace</h2>
-    <ul class="home-client-logos" role="list" data-reveal>
-      <?php foreach ($clientLogos as [$slug, $name, $width, $height]): ?>
-        <li class="home-client-<?= e($slug) ?>">
-          <img src="/assets/img/clients/<?= e($slug) ?>.webp" alt="<?= e($name) ?>" width="<?= $width ?>" height="<?= $height ?>" loading="lazy" decoding="async">
-        </li>
-      <?php endforeach; ?>
-    </ul>
-  </div>
-</section>
+<?php if ($showClientLogos): ?>
+  <section class="home-clients home-section" aria-labelledby="home-clients-title" data-home-surface="beige">
+    <div class="home-frame home-clients-layout">
+      <h2 id="home-clients-title" data-reveal>Nasi klienci</h2>
+      <ul class="home-client-logos" role="list">
+        <?php foreach ($clientLogos as [$slug, $name, $width, $height]): ?>
+          <li class="home-client-<?= e($slug) ?>" data-reveal="logo">
+            <img src="/assets/img/clients/<?= e($slug) ?>.webp" alt="<?= e($name) ?>" width="<?= $width ?>" height="<?= $height ?>" loading="lazy" decoding="async">
+          </li>
+        <?php endforeach; ?>
+      </ul>
+    </div>
+  </section>
+<?php endif; ?>
 
 <?php if ($publications): ?>
   <section class="home-publications home-section" aria-labelledby="home-publications-title">
