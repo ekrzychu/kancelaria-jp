@@ -499,6 +499,8 @@ html:has(> .homepage) {
 }
 
 .home-hero-heading {
+  position: relative;
+  z-index: 1;
   grid-column: 1 / -1;
   padding-block: clamp(1.6rem, 3.3vw, 4.25rem) clamp(1.45rem, 2.55vw, 3.8rem);
   padding-inline-end: var(--home-gutter);
@@ -541,8 +543,9 @@ html:has(> .homepage) {
 .home-hero-photo {
   grid-column: 2;
   grid-row: 2;
+  margin-block-start: clamp(-8rem, -5.9vw, -3.5rem);
   aspect-ratio: 1.98;
-  background: #36202a;
+  background: var(--burgundy);
 }
 
 .home-hero-photo img,
@@ -552,6 +555,15 @@ html:has(> .homepage) {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.home-hero-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to bottom, var(--burgundy), transparent 16%),
+    linear-gradient(to right, var(--burgundy), transparent 9%);
 }
 
 .home-hero-photo img {
@@ -616,21 +628,20 @@ html:has(> .homepage) {
 }
 
 .home-hero-action {
+  display: inline-flex;
+  align-items: center;
   min-height: 3rem;
-  gap: .85rem;
-  border: 0;
-  padding-inline: 1rem;
-  background: var(--light-text);
-  color: var(--burgundy);
+  color: var(--light-text);
+  font: 500 clamp(1.4rem, 1.8vw, 1.85rem)/1.15 var(--serif);
+  letter-spacing: -.025em;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 1px;
+  text-underline-offset: .2em;
 }
 
-.home-hero-action svg {
-  display: block;
-  flex: none;
-}
-
-.home-hero-action:is(:hover, :focus-visible, :active) {
-  background: #e4d1bf;
+.home-hero-action:is(:hover, :focus-visible) {
+  text-decoration-color: var(--taupe);
 }
 
 .home-section {
@@ -879,24 +890,21 @@ html:has(> .homepage) {
 }
 
 .home-clients {
-  padding-block: clamp(2.6rem, 3.8vw, 4.4rem);
-  background: var(--surface);
+  padding-block-end: clamp(1.5rem, 2.8vw, 3rem);
+  background: var(--paper);
 }
 
 .home-clients-layout {
-  max-width: 100rem;
-  grid-template-columns: minmax(0, 1fr);
-  row-gap: clamp(1.25rem, 2.45vw, 2.5rem);
+  border-block-start: 1px solid var(--line);
+  padding-block-start: clamp(1.8rem, 3vw, 3.5rem);
+  grid-template-columns: minmax(0, .68fr) minmax(0, 1.32fr);
+  align-items: start;
+  row-gap: 1.35rem;
 }
 
 .home-clients h2 {
-  font-size: clamp(1.625rem, 2.15vw, 2.125rem);
-  line-height: 1.1;
-}
-
-.home-client-gallery {
-  display: grid;
-  gap: clamp(.55rem, 1vw, .9rem);
+  font-size: clamp(2rem, 2.85vw, 4rem);
+  line-height: 1.02;
 }
 
 .home-client-logos {
@@ -917,8 +925,8 @@ html:has(> .homepage) {
 .home-client-logos img {
   width: auto;
   height: auto;
-  max-width: min(100%, var(--logo-width, clamp(8.75rem, 13vw, 12.5rem)));
-  max-height: var(--logo-height, clamp(2.4rem, 3.25vw, 3.35rem));
+  max-width: min(100%, var(--logo-width, clamp(9.25rem, 14vw, 13.5rem)));
+  max-height: var(--logo-height, clamp(2.6rem, 3.5vw, 3.7rem));
 }
 
 .home-client-ergo-hestia {
@@ -936,11 +944,44 @@ html:has(> .homepage) {
 
 .home-publications {
   border-top: 1px solid var(--line);
+  padding-block: clamp(2.5rem, 4.5vw, 5.5rem);
 }
 
 .home-publications-layout {
   grid-template-columns: minmax(0, 1fr);
   row-gap: clamp(1.4rem, 2.9vw, 3rem);
+}
+
+.article-detail {
+  max-width: 54rem;
+  padding-block: var(--section-space);
+}
+
+.article-detail header {
+  margin-block-end: 2.5rem;
+}
+
+.article-detail h1 {
+  font-size: clamp(2.15rem, 4vw, 4.25rem);
+  overflow-wrap: anywhere;
+}
+
+.article-detail .rich-text > * + * {
+  margin-block-start: 1.1em;
+}
+
+.article-detail .rich-text :is(h2, h3) {
+  margin-block-start: 1.6em;
+}
+
+.article-detail figure {
+  margin-inline: 0;
+}
+
+.article-detail .rich-text a,
+:is(.home-publications-list, .publication-entry) a:is(:hover, :focus-visible) {
+  text-decoration: underline;
+  text-underline-offset: .16em;
 }
 
 .home-publications-heading {
@@ -1117,12 +1158,17 @@ html:has(> .homepage) {
 }
 
 @media (max-width: 56rem) {
+  .home-clients-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .home-hero-layout {
     grid-template-columns: minmax(0, 1fr);
   }
 
   .home-hero-photo {
     grid-column: 1;
+    margin-block-start: -1.4rem;
     aspect-ratio: 1.67;
   }
 
@@ -2244,7 +2290,7 @@ main:has(.archive-empty) + .site-footer {
   }
 
   [data-reveal].is-revealed:not([data-reveal="image"], [data-reveal="sequence"]),
-  .home-hero :is(.home-hero-title > *, .home-hero-intro > *),
+  .home-hero :is(.home-hero-heading > *, .home-hero-intro > *),
   .home-practices-heading.is-revealed > *,
   .home-profile-statement.is-revealed > *,
   .home-contact-layout.is-revealed > * {
@@ -2292,14 +2338,6 @@ main:has(.archive-empty) + .site-footer {
     --enter-opacity: 1;
   }
 
-  .home-hero-action svg {
-    transition: transform 170ms var(--motion-ease);
-  }
-
-  .home-hero-action:is(:hover, :focus-visible) svg {
-    transform: translateY(2px);
-  }
-
   .home-practices-heading > .text-action,
   .home-profile-detail,
   .home-contact-detail,
@@ -2333,9 +2371,8 @@ main:has(.archive-empty) + .site-footer {
   .home-hero-photo {
     --enter-duration: 820ms;
     --enter-delay: 145ms;
-    --photo-mask: inset(0 4% 12% 0);
-    --photo-scale: 1.024;
-    --photo-offset: 1%;
+    --photo-mask: inset(1% 0 0);
+    --photo-scale: 1.006;
   }
 
   .home-office-photo {
@@ -2349,6 +2386,11 @@ main:has(.archive-empty) + .site-footer {
     inset-block-start: -10%;
     height: 120%;
     translate: 0 var(--photo-scroll-offset, 0%);
+  }
+
+  .has-photo-scroll [data-scroll-photo="hero"] img {
+    inset-block-start: -4%;
+    height: 108%;
   }
 
   .home-contact-float.is-contact-pending:not(:focus-visible) {
@@ -2436,21 +2478,18 @@ main:has(.archive-empty) + .site-footer {
   }
 }
 
-@supports (view-timeline: --section block) and (animation-range: cover 0% cover 100%) and (animation-timeline: --section) {
-  @media (min-width: 57rem) and (min-height: 38rem) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+@supports (animation-timeline: view()) and (animation-range: entry 0% exit 100%) {
+  @media (min-width: 57rem) and (min-height: 42rem) and (prefers-reduced-motion: no-preference) {
     .home-profile {
       display: grid;
       align-items: center;
-      min-block-size: 90svh;
-      view-timeline: --home-profile block;
+      min-block-size: 84svh;
+      view-timeline: --profile block;
     }
 
-    .home-profile-statement h2 {
-      font-size: clamp(3.1rem, 6vw, 9rem);
-    }
-
-    .home-profile .home-team {
-      margin-block-start: clamp(3rem, 8svh, 7.5rem);
+    .home-profile-backdrop {
+      animation: profile-aperture auto linear both;
+      animation-timeline: --profile;
     }
 
     .home-profile-statement.is-revealed > *,
@@ -2458,110 +2497,47 @@ main:has(.archive-empty) + .site-footer {
       animation: none;
     }
 
-    .home-profile :is(.home-profile-backdrop, .home-profile-statement, .home-profile-side, .home-experience) {
-      animation: profile-scroll auto ease-in-out both;
-      animation-timeline: --home-profile;
-      transform-origin: left center;
-    }
-
-    .home-profile .home-profile-backdrop {
-      --profile-scale-in: .91 .9;
-      --profile-scale-out: .95 .94;
-      transform-origin: center;
+    .home-profile :is(.home-profile-statement, .home-profile-side, .home-experience) {
+      animation: profile-rise auto ease-out both;
+      animation-timeline: --profile;
     }
 
     .home-profile-statement {
-      --profile-offset-in: clamp(1.4rem, 4.5svh, 4rem);
-      --profile-offset-out: clamp(-3.5rem, -3svh, -1.25rem);
-      --profile-scale-in: .94;
-      --profile-scale-out: .975;
+      --entry-rise: 2rem;
     }
 
     .home-profile-side {
-      --profile-offset-in: clamp(1.9rem, 6svh, 5rem);
-      --profile-offset-out: clamp(-2rem, -1.7svh, -.7rem);
+      --entry-rise: 3rem;
     }
 
-    .home-experience {
-      --profile-offset-in: 1.15rem;
-      --profile-offset-out: -.65rem;
-      --profile-scale-in: .97;
-      --profile-scale-out: .985;
-    }
-
-    .home-hero {
-      view-timeline: --home-hero block;
-    }
-
-    .home-hero :is(.home-hero-title, .home-hero-intro) {
-      animation: hero-exit auto linear both;
-      animation-timeline: --home-hero;
-      animation-range: exit 0% exit 85%;
-      transform-origin: left center;
-    }
-
-    .home-hero-title {
-      --hero-offset-out: -3.5svh;
-      --hero-scale-out: .962;
-    }
-
-    .home-hero-intro {
-      --hero-offset-out: -2.2svh;
-    }
-
-    .home-clients {
-      --logo-travel: clamp(1.5rem, 3.4vw, 4.5rem);
-      view-timeline: --home-clients block;
-    }
-
-    .home-client-gallery {
-      padding-inline: var(--logo-travel);
+    .home-profile .home-experience {
+      --entry-rise: 1rem;
+      animation-range: entry 18% exit 100%;
     }
 
     .home-client-logos {
-      animation: logo-scroll auto linear both;
-      animation-timeline: --home-clients;
-      animation-range: entry 0% cover 48%;
-    }
-
-    .home-client-logos + .home-client-logos {
-      animation-direction: reverse;
+      animation: clients-rise auto ease-out both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 100%;
     }
   }
 }
 
-@keyframes profile-scroll {
-  0% {
-    translate: 0 var(--profile-offset-in, 0px);
-    scale: var(--profile-scale-in, 1);
-  }
-
-  43%, 57% {
-    translate: 0 0;
-    scale: 1;
-  }
-
-  100% {
-    translate: 0 var(--profile-offset-out, 0px);
-    scale: var(--profile-scale-out, 1);
-  }
+@keyframes profile-aperture {
+  from { clip-path: inset(18% 0 12%); }
+  40%, 60% { clip-path: inset(0); }
+  to { clip-path: inset(12% 0 18%); }
 }
 
-@keyframes hero-exit {
-  from {
-    translate: 0 0;
-    scale: 1;
-  }
-
-  to {
-    translate: 0 var(--hero-offset-out);
-    scale: var(--hero-scale-out, 1);
-  }
+@keyframes profile-rise {
+  from { translate: 0 var(--entry-rise); }
+  45%, 60% { translate: 0 0; }
+  to { translate: 0 -1.25rem; }
 }
 
-@keyframes logo-scroll {
-  from { translate: calc(-1 * var(--logo-travel)); }
-  to { translate: var(--logo-travel); }
+@keyframes clients-rise {
+  from { translate: 0 1rem; }
+  to { translate: 0 0; }
 }
 
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) and (forced-colors: none) {

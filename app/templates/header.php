@@ -14,7 +14,7 @@ $styleVersion = filemtime(__DIR__ . '/../../public/assets/css/style.css');
   <title><?= e($title) ?></title>
   <meta name="description" content="<?= e($description) ?>">
   <link rel="canonical" href="<?= e($canonical) ?>">
-  <meta property="og:type" content="website">
+  <meta property="og:type" content="<?= $template === 'article' ? 'article' : 'website' ?>">
   <meta property="og:locale" content="pl_PL">
   <meta property="og:site_name" content="<?= e($site['name']) ?>">
   <meta property="og:title" content="<?= e($title) ?>">

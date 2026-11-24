@@ -41,7 +41,13 @@ $publications = array_filter($articles, static fn ($article) =>
                 <?php endif; ?>
               </p>
             <?php endif; ?>
-            <h2><?= e($article['title']) ?></h2>
+            <h2>
+              <?php if (!empty($article['slug'])): ?>
+                <a href="/<?= e($article['slug']) ?>/"><?= e($article['title']) ?></a>
+              <?php else: ?>
+                <?= e($article['title']) ?>
+              <?php endif; ?>
+            </h2>
             <?php if ($summary !== ''): ?>
               <p class="publication-summary"><?= e($summary) ?></p>
             <?php endif; ?>

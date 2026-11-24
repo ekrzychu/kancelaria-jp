@@ -375,7 +375,8 @@
           ? 1 - pageScroll / (pageScroll + top + height)
           : (viewport - top) / (viewport + height);
         const progress = Math.max(0, Math.min(1, position));
-        return [photo, (progress - .5) * 16];
+        const travel = photo.dataset.scrollPhoto === 'hero' ? 6 : 16;
+        return [photo, (progress - .5) * travel];
       });
       for (const [photo, offset] of offsets) {
         photo.style.setProperty('--photo-scroll-offset', `${offset.toFixed(3)}%`);

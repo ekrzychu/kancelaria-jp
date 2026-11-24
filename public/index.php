@@ -66,10 +66,14 @@ switch (true) {
         ]);
         break;
 
+    case $path === '/aktualnosci/':
+        header('Location: /artykuly/', true, 301);
+        exit;
+
     case $path === '/artykuly/':
         render('articles', $vars + [
             'title' => page_title('Artykuły', $site),
-            'robots' => 'noindex,follow',
+            'description' => 'Publikacje prawne kancelarii Jaroch-Konwent Pakos. Analizy i komentarze z praktyki radców prawnych we Wrocławiu.',
         ]);
         break;
 
@@ -114,6 +118,14 @@ switch (true) {
             'title' => page_title($document['title'], $site),
             'description' => $document['summary'],
             'robots' => 'noindex,follow',
+        ]);
+        break;
+
+    case preg_match('#^/([a-z0-9-]+)/$#D', $path, $m) && ($article = find_by_slug($articles, $m[1])):
+        render('article', $vars + [
+            'article' => $article,
+            'title' => page_title($article['title'], $site),
+            'description' => $article['summary'],
         ]);
         break;
 

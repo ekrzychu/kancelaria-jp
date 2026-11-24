@@ -13,7 +13,7 @@ foreach ($articles as $article) {
         ? DateTimeImmutable::createFromFormat('!Y-m-d', $date)
         : false;
     if ($title !== '' && $summary !== '' && $published && $published->format('Y-m-d') === $date) {
-        $publications[] = compact('title', 'summary', 'published');
+        $publications[] = compact('title', 'summary', 'published') + ['slug' => $article['slug'] ?? ''];
     }
 }
 usort($publications, static fn ($left, $right) => $right['published'] <=> $left['published']);
@@ -40,10 +40,8 @@ $experienceYears = 6;
 <section class="home-hero" aria-labelledby="home-title" data-home-surface="burgundy">
   <div class="home-frame home-hero-layout">
     <div class="home-hero-heading">
-      <div class="home-hero-title">
-        <p class="section-kicker">Kancelaria radców prawnych we Wrocławiu</p>
-        <h1 id="home-title">Prawo <span>w&nbsp;praktyce.</span></h1>
-      </div>
+      <p class="section-kicker">Kancelaria radców prawnych we Wrocławiu</p>
+      <h1 id="home-title">Prawo <span>w&nbsp;praktyce.</span></h1>
     </div>
     <picture class="home-hero-photo" data-scroll-photo="hero" data-home-surface="photo">
       <img src="/assets/img/office-meeting-1360.webp"
@@ -57,12 +55,7 @@ $experienceYears = 6;
         <p>Reprezentujemy ich również w&nbsp;sporach&nbsp;sądowych.</p>
       </div>
       <div class="home-hero-actions">
-        <a class="button home-hero-action" href="#specjalizacje" data-home-surface="light">
-          Zobacz specjalizacje
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false">
-            <path d="M8 2.75v10.5m-3.5-3.5L8 13.25l3.5-3.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </a>
+        <a class="home-hero-action" href="#specjalizacje">Zobacz specjalizacje</a>
         <a class="text-action" href="/o-kancelarii/">Poznaj kancelarię</a>
       </div>
     </div>
@@ -129,6 +122,21 @@ $experienceYears = 6;
   </div>
 </section>
 
+<?php if ($showClientLogos): ?>
+  <section class="home-clients" aria-labelledby="home-clients-title" data-home-surface="light">
+    <div class="home-frame home-clients-layout">
+      <h2 id="home-clients-title">Współpracujemy z</h2>
+      <ul class="home-client-logos" role="list">
+        <?php foreach ($clientLogos as [$slug, $name, $width, $height]): ?>
+          <li class="home-client-<?= e($slug) ?>">
+            <img src="/assets/img/clients/<?= e($slug) ?>.webp" alt="<?= e($name) ?>" width="<?= $width ?>" height="<?= $height ?>" loading="lazy" decoding="async">
+          </li>
+        <?php endforeach; ?>
+      </ul>
+    </div>
+  </section>
+<?php endif; ?>
+
 <section class="home-office home-section" aria-labelledby="home-office-title">
   <div class="home-frame home-office-layout">
     <picture class="home-office-photo" data-reveal="image" data-scroll-photo data-home-surface="photo">
@@ -146,25 +154,6 @@ $experienceYears = 6;
   </div>
 </section>
 
-<?php if ($showClientLogos): ?>
-  <section class="home-clients home-section" aria-labelledby="home-clients-title" data-home-surface="beige">
-    <div class="home-frame home-clients-layout">
-      <h2 id="home-clients-title">Współpracujemy z</h2>
-      <div class="home-client-gallery">
-        <?php foreach (array_chunk($clientLogos, 4) as $track): ?>
-          <ul class="home-client-logos" role="list">
-            <?php foreach ($track as [$slug, $name, $width, $height]): ?>
-              <li class="home-client-<?= e($slug) ?>">
-                <img src="/assets/img/clients/<?= e($slug) ?>.webp" alt="<?= e($name) ?>" width="<?= $width ?>" height="<?= $height ?>" loading="lazy" decoding="async">
-              </li>
-            <?php endforeach; ?>
-          </ul>
-        <?php endforeach; ?>
-      </div>
-    </div>
-  </section>
-<?php endif; ?>
-
 <?php if ($publications): ?>
   <section class="home-publications home-section" aria-labelledby="home-publications-title">
     <div class="home-frame home-publications-layout">
@@ -177,7 +166,13 @@ $experienceYears = 6;
           <li>
             <article>
               <time datetime="<?= e($publication['published']->format('Y-m-d')) ?>"><?= e($publication['published']->format('d.m.Y')) ?></time>
-              <h3><?= e($publication['title']) ?></h3>
+              <h3>
+                <?php if ($publication['slug'] !== ''): ?>
+                  <a href="/<?= e($publication['slug']) ?>/"><?= e($publication['title']) ?></a>
+                <?php else: ?>
+                  <?= e($publication['title']) ?>
+                <?php endif; ?>
+              </h3>
               <p><?= e($publication['summary']) ?></p>
             </article>
           </li>
