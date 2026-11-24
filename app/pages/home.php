@@ -6,23 +6,29 @@ $publications = array_filter($articles, static fn ($article) =>
 // Temporary value for this experiment. Verify the experience figure before production.
 $experienceYears = 6;
 ?>
-<a class="home-contact-float" href="/kontakt/" aria-label="Kontakt z kancelarią">Kontakt</a>
+<a class="home-contact-float" href="/kontakt/" aria-label="Kontakt z kancelarią" data-home-surface="beige">
+  Kontakt
+  <span class="home-contact-face" aria-hidden="true" hidden>Kontakt</span>
+</a>
 
-<section class="home-hero" aria-labelledby="home-title">
+<section class="home-hero" aria-labelledby="home-title" data-home-surface="burgundy">
   <div class="home-frame home-hero-layout">
     <div class="home-hero-heading">
       <p class="section-kicker">Kancelaria Radców Prawnych · Wrocław</p>
       <h1 id="home-title">Prawo <span>w&nbsp;praktyce.</span></h1>
     </div>
-    <picture class="home-hero-photo" data-scroll-photo="hero">
+    <picture class="home-hero-photo" data-scroll-photo="hero" data-home-surface="photo">
       <img src="/assets/img/office-meeting-1360.webp"
         srcset="/assets/img/office-meeting-760.webp 760w, /assets/img/office-meeting-1360.webp 1360w, /assets/img/office-meeting-2048.webp 2048w, /assets/img/office-meeting-2880.webp 2880w"
         sizes="(max-width: 56rem) 95vw, 71vw"
         alt="Sala spotkań kancelarii z drewnianym stołem i monogramem JP" width="1360" height="796" fetchpriority="high">
     </picture>
     <div class="home-hero-intro">
-      <p>Doradzamy firmom, instytucjom i&nbsp;klientom indywidualnym. Reprezentujemy ich również w&nbsp;sporach sądowych.</p>
-      <a class="button home-hero-action" href="#specjalizacje">Zobacz specjalizacje</a>
+      <div class="home-hero-copy">
+        <p class="home-hero-lead">Doradzamy firmom, instytucjom i&nbsp;klientom&nbsp;indywidualnym.</p>
+        <p>Reprezentujemy ich również w&nbsp;sporach&nbsp;sądowych.</p>
+      </div>
+      <a class="button home-hero-action" href="#specjalizacje" data-home-surface="light">Zobacz specjalizacje</a>
     </div>
   </div>
 </section>
@@ -51,7 +57,7 @@ $experienceYears = 6;
   </div>
 </section>
 
-<section class="home-profile home-section" aria-labelledby="home-profile-title">
+<section class="home-profile home-section" aria-labelledby="home-profile-title" data-home-surface="beige">
   <div class="home-frame home-profile-layout">
     <div class="home-profile-statement" data-reveal="sequence">
       <p class="section-kicker">O kancelarii</p>
@@ -88,13 +94,13 @@ $experienceYears = 6;
 
 <section class="home-office home-section" aria-labelledby="home-office-title">
   <div class="home-frame home-office-layout">
-    <picture class="home-office-photo" data-reveal="image" data-scroll-photo>
+    <picture class="home-office-photo" data-reveal="image" data-scroll-photo data-home-surface="photo">
       <img src="/assets/img/office-entrance-1280.webp"
         srcset="/assets/img/office-entrance-760.webp 760w, /assets/img/office-entrance-1280.webp 1280w, /assets/img/office-entrance-2240.webp 2240w"
         sizes="(max-width: 42rem) 90vw, (max-width: 56rem) 49vw, (min-width: 129rem) 66rem, 55vw"
         alt="Drewniane drzwi wejściowe i numer 7–8 na kamiennej fasadzie przy placu Kościuszki" width="1280" height="1990" loading="lazy" decoding="async">
     </picture>
-    <div class="home-office-copy" data-reveal>
+    <div class="home-office-copy" data-reveal data-home-surface="beige">
       <p class="section-kicker">Siedziba kancelarii</p>
       <h2 id="home-office-title">Wrocław.</h2>
       <address><?= implode('<br>', array_map('e', $site['address'])) ?></address>
@@ -119,12 +125,12 @@ $experienceYears = 6;
   </section>
 <?php endif; ?>
 
-<section class="home-contact home-section" aria-labelledby="home-contact-title">
+<section class="home-contact home-section" aria-labelledby="home-contact-title" data-home-surface="burgundy">
   <div class="home-frame home-contact-layout" data-reveal="sequence">
     <h2 id="home-contact-title">Każda sprawa zaczyna się od&nbsp;rozmowy.</h2>
     <div class="home-contact-detail">
       <p>Przedstaw nam swoją sytuację. Pomożemy ustalić możliwe kierunki dalszego działania.</p>
-      <a class="button home-contact-action" href="/kontakt/">Skontaktuj się z&nbsp;kancelarią</a>
+      <a class="button home-contact-action" href="/kontakt/" data-home-surface="light">Skontaktuj się z&nbsp;kancelarią</a>
     </div>
   </div>
 </section>

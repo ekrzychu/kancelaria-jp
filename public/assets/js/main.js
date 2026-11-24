@@ -130,28 +130,75 @@
     update();
   }
 
+  function homeSurfaceFor(element) {
+    if (element?.closest('.home-practice-link:is(:hover, :focus-visible, :active)')) return 'beige';
+    return element?.closest('[data-home-surface]')?.dataset.homeSurface ?? 'light';
+  }
+
   function initHomeContact() {
     const contact = document.querySelector('.home-contact-float');
-    const darkSections = document.querySelectorAll('.home-hero, .home-contact, .site-footer');
-    const heroPhoto = document.querySelector('.home-hero-photo');
+    const face = contact.querySelector('.home-contact-face');
+    const faceSurfaces = { light: 'beige', beige: 'burgundy', burgundy: 'light', photo: 'burgundy' };
     const motion = window.matchMedia('(prefers-reduced-motion: no-preference)');
+    const canAnimateTone = typeof face.animate === 'function' && window.CSS?.supports('clip-path', 'inset(0)');
     const entranceScroll = 64;
     let pending = motion.matches && window.scrollY < entranceScroll;
     let frame = 0;
     let entranceTimer;
+    let requestedTone;
+    let toneAnimation;
 
     const overlaps = (first, second) =>
       first.right > second.left && first.left < second.right &&
       first.bottom > second.top && first.top < second.bottom;
 
+    function applyTone(tone) {
+      contact.dataset.controlTone = tone;
+      contact.dataset.homeSurface = faceSurfaces[tone];
+      contact.dispatchEvent(new Event('homesurfacechange', { bubbles: true }));
+    }
+
+    function renderTone() {
+      if (toneAnimation || requestedTone === contact.dataset.controlTone) return;
+      if (pending || !contact.dataset.controlTone || !motion.matches || !canAnimateTone) {
+        applyTone(requestedTone);
+        return;
+      }
+
+      // Reveal one complete face so the label always keeps its own contrasting background.
+      const nextTone = requestedTone;
+      face.dataset.controlTone = nextTone;
+      face.hidden = false;
+      const animation = face.animate([
+        { clipPath: 'inset(100% 0 0)' },
+        { clipPath: 'inset(0)' },
+      ], { duration: 230, easing: 'cubic-bezier(.22, .61, .36, 1)', fill: 'both' });
+      toneAnimation = animation;
+      animation.onfinish = () => {
+        applyTone(nextTone);
+        face.hidden = true;
+        toneAnimation = undefined;
+        animation.cancel();
+        renderTone();
+      };
+    }
+
     function updateTone() {
       frame = 0;
-      const button = contact.getBoundingClientRect();
-      const bands = Array.from(darkSections, section => section.getBoundingClientRect());
-      const isDark = y => bands.some(band => band.top <= y && band.bottom >= y);
-      // Use the designed background regions. Over photography use the default high-contrast pill.
-      const onDark = isDark(button.top) && isDark(button.bottom) && !overlaps(button, heroPhoto.getBoundingClientRect());
-      contact.classList.toggle('is-on-dark', onDark);
+      const box = contact.getBoundingClientRect();
+      const sample = (x, y) => homeSurfaceFor(
+        document.elementsFromPoint(x, y).find(element => !contact.contains(element))
+      );
+      const center = sample(box.left + box.width / 2, box.top + box.height / 2);
+
+      // Keep the current face until the button clears the boundary between two surfaces.
+      if (
+        !requestedTone ||
+        (sample(box.left + 14, box.top + 7) === center && sample(box.right - 14, box.bottom - 7) === center)
+      ) {
+        requestedTone = center;
+        renderTone();
+      }
     }
 
     function scheduleTone() {
@@ -174,6 +221,9 @@
     }, { passive: true });
     window.addEventListener('resize', scheduleTone, { passive: true });
     contact.addEventListener('transitionend', scheduleTone);
+    motion.addEventListener('change', () => {
+      if (!motion.matches) toneAnimation?.finish();
+    });
 
     if (pending) {
       contact.addEventListener('focus', show);
@@ -315,7 +365,7 @@
           ? 1 - pageScroll / (pageScroll + top + height)
           : (viewport - top) / (viewport + height);
         const progress = Math.max(0, Math.min(1, position));
-        return [photo, (progress - .5) * 8.8];
+        return [photo, (progress - .5) * 14.8];
       });
       for (const [photo, offset] of offsets) {
         photo.style.setProperty('--photo-scroll-offset', `${offset.toFixed(3)}%`);
@@ -372,10 +422,16 @@
     let slowFrames = 0;
     let target, nativeCursorTarget;
     let x, y, targetX, targetY;
+    let refreshTarget = false;
+    let pendingTone;
+    let toneTimer;
 
     function hide() {
       cancelAnimationFrame(frame);
+      window.clearTimeout(toneTimer);
       frame = lastTime = slowFrames = 0;
+      refreshTarget = false;
+      pendingTone = undefined;
       nativeCursorTarget?.classList.remove('home-cursor-target');
       nativeCursorTarget = target = undefined;
       cursor.classList.remove('is-visible');
@@ -389,6 +445,14 @@
     }
 
     function draw(time) {
+      if (refreshTarget) {
+        refreshTarget = false;
+        if (!trackTarget(document.elementFromPoint(targetX, targetY), true)) {
+          hide();
+          return;
+        }
+      }
+
       const elapsed = lastTime ? time - lastTime : 16;
       slowFrames = elapsed > 32 ? slowFrames + 1 : 0;
       if (slowFrames >= 5) {
@@ -424,20 +488,37 @@
       frame = moving ? requestAnimationFrame(draw) : 0;
     }
 
+    function trackTarget(element, refresh = false) {
+      if (!(element instanceof Element) || !document.body.contains(element) || element.closest(nativeControls)) return false;
+      if (target === element && !refresh) return true;
+
+      target = element;
+      cursor.classList.toggle('is-interactive', Boolean(target.closest(interactive)));
+      const tone = homeSurfaceFor(target);
+      if (tone !== pendingTone) {
+        window.clearTimeout(toneTimer);
+        pendingTone = tone;
+        if (!nativeCursorTarget) cursor.dataset.controlTone = tone;
+        else if (cursor.dataset.controlTone !== tone) {
+          toneTimer = window.setTimeout(() => { cursor.dataset.controlTone = tone; }, 48);
+        }
+      }
+
+      return true;
+    }
+
+    function scheduleTargetRefresh() {
+      if (!target) return;
+      refreshTarget = true;
+      if (!frame) frame = requestAnimationFrame(draw);
+    }
+
     function follow(event) {
-      const element = event.target;
-      if (
-        event.pointerType !== 'mouse' || event.buttons || !document.hasFocus() ||
-        !(element instanceof Element) || !document.body.contains(element) || element.closest(nativeControls)
-      ) {
+      if (event.pointerType !== 'mouse' || event.buttons || !document.hasFocus() || !trackTarget(event.target)) {
         hide();
         return;
       }
 
-      if (target !== element) {
-        target = element;
-        cursor.classList.toggle('is-interactive', Boolean(target.closest(interactive)));
-      }
       targetX = event.clientX;
       targetY = event.clientY;
       if (!nativeCursorTarget) {
@@ -474,6 +555,9 @@
       document.addEventListener('dragstart', hide, options);
       document.addEventListener('keydown', hide, options);
       document.addEventListener('visibilitychange', hide, options);
+      document.addEventListener('homesurfacechange', scheduleTargetRefresh, options);
+      window.addEventListener('scroll', scheduleTargetRefresh, options);
+      window.addEventListener('resize', scheduleTargetRefresh, options);
       window.addEventListener('blur', hide, options);
     }
 

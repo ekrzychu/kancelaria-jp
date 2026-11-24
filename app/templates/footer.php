@@ -1,5 +1,5 @@
 </main>
-<footer class="site-footer">
+<footer class="site-footer"<?= $path === '/' ? ' data-home-surface="burgundy"' : '' ?>>
   <?php if ($path !== '/'): ?>
     <div class="container footer-callout">
       <h2>Porozmawiajmy o sprawie.</h2>

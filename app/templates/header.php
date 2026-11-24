@@ -28,9 +28,9 @@ $styleVersion = filemtime(__DIR__ . '/../../public/assets/css/style.css');
   <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
 </head>
 <body<?= $path === '/' ? ' class="homepage"' : '' ?>>
-<a class="skip-link" href="#main">Przejdź do treści</a>
+<a class="skip-link" href="#main"<?= $path === '/' ? ' data-home-surface="light"' : '' ?>>Przejdź do treści</a>
 <header class="site-header">
-  <div class="header-bar">
+  <div class="header-bar"<?= $path === '/' ? ' data-home-surface="burgundy"' : '' ?>>
     <div class="container header-inner">
       <a class="brand" href="/" aria-label="<?= e($site['name']) ?> — strona główna"<?= $path === '/' ? ' aria-current="page"' : '' ?>>
         <span class="brand-mark" aria-hidden="true">
