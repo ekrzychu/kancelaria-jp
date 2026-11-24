@@ -1,8 +1,22 @@
 <?php
 $partners = array_filter($team, static fn ($person) => str_starts_with(text_lower($person['role']), 'wspólnik'));
-$publications = array_filter($articles, static fn ($article) =>
-    is_array($article) && is_string($article['title'] ?? null) && trim($article['title']) !== ''
-);
+$publications = [];
+foreach ($articles as $article) {
+    if (!is_array($article)) {
+        continue;
+    }
+
+    $title = is_string($article['title'] ?? null) ? trim($article['title']) : '';
+    $summary = is_string($article['summary'] ?? null) ? trim($article['summary']) : '';
+    $date = $article['date'] ?? '';
+    $published = is_string($date) && preg_match('/\A\d{4}-\d{2}-\d{2}\z/', $date)
+        ? DateTimeImmutable::createFromFormat('!Y-m-d', $date)
+        : false;
+    if ($title !== '' && $summary !== '' && $published && $published->format('Y-m-d') === $date) {
+        $publications[] = compact('title', 'summary', 'published');
+    }
+}
+usort($publications, static fn ($left, $right) => $right['published'] <=> $left['published']);
 // Set to false until the firm confirms permission to publish the logos.
 $showClientLogos = true;
 $clientLogos = [
@@ -26,8 +40,10 @@ $experienceYears = 6;
 <section class="home-hero" aria-labelledby="home-title" data-home-surface="burgundy">
   <div class="home-frame home-hero-layout">
     <div class="home-hero-heading">
-      <p class="section-kicker">Kancelaria radców prawnych we Wrocławiu</p>
-      <h1 id="home-title">Prawo <span>w&nbsp;praktyce.</span></h1>
+      <div class="home-hero-title">
+        <p class="section-kicker">Kancelaria radców prawnych we Wrocławiu</p>
+        <h1 id="home-title">Prawo <span>w&nbsp;praktyce.</span></h1>
+      </div>
     </div>
     <picture class="home-hero-photo" data-scroll-photo="hero" data-home-surface="photo">
       <img src="/assets/img/office-meeting-1360.webp"
@@ -77,8 +93,9 @@ $experienceYears = 6;
   </div>
 </section>
 
-<section class="home-profile home-section" aria-labelledby="home-profile-title" data-home-surface="beige">
-  <div class="home-frame home-profile-layout">
+<section class="home-profile home-section" aria-labelledby="home-profile-title">
+  <div class="home-profile-backdrop" aria-hidden="true" data-home-surface="beige"></div>
+  <div class="home-frame home-profile-layout" data-home-surface="beige">
     <div class="home-profile-statement" data-reveal="sequence">
       <p class="section-kicker">O kancelarii</p>
       <h2 id="home-profile-title">Najpierw sprawa.<br>Potem strategia.</h2>
@@ -132,14 +149,18 @@ $experienceYears = 6;
 <?php if ($showClientLogos): ?>
   <section class="home-clients home-section" aria-labelledby="home-clients-title" data-home-surface="beige">
     <div class="home-frame home-clients-layout">
-      <h2 id="home-clients-title" data-reveal>Nasi klienci</h2>
-      <ul class="home-client-logos" role="list">
-        <?php foreach ($clientLogos as [$slug, $name, $width, $height]): ?>
-          <li class="home-client-<?= e($slug) ?>" data-reveal="logo">
-            <img src="/assets/img/clients/<?= e($slug) ?>.webp" alt="<?= e($name) ?>" width="<?= $width ?>" height="<?= $height ?>" loading="lazy" decoding="async">
-          </li>
+      <h2 id="home-clients-title">Współpracujemy z</h2>
+      <div class="home-client-gallery">
+        <?php foreach (array_chunk($clientLogos, 4) as $track): ?>
+          <ul class="home-client-logos" role="list">
+            <?php foreach ($track as [$slug, $name, $width, $height]): ?>
+              <li class="home-client-<?= e($slug) ?>">
+                <img src="/assets/img/clients/<?= e($slug) ?>.webp" alt="<?= e($name) ?>" width="<?= $width ?>" height="<?= $height ?>" loading="lazy" decoding="async">
+              </li>
+            <?php endforeach; ?>
+          </ul>
         <?php endforeach; ?>
-      </ul>
+      </div>
     </div>
   </section>
 <?php endif; ?>
@@ -147,15 +168,21 @@ $experienceYears = 6;
 <?php if ($publications): ?>
   <section class="home-publications home-section" aria-labelledby="home-publications-title">
     <div class="home-frame home-publications-layout">
-      <div data-reveal>
+      <div class="home-publications-heading" data-reveal>
         <h2 id="home-publications-title">Publikacje</h2>
         <a class="text-action" href="/artykuly/">Wszystkie publikacje</a>
       </div>
-      <ul role="list" data-reveal>
-        <?php foreach (array_slice($publications, 0, 3) as $article): ?>
-          <li><h3><?= e($article['title']) ?></h3></li>
+      <ol class="home-publications-list" role="list" data-reveal>
+        <?php foreach (array_slice($publications, 0, 3) as $publication): ?>
+          <li>
+            <article>
+              <time datetime="<?= e($publication['published']->format('Y-m-d')) ?>"><?= e($publication['published']->format('d.m.Y')) ?></time>
+              <h3><?= e($publication['title']) ?></h3>
+              <p><?= e($publication['summary']) ?></p>
+            </article>
+          </li>
         <?php endforeach; ?>
-      </ul>
+      </ol>
     </div>
   </section>
 <?php endif; ?>

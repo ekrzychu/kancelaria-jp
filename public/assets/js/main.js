@@ -264,7 +264,7 @@
     const bottomMargin = homepage ? 16 : -24;
     let initialObservation = homepage;
     const observer = new IntersectionObserver(entries => {
-      const revealOrder = { row: 0, logo: 0 };
+      let rowOrder = 0;
       for (const { target, isIntersecting, intersectionRatio, boundingClientRect, rootBounds } of entries) {
         const type = target.dataset.reveal;
         if (!isIntersecting || intersectionRatio < (type === 'count' ? countThreshold : threshold)) continue;
@@ -277,8 +277,8 @@
         const alreadyVisible = initialObservation && rootBounds && boundingClientRect.top < rootBounds.bottom - bottomMargin;
         if (alreadyVisible || (homepage && target.matches(':focus-within'))) continue;
 
-        if (type === 'row' || type === 'logo') {
-          target.style.setProperty('--reveal-order', revealOrder[type]++);
+        if (type === 'row') {
+          target.style.setProperty('--reveal-order', rowOrder++);
         }
 
         const reveal = () => target.classList.add('is-revealed');

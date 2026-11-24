@@ -679,7 +679,7 @@ html:has(> .homepage) {
 
 .home-practice-list,
 .home-team ul,
-.home-publications ul {
+.home-publications-list {
   margin: 0;
   padding: 0;
   list-style: none;
@@ -740,10 +740,18 @@ html:has(> .homepage) {
 }
 
 .home-profile {
+  position: relative;
+  isolation: isolate;
+}
+
+.home-profile-backdrop {
+  position: absolute;
+  inset: 0;
   background: var(--surface);
 }
 
 .home-profile-layout {
+  position: relative;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
   align-items: start;
 }
@@ -876,14 +884,19 @@ html:has(> .homepage) {
 }
 
 .home-clients-layout {
-  max-width: 86rem;
+  max-width: 100rem;
   grid-template-columns: minmax(0, 1fr);
-  row-gap: clamp(1.25rem, 1.9vw, 1.9rem);
+  row-gap: clamp(1.25rem, 2.45vw, 2.5rem);
 }
 
 .home-clients h2 {
   font-size: clamp(1.625rem, 2.15vw, 2.125rem);
   line-height: 1.1;
+}
+
+.home-client-gallery {
+  display: grid;
+  gap: clamp(.55rem, 1vw, .9rem);
 }
 
 .home-client-logos {
@@ -926,13 +939,60 @@ html:has(> .homepage) {
 }
 
 .home-publications-layout {
-  grid-template-columns: minmax(0, .58fr) minmax(0, 1fr);
-  row-gap: .8rem;
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: clamp(1.4rem, 2.9vw, 3rem);
 }
 
-.home-publications li {
+.home-publications-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .5rem 2rem;
+}
+
+.home-publications-list {
+  display: grid;
+  column-gap: clamp(2rem, 5vw, 6rem);
+}
+
+.home-publications-list li {
   border-top: 1px solid var(--line);
-  padding-block: .8rem;
+  padding-block: 1.1rem;
+}
+
+.home-publications-list time {
+  color: var(--quiet-accent);
+  font-size: var(--type-label);
+  font-variant-numeric: tabular-nums;
+}
+
+.home-publications-list h3 {
+  margin-block: .5rem;
+  font-size: clamp(1.3rem, 1.85vw, 1.85rem);
+  line-height: 1.14;
+  overflow-wrap: anywhere;
+}
+
+.home-publications-list li:first-child h3 {
+  font-size: clamp(1.7rem, 2.7vw, 3.1rem);
+}
+
+.home-publications-list p {
+  max-width: 58ch;
+  margin: 0;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 57rem) {
+  .home-publications-list {
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  }
+
+  .home-publications-list li:first-child {
+    grid-row: span 2;
+  }
 }
 
 .home-contact {
@@ -1140,7 +1200,6 @@ html:has(> .homepage) {
   .home-profile-layout,
   .home-team,
   .home-office-layout,
-  .home-publications-layout,
   .home-contact-layout {
     grid-template-columns: minmax(0, 1fr);
     row-gap: 1rem;
@@ -2185,7 +2244,7 @@ main:has(.archive-empty) + .site-footer {
   }
 
   [data-reveal].is-revealed:not([data-reveal="image"], [data-reveal="sequence"]),
-  .home-hero :is(.home-hero-heading > *, .home-hero-intro > *),
+  .home-hero :is(.home-hero-title > *, .home-hero-intro > *),
   .home-practices-heading.is-revealed > *,
   .home-profile-statement.is-revealed > *,
   .home-contact-layout.is-revealed > * {
@@ -2244,7 +2303,7 @@ main:has(.archive-empty) + .site-footer {
   .home-practices-heading > .text-action,
   .home-profile-detail,
   .home-contact-detail,
-  .home-publications ul {
+  .home-publications-list {
     --enter-delay: 80ms;
   }
 
@@ -2252,11 +2311,6 @@ main:has(.archive-empty) + .site-footer {
     --enter-duration: 510ms;
     --enter-y: 13px;
     --enter-delay: calc(35ms + var(--reveal-order, 0) * 60ms);
-  }
-
-  .home-client-logos li {
-    --enter-y: 10px;
-    --enter-delay: calc(45ms + var(--reveal-order, 0) * 52ms);
   }
 
   .home-profile-statement h2 {
@@ -2319,14 +2373,6 @@ main:has(.archive-empty) + .site-footer {
     .home-contact-float:hover .home-contact-label {
       transform: translateX(-2px);
     }
-
-    .home-client-logos img {
-      transition: transform 220ms var(--motion-ease);
-    }
-
-    .home-client-logos li:hover img {
-      transform: translateY(-3px);
-    }
   }
 
   .home-office-copy {
@@ -2388,6 +2434,134 @@ main:has(.archive-empty) + .site-footer {
       --photo-offset: 0%;
     }
   }
+}
+
+@supports (view-timeline: --section block) and (animation-range: cover 0% cover 100%) and (animation-timeline: --section) {
+  @media (min-width: 57rem) and (min-height: 38rem) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    .home-profile {
+      display: grid;
+      align-items: center;
+      min-block-size: 90svh;
+      view-timeline: --home-profile block;
+    }
+
+    .home-profile-statement h2 {
+      font-size: clamp(3.1rem, 6vw, 9rem);
+    }
+
+    .home-profile .home-team {
+      margin-block-start: clamp(3rem, 8svh, 7.5rem);
+    }
+
+    .home-profile-statement.is-revealed > *,
+    .home-profile :is(.home-profile-detail, .home-team).is-revealed {
+      animation: none;
+    }
+
+    .home-profile :is(.home-profile-backdrop, .home-profile-statement, .home-profile-side, .home-experience) {
+      animation: profile-scroll auto ease-in-out both;
+      animation-timeline: --home-profile;
+      transform-origin: left center;
+    }
+
+    .home-profile .home-profile-backdrop {
+      --profile-scale-in: .91 .9;
+      --profile-scale-out: .95 .94;
+      transform-origin: center;
+    }
+
+    .home-profile-statement {
+      --profile-offset-in: clamp(1.4rem, 4.5svh, 4rem);
+      --profile-offset-out: clamp(-3.5rem, -3svh, -1.25rem);
+      --profile-scale-in: .94;
+      --profile-scale-out: .975;
+    }
+
+    .home-profile-side {
+      --profile-offset-in: clamp(1.9rem, 6svh, 5rem);
+      --profile-offset-out: clamp(-2rem, -1.7svh, -.7rem);
+    }
+
+    .home-experience {
+      --profile-offset-in: 1.15rem;
+      --profile-offset-out: -.65rem;
+      --profile-scale-in: .97;
+      --profile-scale-out: .985;
+    }
+
+    .home-hero {
+      view-timeline: --home-hero block;
+    }
+
+    .home-hero :is(.home-hero-title, .home-hero-intro) {
+      animation: hero-exit auto linear both;
+      animation-timeline: --home-hero;
+      animation-range: exit 0% exit 85%;
+      transform-origin: left center;
+    }
+
+    .home-hero-title {
+      --hero-offset-out: -3.5svh;
+      --hero-scale-out: .962;
+    }
+
+    .home-hero-intro {
+      --hero-offset-out: -2.2svh;
+    }
+
+    .home-clients {
+      --logo-travel: clamp(1.5rem, 3.4vw, 4.5rem);
+      view-timeline: --home-clients block;
+    }
+
+    .home-client-gallery {
+      padding-inline: var(--logo-travel);
+    }
+
+    .home-client-logos {
+      animation: logo-scroll auto linear both;
+      animation-timeline: --home-clients;
+      animation-range: entry 0% cover 48%;
+    }
+
+    .home-client-logos + .home-client-logos {
+      animation-direction: reverse;
+    }
+  }
+}
+
+@keyframes profile-scroll {
+  0% {
+    translate: 0 var(--profile-offset-in, 0px);
+    scale: var(--profile-scale-in, 1);
+  }
+
+  43%, 57% {
+    translate: 0 0;
+    scale: 1;
+  }
+
+  100% {
+    translate: 0 var(--profile-offset-out, 0px);
+    scale: var(--profile-scale-out, 1);
+  }
+}
+
+@keyframes hero-exit {
+  from {
+    translate: 0 0;
+    scale: 1;
+  }
+
+  to {
+    translate: 0 var(--hero-offset-out);
+    scale: var(--hero-scale-out, 1);
+  }
+}
+
+@keyframes logo-scroll {
+  from { translate: calc(-1 * var(--logo-travel)); }
+  to { translate: var(--logo-travel); }
 }
 
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) and (forced-colors: none) {
