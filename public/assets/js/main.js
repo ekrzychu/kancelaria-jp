@@ -50,7 +50,7 @@
 
   initReveals(homepage);
   if (homepage) {
-    initHomeEditorialMotion();
+    initHomeStages();
     initHomeNavigation();
     initHomeContact();
     initHomeImageMotion();
@@ -246,7 +246,7 @@
     document.addEventListener('focusin', ({ target }) => {
       if (target === contact || !target.matches(':is(a, button):focus-visible') || !target.closest('main, footer')) return;
 
-      if (overlaps(contact.getBoundingClientRect(), target.getBoundingClientRect())) {
+      if (!target.closest('[data-pinned]') && overlaps(contact.getBoundingClientRect(), target.getBoundingClientRect())) {
         target.scrollIntoView({ behavior: 'instant', block: 'center', inline: 'nearest' });
       }
     });
@@ -261,18 +261,13 @@
     const targets = document.querySelectorAll('[data-reveal]');
     const listeners = new AbortController();
     const threshold = homepage ? 0 : .15;
-    const countThreshold = .5;
     const bottomMargin = homepage ? 16 : -24;
     let initialObservation = homepage;
     const observer = new IntersectionObserver(entries => {
       for (const { target, isIntersecting, intersectionRatio, boundingClientRect, rootBounds } of entries) {
         const type = target.dataset.reveal;
-        if (!isIntersecting || intersectionRatio < (type === 'count' ? countThreshold : threshold)) continue;
+        if (!isIntersecting || intersectionRatio < threshold) continue;
         observer.unobserve(target);
-        if (type === 'count') {
-          animateExperience(target, listeners.signal);
-          continue;
-        }
 
         const alreadyVisible = initialObservation && rootBounds && boundingClientRect.top < rootBounds.bottom - bottomMargin;
         if (alreadyVisible || (homepage && target.matches(':focus-within'))) continue;
@@ -286,7 +281,7 @@
         }
       }
       initialObservation = false;
-    }, { threshold: homepage ? [threshold, countThreshold] : threshold, rootMargin: `0px 0px ${bottomMargin}px` });
+    }, { threshold, rootMargin: `0px 0px ${bottomMargin}px` });
 
     targets.forEach(target => observer.observe(target));
 
@@ -307,75 +302,144 @@
     }, { once: true });
   }
 
-  function animateExperience(experience, signal) {
-    const number = experience.querySelector('[data-experience]');
-    const value = number.firstElementChild;
-    const finalValue = number.dataset.experience;
-    const total = Number(finalValue);
-    let startedAt;
-    let frame;
+  function initHomeStages() {
+    const desktop = window.matchMedia(
+      '(min-width: 64rem) and (min-height: 44rem) and (prefers-reduced-motion: no-preference)'
+    );
+    if (!window.CSS?.supports('overflow', 'clip') || !CSS.supports('height', '100dvh') ||
+        !CSS.supports('position', 'sticky') || !CSS.supports('selector(:has(*))')) return;
 
-    function finish() {
-      cancelAnimationFrame(frame);
-      value.textContent = finalValue;
-      signal.removeEventListener('abort', finish);
+    const editorial = document.querySelector('.home-editorial-stages');
+    const headerBar = document.querySelector('.header-bar');
+    const stages = Array.from(document.querySelectorAll('[data-home-stage]'), section => ({
+      section,
+      kind: section.dataset.homeStage,
+      viewport: section.querySelector('.home-stage-viewport'),
+      content: section.querySelector('.home-stage-content'),
+      layout: section.querySelector('.home-frame'),
+    }));
+    const practices = stages.find(stage => stage.kind === 'practices');
+    const publications = stages.find(stage => stage.kind === 'publications');
+    const about = stages.find(stage => stage.kind === 'profile');
+    const rail = practices.layout.querySelector('.home-practices-rail');
+    const list = rail.firstElementChild;
+    const practiceIntro = practices.layout.querySelector('.home-practices-intro');
+    const clamp = (value, max = 1) => Math.max(0, Math.min(value, max));
+
+    let active = [];
+    let height;
+    let frame = 0;
+    let expansion = 0;
+
+    function setProgress(stage, property, value) {
+      if (stage[property] === value) return;
+      stage[property] = value;
+      stage.section.style.setProperty(property, value);
     }
 
-    function tick(time) {
-      startedAt ??= time;
-      const progress = (time - startedAt) / 950;
-      if (progress >= 1) {
-        finish();
+    function draw() {
+      frame = 0;
+      const positions = active.map(stage => stage.section.getBoundingClientRect().top);
+      active.forEach((stage, index) => {
+        const top = positions[index];
+        const entry = stage === about && expansion ? clamp(-top / expansion) : clamp(1 - top / height);
+        const travel = -top - (stage === about ? expansion : 0);
+        setProgress(stage, '--stage-entry', entry);
+        setProgress(stage, '--stage-progress', clamp(travel / stage.hold));
+        if (stage === practices) {
+          setProgress(stage, '--practice-offset', `${clamp(travel, stage.listTravel)}px`);
+        }
+      });
+    }
+
+    function schedule() {
+      if (active.length && !frame) frame = requestAnimationFrame(draw);
+    }
+
+    function measure() {
+      if (frame) cancelAnimationFrame(frame);
+      frame = 0;
+
+      for (const stage of stages) stage.section.toggleAttribute('data-pinned', desktop.matches);
+      if (!desktop.matches) {
+        active = [];
+        expansion = 0;
+        editorial.classList.remove('is-expanding');
         return;
       }
 
-      const current = String(Math.floor(progress * total));
-      if (value.textContent !== current) value.textContent = current;
-      frame = requestAnimationFrame(tick);
+      height = stages[0].viewport.clientHeight;
+      const practiceWindow = rail.clientHeight - 12; // The rail leaves 6px around focus outlines.
+      practices.listTravel = Math.max(0, list.offsetHeight - practiceWindow);
+      const headingTravel = Math.max(0, practiceWindow - practiceIntro.offsetHeight - height * .055);
+      practices.section.style.setProperty('--heading-travel', `${headingTravel}px`);
+
+      active = stages.filter(stage => {
+        if (stage === practices) {
+          return practiceIntro.offsetHeight <= practiceWindow && Array.from(list.children)
+            .every(item => item.offsetHeight <= practiceWindow);
+        }
+        const style = getComputedStyle(stage.content);
+        const room = stage.content.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+        return stage.layout.offsetHeight <= room + 1;
+      });
+
+      for (const stage of stages) stage.section.toggleAttribute('data-pinned', active.includes(stage));
+      const holds = {
+        hero: height * .32,
+        practices: practices.listTravel + height * .16,
+        publications: height * .36,
+        profile: height * .31,
+        clients: height * .36,
+      };
+      for (const stage of active) {
+        stage.hold = Math.round(holds[stage.kind]);
+        stage.section.style.setProperty('--stage-hold', `${stage.hold}px`);
+      }
+
+      // Overlap the viewports during the reveal, then release Publications behind the beige surface.
+      expansion = active.includes(publications) && active.includes(about) ? Math.round(height * .48) : 0;
+      if (expansion) {
+        editorial.style.setProperty('--publication-hold', `${publications.hold}px`);
+        editorial.style.setProperty('--about-entry', `${expansion}px`);
+        editorial.style.setProperty('--about-hold', `${about.hold}px`);
+      }
+      editorial.classList.toggle('is-expanding', Boolean(expansion));
+      draw();
     }
 
-    value.textContent = '0';
-    signal.addEventListener('abort', finish, { once: true });
-    frame = requestAnimationFrame(tick);
-  }
+    document.getElementById('main').addEventListener('focusin', ({ target }) => {
+      if (!target.matches('a:focus-visible')) return;
+      const stage = active.find(({ section }) => section.contains(target));
+      if (!stage) return;
 
-  function initHomeEditorialMotion() {
-    if (
-      !('ResizeObserver' in window) ||
-      !window.CSS?.supports('view-timeline: --expansion block') ||
-      !window.CSS.supports('animation-timeline: --expansion') ||
-      !window.CSS.supports('animation-range: entry 70% contain 20%')
-    ) return;
+      const box = target.getBoundingClientRect();
+      const view = stage.viewport.getBoundingClientRect();
+      const railLink = stage === practices && rail.contains(target);
+      const bounds = railLink ? rail.getBoundingClientRect() : view;
+      const safeTop = Math.max(bounds.top + 6, headerBar.getBoundingClientRect().bottom + 8);
+      const safeBottom = Math.min(bounds.bottom - 6, height - 8);
+      const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+      if (box.top >= safeTop && box.bottom <= safeBottom && target.contains(hit)) return;
 
-    const profile = document.querySelector('.home-profile');
-    const profileLayout = profile.querySelector('.home-profile-layout');
-    const practices = document.querySelector('.home-practices');
-    const practicesIntro = practices.querySelector('.home-practices-intro');
-    const practicesList = practices.querySelector('.home-practice-list');
-    const desktopMotion = window.matchMedia(
-      '(min-width: 57rem) and (min-height: 44rem) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)'
-    );
+      let offset = stage.hold * .4;
+      if (railLink) {
+        const center = box.top - list.getBoundingClientRect().top + box.height / 2;
+        offset = clamp(center - rail.clientHeight / 2, practices.listTravel);
+      } else if (stage === about) {
+        offset += expansion;
+      }
 
-    function updateMotion() {
-      const viewport = window.innerHeight;
-      const desktop = desktopMotion.matches;
-      const freeSpace = desktop ? viewport - profileLayout.offsetHeight : 0;
-      // The service list supplies the travel. Leave space in its column for focus outlines and release.
-      const travel = desktop ? Math.max(0, Math.min(viewport * .34, practicesList.offsetHeight - practicesIntro.offsetHeight - 64)) : 0;
-      const fits = freeSpace >= viewport * .24 && freeSpace <= viewport * .64;
-      const inset = fits ? Math.min(viewport * .12, freeSpace - viewport * .14) : 0;
+      window.scrollTo({ top: window.scrollY + stage.section.getBoundingClientRect().top + offset, behavior: 'instant' });
+      if (frame) cancelAnimationFrame(frame);
+      draw();
+    });
 
-      profile.style.setProperty('--expansion-inset', `${inset}px`);
-      profile.classList.toggle('has-expansion-stage', fits);
-      practices.style.setProperty('--heading-descent', `${travel}px`);
-      practices.classList.toggle('has-heading-journey', travel >= 48);
-    }
-
-    const observer = new ResizeObserver(updateMotion);
-    [profileLayout, practicesIntro, practicesList].forEach(element => observer.observe(element));
-    desktopMotion.addEventListener('change', updateMotion);
-    window.addEventListener('resize', updateMotion, { passive: true });
-    updateMotion();
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', measure, { passive: true });
+    desktop.addEventListener('change', measure);
+    document.fonts?.ready.then(measure);
+    measure();
   }
 
   function initHomeImageMotion() {
@@ -399,17 +463,10 @@
     function draw() {
       frame = 0;
       const viewport = window.innerHeight;
-      const pageScroll = Math.max(0, window.scrollY);
-      // Read both frames before updating the image transforms.
       const offsets = Array.from(visible, photo => {
         const { top, height } = photo.getBoundingClientRect();
-        // Start the opening photo at the top of its crop to keep the wall-mounted logo in view.
-        const position = photo.dataset.scrollPhoto === 'hero'
-          ? 1 - pageScroll / (pageScroll + top + height)
-          : (viewport - top) / (viewport + height);
-        const progress = Math.max(0, Math.min(1, position));
-        const travel = photo.dataset.scrollPhoto === 'hero' ? 6 : 16;
-        return [photo, (progress - .5) * travel];
+        const progress = Math.max(0, Math.min(1, (viewport - top) / (viewport + height)));
+        return [photo, (progress - .5) * 16];
       });
       for (const [photo, offset] of offsets) {
         photo.style.setProperty('--photo-scroll-offset', `${offset.toFixed(3)}%`);
