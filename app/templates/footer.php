@@ -1,9 +1,11 @@
 </main>
 <footer class="site-footer">
-  <div class="container footer-callout">
-    <h2>Porozmawiajmy o sprawie.</h2>
-    <a class="text-action" href="/kontakt/">Skontaktuj się z kancelarią</a>
-  </div>
+  <?php if ($path !== '/'): ?>
+    <div class="container footer-callout">
+      <h2>Porozmawiajmy o sprawie.</h2>
+      <a class="text-action" href="/kontakt/">Skontaktuj się z kancelarią</a>
+    </div>
+  <?php endif; ?>
   <div class="container footer-grid">
     <div class="footer-identity">
       <a class="footer-brand" href="/"><?= e($site['name']) ?></a>

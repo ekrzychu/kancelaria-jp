@@ -1,6 +1,7 @@
 (() => {
   const menuButton = document.querySelector('.menu-button');
   const mainNav = document.getElementById('main-nav');
+  const homepage = document.body.classList.contains('homepage');
 
   if (menuButton && mainNav) {
     const compactHeader = window.matchMedia('(max-width: 56rem)');
@@ -27,14 +28,31 @@
       }
     });
 
-    compactHeader.addEventListener('change', syncMenu);
+    compactHeader.addEventListener('change', () => {
+      if (compactHeader.matches) syncMenu();
+      else setMenuOpen(false);
+    });
+
+    if (homepage) {
+      const header = menuButton.closest('.site-header');
+      const closeOutside = event => {
+        if (!header.contains(event.target) && menuButton.getAttribute('aria-expanded') === 'true') {
+          setMenuOpen(false);
+        }
+      };
+      document.addEventListener('focusin', closeOutside);
+      document.addEventListener('pointerdown', closeOutside, { passive: true });
+    }
+
     menuButton.hidden = false;
     syncMenu();
   }
 
-  const homepage = document.body.classList.contains('homepage');
   initReveals(homepage);
-  if (homepage) initHomeCursor();
+  if (homepage) {
+    initHomeNavigation();
+    initHomeCursor();
+  }
 
   document.querySelector('.form-status.error')?.focus();
 
@@ -59,6 +77,57 @@
     });
   }
 
+  function initHomeNavigation() {
+    const header = document.querySelector('.site-header');
+    header.classList.add('is-scroll-aware');
+
+    let compact = false;
+    let visible = false;
+    let turnPoint = 0;
+
+    function reserveHeaderSpace() {
+      const height = header.getBoundingClientRect().height;
+      header.style.setProperty('--full-header-block', `${height}px`);
+    }
+
+    function update() {
+      const y = Math.max(0, window.scrollY);
+      if (y <= 1) {
+        if (compact) header.classList.remove('is-compact', 'is-nav-visible', 'can-slide');
+        compact = visible = false;
+        return;
+      }
+
+      if (!compact) {
+        if (y < header.offsetHeight + 24) return;
+        reserveHeaderSpace();
+        header.classList.add('is-compact');
+        compact = true;
+        turnPoint = y;
+        return;
+      }
+
+      const distance = y - turnPoint;
+      if (visible ? distance >= 18 : distance <= -18) {
+        visible = !visible;
+        turnPoint = y;
+        header.classList.add('can-slide');
+        header.classList.toggle('is-nav-visible', visible);
+      } else {
+        turnPoint = visible ? Math.min(turnPoint, y) : Math.max(turnPoint, y);
+      }
+    }
+
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', () => {
+      if (!compact) return;
+      header.classList.remove('is-compact');
+      reserveHeaderSpace();
+      header.classList.add('is-compact');
+    }, { passive: true });
+    update();
+  }
+
   function initReveals(homepage) {
     const motion = window.matchMedia('(prefers-reduced-motion: no-preference)');
     if (!motion.matches || !('IntersectionObserver' in window)) return;
@@ -78,6 +147,11 @@
 
         if (target.dataset.reveal === 'row') {
           target.style.setProperty('--row-order', rowOrder++);
+        }
+
+        if (target.dataset.reveal === 'count') {
+          animateExperience(target, listeners.signal);
+          continue;
         }
 
         const reveal = () => target.classList.add('is-revealed');
@@ -110,6 +184,39 @@
     }, { once: true });
   }
 
+  function animateExperience(experience, signal) {
+    const number = experience.querySelector('[data-experience]');
+    const value = number.firstElementChild;
+    const finalValue = number.dataset.experience;
+    let startedAt;
+    let frame;
+
+    function finish() {
+      cancelAnimationFrame(frame);
+      value.textContent = finalValue;
+      experience.classList.remove('is-counting');
+      signal.removeEventListener('abort', finish);
+    }
+
+    function tick(time) {
+      startedAt ??= time;
+      const progress = (time - startedAt) / 1000;
+      if (progress >= 1) {
+        finish();
+        return;
+      }
+
+      const current = String(Math.floor(progress * Number(finalValue)));
+      if (value.textContent !== current) value.textContent = current;
+      frame = requestAnimationFrame(tick);
+    }
+
+    value.textContent = '0';
+    experience.classList.add('is-counting');
+    signal.addEventListener('abort', finish, { once: true });
+    frame = requestAnimationFrame(tick);
+  }
+
   function initHomeCursor() {
     if (navigator.maxTouchPoints > 0 || !('PointerEvent' in window)) return;
 
@@ -119,16 +226,27 @@
     const cursor = document.createElement('div');
     cursor.className = 'home-cursor';
     cursor.setAttribute('aria-hidden', 'true');
+    const dot = document.createElement('span');
+    dot.className = 'home-cursor-dot';
+    const ring = document.createElement('span');
+    ring.className = 'home-cursor-ring';
+    cursor.append(ring, dot);
+
+    const interactive = 'a[href], button:not(:disabled), summary, [role="button"], [role="link"]';
+    const nativeControls = 'input, textarea, select, label, [contenteditable], [role="textbox"], iframe';
 
     let listeners;
     let frame = 0;
     let lastTime = 0;
     let slowFrames = 0;
+    let target, nativeCursorTarget;
     let x, y, targetX, targetY;
 
     function hide() {
       cancelAnimationFrame(frame);
       frame = lastTime = slowFrames = 0;
+      nativeCursorTarget?.classList.remove('home-cursor-target');
+      nativeCursorTarget = target = undefined;
       cursor.classList.remove('is-visible');
     }
 
@@ -158,27 +276,35 @@
         slowFrames = 0;
       }
 
-      cursor.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-      cursor.classList.add('is-visible');
+      dot.style.transform = `translate3d(${targetX}px, ${targetY}px, 0)`;
+      ring.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+      if (nativeCursorTarget !== target) {
+        nativeCursorTarget?.classList.remove('home-cursor-target');
+        cursor.classList.add('is-visible');
+        target.classList.add('home-cursor-target');
+        nativeCursorTarget = target;
+      }
       lastTime = moving ? time : 0;
       frame = moving ? requestAnimationFrame(draw) : 0;
     }
 
     function follow(event) {
+      const element = event.target;
       if (
-        event.pointerType !== 'mouse' || event.buttons ||
-        event.target.closest?.('input, textarea, select, label, [contenteditable], [role="textbox"]')
+        event.pointerType !== 'mouse' || event.buttons || !document.hasFocus() ||
+        !(element instanceof Element) || !document.body.contains(element) || element.closest(nativeControls)
       ) {
         hide();
         return;
       }
 
-      cursor.classList.toggle('is-interactive', Boolean(event.target.closest?.(
-        '.home-hero-action, .home-practice-link, .home-section .text-action, .footer-callout .text-action'
-      )));
-      targetX = event.clientX + (event.clientX < window.innerWidth - 28 ? 16 : -16);
-      targetY = event.clientY + (event.clientY < window.innerHeight - 28 ? 16 : -16);
-      if (!cursor.classList.contains('is-visible')) {
+      if (target !== element) {
+        target = element;
+        cursor.classList.toggle('is-interactive', Boolean(target.closest(interactive)));
+      }
+      targetX = event.clientX;
+      targetY = event.clientY;
+      if (!nativeCursorTarget) {
         x = targetX;
         y = targetY;
       }
@@ -191,15 +317,25 @@
         return;
       }
 
+      document.body.append(cursor);
+      const appearance = getComputedStyle(cursor);
+      if (appearance.position !== 'fixed' || appearance.pointerEvents !== 'none' || appearance.display === 'none') {
+        cursor.remove();
+        return;
+      }
+
       listeners = new AbortController();
       const options = { passive: true, signal: listeners.signal };
-      document.body.append(cursor);
       document.addEventListener('pointermove', follow, options);
       document.addEventListener('pointerover', follow, options);
       document.addEventListener('pointerout', event => {
         if (!event.relatedTarget) hide();
       }, options);
-      document.addEventListener('pointerdown', hide, options);
+      document.addEventListener('pointerdown', event => {
+        if (!event.target.closest?.(interactive)) hide();
+      }, options);
+      document.addEventListener('pointercancel', hide, options);
+      document.addEventListener('dragstart', hide, options);
       document.addEventListener('keydown', hide, options);
       document.addEventListener('visibilitychange', hide, options);
       window.addEventListener('blur', hide, options);

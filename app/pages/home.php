@@ -3,6 +3,8 @@ $partners = array_filter($team, static fn ($person) => str_starts_with(text_lowe
 $publications = array_filter($articles, static fn ($article) =>
     is_array($article) && is_string($article['title'] ?? null) && trim($article['title']) !== ''
 );
+// Temporary value for this experiment. Verify the experience figure before production.
+$experienceYears = 6;
 ?>
 <section class="home-hero" aria-labelledby="home-title">
   <div class="home-frame home-hero-layout">
@@ -52,9 +54,18 @@ $publications = array_filter($articles, static fn ($article) =>
       <p class="section-kicker">O kancelarii</p>
       <h2 id="home-profile-title">Najpierw sprawa.<br>Potem strategia.</h2>
     </div>
-    <div class="home-profile-detail" data-reveal>
-      <p>Ustalamy, co jest dla klienta najważniejsze, i&nbsp;przedstawiamy możliwe działania oraz ich konsekwencje. Wspieramy w&nbsp;pojedynczych sprawach i&nbsp;w&nbsp;stałej współpracy.</p>
-      <a class="text-action" href="/o-kancelarii/">Jak pracujemy</a>
+    <div class="home-profile-side">
+      <div class="home-profile-detail" data-reveal>
+        <p>Ustalamy, co jest dla klienta najważniejsze, i&nbsp;przedstawiamy możliwe działania oraz ich konsekwencje. Wspieramy w&nbsp;pojedynczych sprawach i&nbsp;w&nbsp;stałej współpracy.</p>
+        <a class="text-action" href="/o-kancelarii/">Jak pracujemy</a>
+      </div>
+      <p class="home-experience" data-reveal="count">
+        <span class="visually-hidden"><?= $experienceYears ?>+</span>
+        <span class="home-experience-value" aria-hidden="true">
+          <span class="home-experience-number" data-experience="<?= $experienceYears ?>"><span><?= $experienceYears ?></span></span><span class="home-experience-plus">+</span>
+        </span>
+        <span>lat doświadczenia</span>
+      </p>
     </div>
     <div class="home-team" data-reveal>
       <div>
@@ -75,7 +86,7 @@ $publications = array_filter($articles, static fn ($article) =>
 <section class="home-office home-section" aria-labelledby="home-office-title">
   <div class="home-frame home-office-layout">
     <picture class="home-office-photo" data-reveal="image">
-      <source type="image/webp" srcset="/assets/img/building-exterior-800.webp 800w, /assets/img/building-exterior-wide.webp 1800w" sizes="(max-width: 42rem) 95vw, (max-width: 56rem) 53vw, (min-width: 150rem) 86rem, 57vw">
+      <source type="image/webp" srcset="/assets/img/building-exterior-800.webp 800w, /assets/img/building-exterior-wide.webp 1800w" sizes="(max-width: 42rem) 95vw, (max-width: 56rem) 51vw, (min-width: 150rem) 96rem, 61vw">
       <img src="/assets/img/building-exterior-wide.jpg" alt="Kamienna fasada budynku kancelarii przy placu Kościuszki we Wrocławiu" width="1800" height="980" loading="lazy" decoding="async">
     </picture>
     <div class="home-office-copy" data-reveal>
@@ -102,3 +113,13 @@ $publications = array_filter($articles, static fn ($article) =>
     </div>
   </section>
 <?php endif; ?>
+
+<section class="home-contact home-section" aria-labelledby="home-contact-title">
+  <div class="home-frame home-contact-layout" data-reveal="sequence">
+    <h2 id="home-contact-title">Każda sprawa zaczyna się od&nbsp;rozmowy.</h2>
+    <div class="home-contact-detail">
+      <p>Przedstaw nam swoją sytuację. Pomożemy ustalić możliwe kierunki dalszego działania.</p>
+      <a class="button home-contact-action" href="/kontakt/">Skontaktuj się z&nbsp;kancelarią</a>
+    </div>
+  </div>
+</section>
