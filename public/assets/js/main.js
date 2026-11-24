@@ -323,7 +323,6 @@
     function finish() {
       cancelAnimationFrame(frame);
       value.textContent = finalValue;
-      experience.classList.remove('is-counting');
       signal.removeEventListener('abort', finish);
     }
 
@@ -341,7 +340,6 @@
     }
 
     value.textContent = '0';
-    experience.classList.add('is-counting');
     signal.addEventListener('abort', finish, { once: true });
     frame = requestAnimationFrame(tick);
   }
@@ -350,7 +348,8 @@
     if (
       !('ResizeObserver' in window) ||
       !window.CSS?.supports('view-timeline: --profile block') ||
-      !window.CSS.supports('animation-range: contain')
+      !window.CSS.supports('animation-timeline: --profile') ||
+      !window.CSS.supports('animation-range: contain 0% contain 68%')
     ) return;
 
     const profile = document.querySelector('.home-profile');
@@ -360,8 +359,16 @@
     );
 
     function updateStage() {
-      // Reserve enough room around the content for both inset phases and keyboard focus.
-      const fits = desktopMotion.matches && layout.offsetHeight <= window.innerHeight * .7;
+      const viewport = window.innerHeight;
+      const freeSpace = viewport - layout.offsetHeight;
+      const fits = desktopMotion.matches && freeSpace >= viewport * .3;
+      if (fits) {
+        // Keep the layout centered in the visible beige surface with room for focus outlines.
+        const inset = Math.min(viewport * .5, freeSpace - viewport * .14);
+        profile.style.setProperty('--profile-inset', `${inset}px`);
+      } else {
+        profile.style.removeProperty('--profile-inset');
+      }
       profile.classList.toggle('has-profile-stage', fits);
     }
 

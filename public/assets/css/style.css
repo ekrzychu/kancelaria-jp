@@ -845,7 +845,7 @@ html:has(> .homepage) {
 }
 
 .home-office {
-  padding-block: clamp(3.25rem, 5.1vw, 7rem);
+  padding-block: var(--office-entry-space, clamp(1.75rem, 3.25vw, 3.5rem)) clamp(3.25rem, 5.1vw, 7rem);
 }
 
 .home-office-photo {
@@ -2279,7 +2279,6 @@ main:has(.archive-empty) + .site-footer {
   [data-reveal].is-revealed:not([data-reveal="image"], [data-reveal="sequence"]),
   .home-hero :is(.home-hero-heading > .section-kicker, h1 span, .home-hero-intro > *),
   .home-practices-heading.is-revealed > *,
-  .home-profile-statement.is-revealed > *,
   .home-contact-layout.is-revealed > * {
     animation: editorial-enter var(--enter-duration, 500ms) var(--motion-ease) var(--enter-delay, 0ms) backwards;
   }
@@ -2339,7 +2338,6 @@ main:has(.archive-empty) + .site-footer {
   }
 
   .home-practices-heading > .text-action,
-  .home-profile-detail,
   .home-contact-detail,
   .home-publications-list {
     --enter-delay: 80ms;
@@ -2349,23 +2347,6 @@ main:has(.archive-empty) + .site-footer {
     --enter-duration: 510ms;
     --enter-y: 13px;
     --enter-delay: calc(35ms + var(--reveal-order, 0) * 60ms);
-  }
-
-  .home-profile-statement h2 {
-    --enter-duration: 720ms;
-    --enter-delay: 60ms;
-    --enter-y: 28px;
-    --enter-opacity: .35;
-  }
-
-  .home-experience-plus {
-    transition: opacity 190ms var(--motion-ease), transform 190ms var(--motion-ease);
-  }
-
-  .home-experience.is-counting .home-experience-plus {
-    transform: translateY(.2em);
-    opacity: 0;
-    transition: none;
   }
 
   .home-hero-photo {
@@ -2458,8 +2439,7 @@ main:has(.archive-empty) + .site-footer {
       --enter-opacity: .75;
     }
 
-    .home-hero h1 span,
-    .home-profile-statement h2 {
+    .home-hero h1 span {
       --enter-duration: 540ms;
       --enter-y: 12px;
     }
@@ -2478,11 +2458,16 @@ main:has(.archive-empty) + .site-footer {
   }
 }
 
-/* The contain range spans the time the taller section covers the viewport. */
+/* The contain range starts at pinning and ends where Wrocław takes over. */
 .home-profile.has-profile-stage {
-  min-block-size: 185svh;
+  --profile-expansion: contain 0% contain 68%;
+  min-block-size: 145svh;
   view-timeline: --profile block;
   view-timeline-inset: 0;
+}
+
+.has-profile-stage + .home-office {
+  --office-entry-space: 0px;
 }
 
 .has-profile-stage .home-profile-stage {
@@ -2495,55 +2480,26 @@ main:has(.archive-empty) + .site-footer {
 }
 
 .has-profile-stage .home-profile-backdrop {
-  animation: profile-aperture auto linear both;
+  animation: profile-expand auto linear both;
+}
+
+.has-profile-stage .home-profile-layout {
+  animation: profile-rise auto linear both;
+}
+
+.has-profile-stage :is(.home-profile-backdrop, .home-profile-layout) {
   animation-timeline: --profile;
-  animation-range: contain;
+  animation-range: var(--profile-expansion);
 }
 
-.has-profile-stage .home-profile-statement.is-revealed > *,
-.has-profile-stage .home-profile-detail.is-revealed {
-  animation: none;
-}
-
-.has-profile-stage .home-profile-layout > :is(.home-profile-statement, .home-profile-side, .home-team) {
-  animation: profile-rise auto ease-out both;
-  animation-timeline: --profile;
-  animation-range: contain var(--profile-entry) contain 100%;
-}
-
-.home-profile-statement {
-  --profile-entry: 0%;
-  --profile-rise: 2rem;
-}
-
-.home-profile-side {
-  --profile-entry: 7%;
-  --profile-rise: 2.5rem;
-}
-
-.home-team {
-  --profile-entry: 13%;
-  --profile-rise: 1.5rem;
-}
-
-@keyframes profile-aperture {
-  from { clip-path: inset(18% 0); }
-  32%, 68% { clip-path: inset(0); }
-  to { clip-path: inset(16% 0); }
+@keyframes profile-expand {
+  from { clip-path: inset(var(--profile-inset) 0 0); }
+  to { clip-path: inset(0); }
 }
 
 @keyframes profile-rise {
-  from {
-    opacity: .76;
-    translate: 0 var(--profile-rise);
-  }
-
-  32%, 68% {
-    opacity: 1;
-    translate: 0 0;
-  }
-
-  to { translate: 0 -1rem; }
+  from { translate: 0 calc(var(--profile-inset) / 2); }
+  to { translate: 0 0; }
 }
 
 @supports (animation-timeline: view()) and (animation-range: entry 0% exit 100%) {

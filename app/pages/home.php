@@ -120,12 +120,12 @@ $experienceYears = 6;
   <div class="home-profile-stage">
     <div class="home-profile-backdrop" aria-hidden="true" data-home-surface="beige"></div>
     <div class="home-frame home-profile-layout" data-home-surface="beige">
-      <div class="home-profile-statement" data-reveal="sequence">
+      <div class="home-profile-statement">
         <p class="section-kicker">O kancelarii</p>
         <h2 id="home-profile-title">Najpierw sprawa.<br>Potem strategia.</h2>
       </div>
       <div class="home-profile-side">
-        <div class="home-profile-detail" data-reveal>
+        <div class="home-profile-detail">
           <p>Ustalamy, co jest dla klienta najważniejsze, i&nbsp;przedstawiamy możliwe działania oraz ich konsekwencje. Wspieramy w&nbsp;pojedynczych sprawach i&nbsp;w&nbsp;stałej współpracy.</p>
           <a class="text-action" href="/o-kancelarii/">Poznaj kancelarię</a>
         </div>
@@ -137,7 +137,7 @@ $experienceYears = 6;
           <span>lat doświadczenia</span>
         </p>
       </div>
-      <div class="home-team" data-reveal>
+      <div class="home-team">
         <div>
           <h3>Zespół kancelarii</h3>
           <a class="text-action" href="/zespol/">Poznaj cały zespół</a>
