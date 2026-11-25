@@ -1704,6 +1704,7 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
 }
 
 .about-team {
+  padding-block-start: var(--about-space-group);
   padding-block-end: calc(var(--about-tone-fade) + var(--about-space-detail));
 }
 
@@ -1713,7 +1714,11 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
 }
 
 .about-team-copy {
-  max-width: 46ch;
+  max-width: 63ch;
+}
+
+.about-team-copy p + p {
+  margin-block-start: var(--about-space-detail);
 }
 
 .about-team .about-section-title {

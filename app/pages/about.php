@@ -123,7 +123,8 @@ SVG;
   <div class="about-frame about-team-layout">
     <h2 class="about-section-title" id="about-team-title">Za każdą sprawą stoją ludzie.</h2>
     <div class="about-team-copy">
-      <p>Zobacz, kto tworzy kancelarię i&nbsp;jakie role pełnią poszczególne osoby.</p>
+      <p>Nasz zespół tworzą radcowie prawni, adwokaci oraz osoby, które wspierają ich w&nbsp;pracy prawnej i&nbsp;organizacyjnej. Łączymy doświadczenie z&nbsp;różnych dziedzin prawa, gdy sprawa wymaga spojrzenia z&nbsp;kilku perspektyw.</p>
+      <p>Poznaj osoby, które prowadzą sprawy i&nbsp;wspierają pracę kancelarii, oraz dowiedz się, jakie role pełnią w&nbsp;zespole.</p>
       <a class="text-action about-action" href="/zespol/"><span class="about-action-label">Poznaj nasz zespół</span><?= $aboutArrow ?></a>
     </div>
   </div>
