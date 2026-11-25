@@ -391,7 +391,8 @@ html:has(> .homepage) {
 .homepage :is(.header-inner, .footer-grid, .legal-row),
 .about-frame,
 .services-frame,
-body:has(> main > :is(.about-hero, .services-hero)) :is(.header-inner, .footer-callout, .footer-grid, .legal-row) {
+.team-frame,
+body:has(> main > :is(.about-hero, .services-hero, .team-hero)) :is(.header-inner, .footer-callout, .footer-grid, .legal-row) {
   width: calc(100% - 2 * var(--wide-page-gutter));
   margin-inline: auto;
 }
@@ -1560,20 +1561,23 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
   margin-block-start: .35rem;
 }
 
-.about-action {
+:is(.about-action, .team-career-action) {
   text-decoration: none;
 }
 
-.about-action-label {
+.about-action-label,
+.team-career-action > span {
   text-decoration: underline var(--taupe);
   text-underline-offset: .35em;
 }
 
-.about-action:is(:hover, :focus-visible) .about-action-label {
+.about-action:is(:hover, :focus-visible) .about-action-label,
+.team-career-action:is(:hover, :focus-visible) > span {
   text-decoration-color: currentColor;
 }
 
-.about-action-arrow {
+.about-action-arrow,
+.team-career-arrow {
   flex: none;
   width: 1.55em;
   height: 1em;
@@ -1877,17 +1881,186 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
   }
 
   .about-action-arrow,
-  .about-document-arrow {
+  .about-document-arrow,
+  .team-career-arrow {
     transition: translate 200ms var(--motion-ease);
   }
 
   .about-action:is(:hover, :focus-visible) .about-action-arrow,
-  .about-document:is(:hover, :focus-visible) .about-document-arrow {
+  .about-document:is(:hover, :focus-visible) .about-document-arrow,
+  .team-career-action:is(:hover, :focus-visible) .team-career-arrow {
     translate: .25em 0;
   }
 }
 
-/* Team and career */
+/* Team */
+
+.team-hero {
+  padding-block: clamp(2.9rem, 5.1vw, 6.3rem) clamp(2.5rem, 5vw, 6rem);
+}
+
+.team-hero-layout,
+.team-career-layout {
+  display: grid;
+  gap: clamp(1.25rem, 4vw, 4.5rem);
+}
+
+.team-hero h1 {
+  max-width: 15ch;
+  font-size: clamp(2.5rem, 4.5vw, 6.25rem);
+  line-height: 1;
+  text-wrap: balance;
+}
+
+.team-hero p,
+.team-career p {
+  max-width: 42ch;
+  margin: 0;
+  color: var(--text-muted);
+  text-wrap: pretty;
+}
+
+.team-hero p {
+  font-size: clamp(var(--type-lead), 1.35vw, 1.55rem);
+}
+
+.team-directory {
+  --team-section-gap: clamp(3.5rem, 6vw, 7.5rem);
+  --team-column-gap: clamp(1.25rem, 3vw, 4rem);
+  display: grid;
+  gap: var(--team-section-gap);
+}
+
+.team-group-heading {
+  margin-block-end: clamp(1.4rem, 2.4vw, 2.5rem);
+  font-size: clamp(1.8rem, 2.7vw, 3.75rem);
+  text-wrap: balance;
+}
+
+.team-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  column-gap: var(--team-column-gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.team-person {
+  border-block-start: 1px solid var(--line);
+  padding-block: clamp(.95rem, 1.35vw, 1.65rem);
+}
+
+.team-person.has-portrait {
+  display: grid;
+  grid-template-columns: clamp(3.25rem, 6vw, 5.5rem) minmax(0, 1fr);
+  align-items: start;
+  gap: .85rem;
+}
+
+.team-portrait {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+}
+
+.team-person h3 {
+  font-size: clamp(1.35rem, 1.65vw, 1.85rem);
+  line-height: 1.18;
+}
+
+.team-person p {
+  margin: .32rem 0 0;
+  color: var(--text-muted);
+  font-size: var(--type-small);
+  line-height: 1.45;
+}
+
+.team-group--leadership {
+  --team-fade: clamp(2.5rem, 5vw, 6rem);
+  padding-block: calc(var(--team-fade) + .75rem);
+  background: linear-gradient(var(--paper), var(--surface) var(--team-fade), var(--surface) calc(100% - var(--team-fade)), var(--paper));
+}
+
+.team-group--leadership .team-person {
+  padding-block: clamp(1.25rem, 2.4vw, 3rem);
+}
+
+.team-group--leadership .team-person h3 {
+  font-size: clamp(1.95rem, 3.2vw, 3.75rem);
+  letter-spacing: -.04em;
+}
+
+.team-group--leadership .team-person p {
+  margin-block-start: .55rem;
+  font-size: var(--type-body);
+}
+
+.team-group--coordinators .team-list {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12.5rem), 1fr));
+}
+
+.team-group--coordinators .team-person h3 {
+  font-size: clamp(1.45rem, 1.85vw, 2.1rem);
+}
+
+.team-career {
+  padding-block: clamp(3.5rem, 6vw, 7.5rem);
+}
+
+.team-career-layout {
+  border-block-start: 1px solid var(--line);
+  padding-block-start: clamp(1.65rem, 3vw, 3.25rem);
+}
+
+.team-career h2 {
+  max-width: 18ch;
+  font-size: clamp(1.9rem, 3.2vw, 4rem);
+  text-wrap: balance;
+}
+
+.team-career-action {
+  margin-block-start: .55rem;
+}
+
+@media (min-width: 43rem) {
+  .team-hero-layout,
+  .team-career-layout {
+    grid-template-columns: minmax(0, 1.18fr) minmax(0, 1fr);
+    align-items: end;
+  }
+
+  .team-hero-layout {
+    align-items: center;
+  }
+
+  .team-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 72rem) {
+  .team-hero-layout {
+    align-items: end;
+  }
+
+  .team-group--coordinators .team-group-layout {
+    display: grid;
+    grid-template-columns: minmax(0, .75fr) minmax(0, 2fr);
+    gap: var(--team-column-gap);
+    align-items: start;
+  }
+
+  .team-group--coordinators .team-group-heading {
+    margin-block-end: 0;
+  }
+
+  :is(.team-group--lawyers, .team-group--support) .team-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Career */
 
 .process-list {
   margin-block: 0;
@@ -1896,57 +2069,6 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
 .process-list p {
   margin: .35rem 0 0;
   color: var(--text-muted);
-}
-
-.people-groups {
-  display: grid;
-  gap: clamp(2.75rem, 4.25vw, 4.5rem);
-}
-
-.people-list {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1.6rem clamp(1.5rem, 3vw, 3rem);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.people-list--leadership {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  row-gap: 2rem;
-}
-
-.person-row.has-portrait {
-  display: grid;
-  grid-template-columns: 3.5rem minmax(0, 1fr);
-  align-items: center;
-  gap: 1rem;
-}
-
-.person-portrait {
-  width: 100%;
-  aspect-ratio: 1;
-  object-fit: cover;
-}
-
-.person-row h2 {
-  font-size: clamp(1.2rem, 1.7vw, 1.5rem);
-  line-height: 1.18;
-}
-
-.people-list--leadership h2 {
-  font-size: clamp(1.55rem, 2.6vw, 2.35rem);
-}
-
-.people-list--coordinators h2 {
-  font-size: clamp(1.3rem, 2vw, 1.8rem);
-}
-
-.person-row p {
-  margin: .35rem 0 0;
-  color: var(--text-muted);
-  font-size: var(--type-small);
 }
 
 .process-list {
@@ -2549,17 +2671,6 @@ main:has(.archive-empty) + .site-footer {
 
 /* Responsive layouts */
 
-@media (min-width: 112rem) {
-  .people-list--leadership,
-  .people-list--team {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  .people-list--leadership h2 {
-    font-size: 2.125rem;
-  }
-}
-
 @media (max-width: 64rem) {
   :root {
     --section-space: 3.75rem;
@@ -2661,10 +2772,6 @@ main:has(.archive-empty) + .site-footer {
     inset: auto .5rem .45rem;
   }
 
-  .people-list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .contact-details dl > div {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -2718,7 +2825,6 @@ main:has(.archive-empty) + .site-footer {
 
   .page-intro,
   .editorial-split,
-  .people-list,
   .publication-entry.has-image,
   .service-layout,
   .contact-layout {
@@ -2747,18 +2853,6 @@ main:has(.archive-empty) + .site-footer {
 
   .service-row-arrow {
     grid-area: 1 / 2;
-  }
-
-  .people-list {
-    row-gap: 1.35rem;
-  }
-
-  .people-list--leadership {
-    row-gap: 1.65rem;
-  }
-
-  .person-row.has-portrait {
-    grid-template-columns: 3rem minmax(0, 1fr);
   }
 
   .side-index {
@@ -2837,7 +2931,7 @@ main:has(.archive-empty) + .site-footer {
     animation: editorial-enter var(--enter-duration) var(--motion-ease) backwards;
   }
 
-  :is([data-reveal="subtle"], [data-reveal="service-row"], .about-document-list li).is-awaiting-reveal:not(:focus-within) {
+  :is([data-reveal="subtle"], [data-reveal="service-row"], [data-reveal="team-person"], .about-document-list li).is-awaiting-reveal:not(:focus-within) {
     opacity: 0;
     pointer-events: none;
   }
@@ -2846,6 +2940,16 @@ main:has(.archive-empty) + .site-footer {
     --enter-y: 16px;
     --enter-duration: 380ms;
     --enter-opacity: 0;
+  }
+
+  [data-reveal="team-person"] {
+    --enter-y: 23px;
+    --enter-duration: 460ms;
+    --enter-opacity: .28;
+  }
+
+  [data-reveal-sequence] [data-reveal="team-person"].is-revealed {
+    animation-delay: min(var(--reveal-delay, 0ms), 180ms);
   }
 
   .services-directory .editorial-row > * {
