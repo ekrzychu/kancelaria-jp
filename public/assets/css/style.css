@@ -1813,8 +1813,13 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
 
   .about-cooperation-options {
     grid-area: 1 / 1;
-    max-width: 34rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     margin-block-start: 0;
+  }
+
+  .about-cooperation-options > div + div {
+    border-block-start: 0;
+    padding-block-start: 0;
   }
 
   .about-team-layout {
