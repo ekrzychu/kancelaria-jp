@@ -218,7 +218,7 @@
     });
 
     document.addEventListener('focusin', ({ target }) => {
-      if (target === contact || !target.matches(':is(a, button):focus-visible') || !target.closest('main, .home-ending, footer')) return;
+      if (target === contact || !target.matches(':is(a, button):focus-visible') || !target.closest('main, .home-contact, footer')) return;
 
       if (!target.closest('[data-pinned]') && overlaps(contact.getBoundingClientRect(), target.getBoundingClientRect())) {
         target.scrollIntoView({ behavior: 'instant', block: 'center', inline: 'nearest' });
@@ -323,7 +323,7 @@
       layout: section.querySelector('.home-frame'),
     }));
     const opening = stages[0];
-    const ending = stages.at(-1);
+    const last = stages.at(-1);
     const practices = stages.find(stage => stage.section.id === 'specjalizacje');
     const office = stages.find(stage => stage.section.dataset.homeStage === 'office');
     const practiceRail = practices.layout.querySelector('.home-practices-rail');
@@ -353,7 +353,7 @@
         setProgress(stage, '--stage-progress', clamp((elapsed - entry) / hold));
         if (stage === office) {
           // The mask travels during a handoff even though the viewport itself is sticky.
-          const departure = clamp((elapsed - entry - hold) / reveal);
+          const departure = stage === last ? 0 : clamp((elapsed - entry - hold) / reveal);
           setProgress(stage, '--photo-stage-offset', (1 - arrival - departure) * height);
         }
       }
@@ -374,8 +374,6 @@
         return practiceHeading.offsetHeight <= practiceWindow &&
           practiceRail.firstElementChild.scrollHeight <= practiceWindow + 1;
       }
-      if (stage === ending) return stage.content.scrollHeight <= height + 1;
-
       const { paddingTop, paddingBottom } = getComputedStyle(stage.content);
       const room = height - parseFloat(paddingTop) - parseFloat(paddingBottom);
       return stage.layout.offsetHeight <= room + 1;
@@ -389,7 +387,7 @@
         return;
       }
 
-      // Scene rows start at each handoff. The last viewport continues to the end of the footer.
+      // Count the rows between the opening and the final immersive section.
       page.style.setProperty('--stage-rows', stages.length - 2);
       hold = Math.round(window.innerHeight * .34);
       reveal = Math.round(window.innerHeight * .46);
@@ -424,8 +422,7 @@
       if (box.top >= safeTop && box.bottom <= safeBottom && target.contains(hit)) return;
 
       const entry = stage === opening ? 0 : reveal;
-      const offset = stage === ending ? 0 : hold * .4;
-      window.scrollTo({ top: stage.start + entry + offset, behavior: 'instant' });
+      window.scrollTo({ top: stage.start + entry + hold * .4, behavior: 'instant' });
       if (frame) cancelAnimationFrame(frame);
       draw();
     });

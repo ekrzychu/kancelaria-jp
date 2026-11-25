@@ -46,19 +46,22 @@ $experienceYears = 6;
           <p class="section-kicker">Kancelaria radców prawnych we Wrocławiu</p>
           <h1 id="home-title"><span>Prawo</span> <span class="home-hero-title-accent">w&nbsp;praktyce.</span></h1>
         </div>
-        <picture class="home-hero-photo" data-reveal="image" data-home-surface="photo">
-          <img src="/assets/img/office-meeting-1360.webp"
-            srcset="/assets/img/office-meeting-760.webp 760w, /assets/img/office-meeting-1360.webp 1360w, /assets/img/office-meeting-2048.webp 2048w, /assets/img/office-meeting-2880.webp 2880w"
-            sizes="(max-width: 56rem) 95vw, 71vw"
-            alt="Sala spotkań kancelarii z drewnianym stołem i monogramem JP" width="1360" height="796" fetchpriority="high">
-        </picture>
         <div class="home-hero-intro" data-reveal="sequence">
           <div class="home-hero-copy">
             <p class="home-hero-lead">Doradzamy firmom, instytucjom i&nbsp;klientom&nbsp;indywidualnym.</p>
             <p>Reprezentujemy ich również w&nbsp;sporach&nbsp;sądowych.</p>
           </div>
-          <a class="home-hero-action" href="#specjalizacje"><span>Zobacz specjalizacje</span></a>
+          <a class="home-hero-action" href="#specjalizacje">
+            <span>Zobacz specjalizacje</span>
+            <svg viewBox="0 0 28 18" width="28" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <path d="M2 9h24m-7-7 7 7-7 7"/>
+            </svg>
+          </a>
         </div>
+        <picture class="home-hero-photo" data-reveal="image" data-home-surface="photo">
+          <img src="/assets/img/office-reception-hero.jpg"
+            alt="Recepcja kancelarii z drewnianą ladą i monogramem JP" width="1150" height="1480" fetchpriority="high">
+        </picture>
       </div>
     </div>
   </div>
