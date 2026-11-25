@@ -459,7 +459,10 @@
         const { top, height } = photo.getBoundingClientRect();
         const stage = photo.closest('[data-pinned]');
         const handoffOffset = Number(stage?.style.getPropertyValue('--photo-stage-offset')) || 0;
-        const progress = Math.max(0, Math.min(1, (viewport - top - handoffOffset) / (viewport + height)));
+        // Keep the parallax independent of the incoming scene's travel.
+        const arrival = Number(stage?.style.getPropertyValue('--stage-entry') || 1);
+        const photoTop = top - (1 - arrival) * viewport;
+        const progress = Math.max(0, Math.min(1, (viewport - photoTop - handoffOffset) / (viewport + height)));
         return [photo, (progress - .5) * 16];
       });
       for (const [photo, offset] of offsets) {

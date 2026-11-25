@@ -2462,8 +2462,17 @@ main:has(.archive-empty) + .site-footer {
   inset-block-start: 0;
   block-size: var(--stage-height);
   overflow: clip;
-  clip-path: inset(calc((1 - var(--stage-entry, 1)) * 100%) 0 0);
+  pointer-events: none;
+}
+
+[data-pinned] > .home-stage-viewport > :is(.home-stage-backdrop, .home-stage-content) {
   pointer-events: auto;
+}
+
+/* Grow the incoming surface from its lower edge over the still-pinned scene. */
+[data-pinned] > .home-stage-viewport > .home-stage-backdrop {
+  transform: scaleY(var(--stage-entry, 1));
+  transform-origin: center bottom;
 }
 
 [data-pinned] > .home-stage-viewport > .home-stage-content {
@@ -2472,6 +2481,7 @@ main:has(.archive-empty) + .site-footer {
   align-items: center;
   block-size: 100%;
   padding-block: var(--stage-top) var(--stage-bottom);
+  translate: 0 calc((1 - var(--stage-entry, 1)) * 100%);
 }
 
 .home-hero[data-pinned] {
