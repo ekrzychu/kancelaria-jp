@@ -159,9 +159,11 @@
       first.bottom > second.top && first.top < second.bottom;
 
     const visibleContent = new Set();
+    const textBounds = document.createRange();
+    const editorialText = 'h1, h2, h3, h4, p, dt, dd, figcaption, td, th, .row-summary';
     if (!homepage) {
       const protectedContent = document.querySelectorAll(
-        ':is(main, footer) :is(form, input, textarea, select, a, button, h1, h2, h3, h4, p, dt, dd, figcaption, td, th, .row-summary, [contenteditable])'
+        `:is(main, footer) :is(form, input, textarea, select, a, button, [contenteditable], ${editorialText})`
       );
       const observer = 'IntersectionObserver' in window && new IntersectionObserver(entries => {
         for (const { target, isIntersecting } of entries) {
@@ -213,7 +215,12 @@
       frame = 0;
       const box = contact.getBoundingClientRect();
       if (!homepage) {
-        const collision = [...visibleContent].some(element => overlaps(box, element.getBoundingClientRect()));
+        const collision = [...visibleContent].some(element => {
+          if (!overlaps(box, element.getBoundingClientRect())) return false;
+          if (!element.matches(editorialText)) return true;
+          textBounds.selectNodeContents(element);
+          return [...textBounds.getClientRects()].some(rect => overlaps(box, rect));
+        });
         contact.classList.toggle('is-yielding', collision);
       }
       const sample = (x, y) => homeSurfaceFor(
