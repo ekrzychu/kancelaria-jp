@@ -1691,7 +1691,6 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
 .about-cooperation-options {
   display: grid;
   gap: var(--about-space-group);
-  max-width: 44rem;
   margin-block-start: var(--about-space-group);
 }
 
@@ -1801,14 +1800,9 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
     padding-block-start: 1.9rem;
   }
 
-  .about-cooperation > .about-frame {
-    display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
-    column-gap: clamp(1.7rem, 4vw, 5rem);
-  }
-
-  .about-cooperation :is(h2, .about-cooperation-options) {
-    grid-column: 2;
+  .about-cooperation > .about-frame > :is(h2, .about-cooperation-options) {
+    width: min(42%, 34rem);
+    margin-inline-start: auto;
   }
 }
 
