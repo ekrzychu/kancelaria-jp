@@ -314,7 +314,7 @@
         !CSS.supports('position', 'sticky') || !CSS.supports('selector(:has(*))')) return;
 
     const headerBar = document.querySelector('.header-bar');
-    const holdRatios = { hero: .32, practices: .5, publications: .36, profile: .31, office: .22, clients: .36 };
+    const holdRatios = { hero: .4, practices: .625, publications: .45, profile: .39, office: .275, clients: .45 };
     const stages = Array.from(document.querySelectorAll('[data-home-stage]'), section => ({
       section,
       viewport: section.querySelector('.home-stage-viewport'),
@@ -383,7 +383,7 @@
         return;
       }
 
-      const headingTravel = Math.max(0, practiceWindow - practiceHeading.offsetHeight - height * .055);
+      const headingTravel = Math.max(0, practiceWindow - practiceHeading.offsetHeight - height * .035);
       practices.section.style.setProperty('--heading-travel', `${headingTravel}px`);
       for (const stage of stages) {
         stage.hold = Math.round(height * stage.holdRatio);

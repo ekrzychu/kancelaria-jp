@@ -2457,7 +2457,7 @@ main:has(.archive-empty) + .site-footer {
 }
 
 .home-hero[data-pinned] .home-hero-heading {
-  translate: 0 calc(-1.375rem * var(--stage-progress, 0));
+  translate: 0 calc(-1.9375rem * var(--stage-progress, 0));
 }
 
 .home-hero[data-pinned] .home-hero-photo {
@@ -2466,7 +2466,7 @@ main:has(.archive-empty) + .site-footer {
 }
 
 .home-hero[data-pinned] .home-hero-intro {
-  translate: 0 calc(1.0625rem * var(--stage-progress, 0));
+  translate: 0 calc(1.5rem * var(--stage-progress, 0));
 }
 
 #specjalizacje[data-pinned] {
@@ -2485,7 +2485,7 @@ main:has(.archive-empty) + .site-footer {
 .home-practices[data-pinned] .home-practices-rail {
   overflow: clip;
   padding: 6px;
-  translate: 0 calc(.375rem - .75rem * var(--stage-progress, 0));
+  translate: 0 calc(.53125rem - 1.0625rem * var(--stage-progress, 0));
 }
 
 .home-practices[data-pinned] .home-practice-list {
@@ -2502,12 +2502,12 @@ main:has(.archive-empty) + .site-footer {
 }
 
 .home-publications[data-pinned] .home-publications-heading {
-  translate: 0 calc(1rem * (1 - var(--stage-entry, 1)) - 1.125rem * var(--stage-progress, 0));
+  translate: 0 calc(1rem * (1 - var(--stage-entry, 1)) - 1.5625rem * var(--stage-progress, 0));
 }
 
 .home-publications[data-pinned] .home-publications-list li {
-  --article-arrival: calc(.72 * var(--stage-entry, 1) + .36 * var(--stage-progress, 0));
-  --article-rise: max(0, 1 - var(--article-arrival));
+  /* Let the articles continue past their resting position during the hold. */
+  --article-rise: calc(1 - .72 * var(--stage-entry, 1) - .385 * var(--stage-progress, 0));
   translate: 0 calc(var(--article-distance, 2.25rem) * var(--article-rise));
 }
 
@@ -2520,15 +2520,23 @@ main:has(.archive-empty) + .site-footer {
 }
 
 .home-publications[data-pinned] .home-publications-list li:first-child article {
-  translate: 0 calc(-.75rem * var(--stage-progress, 0));
+  translate: 0 calc(-1.0625rem * var(--stage-progress, 0));
 }
 
 .home-profile[data-pinned] .home-profile-layout {
-  translate: 0 calc(1.125rem * (1 - var(--stage-entry, 1)) - .875rem * var(--stage-progress, 0));
+  translate: 0 calc(1.125rem * (1 - var(--stage-entry, 1)) - 1.25rem * var(--stage-progress, 0));
 }
 
 .home-profile[data-pinned] .home-profile-side {
-  translate: 0 calc(.5rem * var(--stage-progress, 0));
+  translate: 0 calc(.75rem * var(--stage-progress, 0));
+}
+
+.home-profile[data-pinned] .home-experience {
+  translate: 0 calc(-.1875rem * var(--stage-progress, 0));
+}
+
+.home-profile[data-pinned] .home-team {
+  translate: 0 calc(.125rem * var(--stage-progress, 0));
 }
 
 .home-office[data-pinned] {
@@ -2543,15 +2551,15 @@ main:has(.archive-empty) + .site-footer {
 }
 
 .home-office[data-pinned] .home-office-copy {
-  translate: 0 calc(-.625rem * var(--stage-progress, 0));
+  translate: 0 calc(-.6875rem * var(--stage-progress, 0));
 }
 
 .home-clients[data-pinned] h2 {
-  translate: 0 calc(1rem * (1 - var(--stage-entry, 1)) - 1.125rem * var(--stage-progress, 0));
+  translate: 0 calc(1rem * (1 - var(--stage-entry, 1)) - 1.5625rem * var(--stage-progress, 0));
 }
 
 .home-clients[data-pinned] .home-client-logos {
-  translate: 0 calc(.875rem * (1 - var(--stage-entry, 1)) - .625rem * var(--stage-progress, 0));
+  translate: 0 calc(.875rem * (1 - var(--stage-entry, 1)) - .875rem * var(--stage-progress, 0));
 }
 
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) and (forced-colors: none) {
