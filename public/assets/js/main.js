@@ -557,46 +557,61 @@
 
   function initAboutProcess() {
     const list = document.querySelector('[data-about-process]');
-    if (!list || !('IntersectionObserver' in window)) return;
+    if (!list) return;
     const motion = window.matchMedia('(prefers-reduced-motion: no-preference)');
-    if (!motion.matches) return;
-
     const steps = Array.from(list.children);
-    const entered = new Set();
-    const controller = new AbortController();
-    const options = { passive: true, signal: controller.signal };
+    const markers = steps.map(step => step.querySelector('.about-step-marker'));
+    const resizeObserver = 'ResizeObserver' in window ? new ResizeObserver(schedule) : null;
     let frame = 0;
 
     function draw() {
       frame = 0;
-      const readingLine = window.innerHeight - revealSequenceInset() - list.getBoundingClientRect().top;
-      const points = steps.map(step => step.offsetTop + step.firstElementChild.offsetHeight * revealThreshold);
-      let progress = 0;
-      for (let i = 1; i < points.length; i++) {
-        const distance = (readingLine - points[i - 1]) / (points[i] - points[i - 1]);
-        progress += Math.max(0, Math.min(1, distance));
-      }
-      list.style.setProperty('--process-progress', String(progress / (steps.length - 1)));
-      steps.forEach((step, i) => step.classList.toggle('is-reached', readingLine >= points[i] && entered.has(step)));
+      const readingLine = window.innerHeight * .78;
+      const points = markers.map(marker => {
+        const bounds = marker.getBoundingClientRect();
+        return bounds.top + bounds.height / 2;
+      });
+      const progress = Math.max(0, Math.min(readingLine, points.at(-1)) - points[0]);
+      const reached = points.filter(point => point <= readingLine).length;
+      list.style.setProperty('--process-progress', `${progress}px`);
+
+      steps.forEach((step, index) => {
+        const arrived = index < reached;
+        step.classList.toggle('is-reached', arrived);
+        if (!arrived || step.classList.contains('is-revealed')) return;
+        step.classList.add('is-revealed');
+        // A jump past multiple markers settles earlier steps immediately.
+        if (index === reached - 1) step.classList.add('is-entering');
+      });
     }
 
     function schedule() {
-      if (!frame) frame = requestAnimationFrame(draw);
+      if (!frame && motion.matches) frame = requestAnimationFrame(draw);
     }
 
-    list.addEventListener('animationstart', ({ target }) => {
-      if (target.matches('.about-step-copy')) entered.add(target.parentElement);
-      schedule();
-    }, options);
-    window.addEventListener('scroll', schedule, options);
-    window.addEventListener('resize', schedule, options);
-    motion.addEventListener('change', () => {
-      controller.abort();
+    function sync() {
+      if (motion.matches) {
+        list.classList.add('is-scroll-enhanced');
+        window.addEventListener('scroll', schedule, { passive: true });
+        window.addEventListener('resize', schedule, { passive: true });
+        resizeObserver?.observe(list);
+        draw();
+        return;
+      }
+
+      window.removeEventListener('scroll', schedule);
+      window.removeEventListener('resize', schedule);
+      resizeObserver?.disconnect();
       cancelAnimationFrame(frame);
+      frame = 0;
+      list.classList.remove('is-scroll-enhanced');
       list.style.removeProperty('--process-progress');
-      steps.forEach(step => step.classList.remove('is-reached'));
-    }, { once: true });
-    schedule();
+      steps.forEach(step => step.classList.remove('is-reached', 'is-entering'));
+    }
+
+    motion.addEventListener('change', sync);
+    document.fonts?.ready.then(schedule);
+    sync();
   }
 
   function initSiteCursor() {
