@@ -2381,7 +2381,7 @@ main:has(.archive-empty) + .site-footer {
   }
 }
 
-/* Each fullscreen scene holds at the top, then leaves with its section in document flow. */
+/* Full-viewport scenes use overlapping rows for the clipped handoff. */
 .homepage {
   --stage-height: 100dvh;
   --stage-top: max(4.75rem, 8dvh);
@@ -2395,8 +2395,26 @@ main:has(.archive-empty) + .site-footer {
   background: transparent;
 }
 
+.has-home-stages > main {
+  display: grid;
+  flex: none;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: var(--stage-rows);
+}
+
+/* Keep the outgoing viewport pinned until the incoming viewport covers it. */
 [data-home-stage][data-pinned] {
-  block-size: calc(var(--stage-height) + var(--stage-hold, 0px));
+  position: relative;
+  isolation: isolate;
+  align-self: start;
+  width: 100%;
+  block-size: calc(var(--stage-height) + var(--stage-hold, 0px) + 2 * var(--stage-reveal));
+  pointer-events: none;
+}
+
+.home-hero[data-pinned],
+.has-home-stages > main > [data-pinned]:last-child {
+  block-size: calc(var(--stage-height) + var(--stage-hold, 0px) + var(--stage-reveal));
 }
 
 [data-pinned] > .home-stage-viewport {
@@ -2404,6 +2422,8 @@ main:has(.archive-empty) + .site-footer {
   inset-block-start: 0;
   block-size: var(--stage-height);
   overflow: clip;
+  clip-path: inset(calc((1 - var(--stage-entry, 1)) * 100%) 0 0);
+  pointer-events: auto;
 }
 
 [data-pinned] > .home-stage-viewport > .home-stage-content {
@@ -2439,7 +2459,7 @@ main:has(.archive-empty) + .site-footer {
 }
 
 #specjalizacje[data-pinned] {
-  scroll-margin-block-start: 0;
+  scroll-margin-block-start: calc(-1 * var(--stage-reveal));
 }
 
 .home-practices[data-pinned] .home-practices-layout {

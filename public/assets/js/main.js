@@ -309,8 +309,10 @@
       '(min-width: 64rem) and (min-height: 44rem) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)'
     );
     if (!window.CSS?.supports('overflow', 'clip') || !CSS.supports('height', '100dvh') ||
-        !CSS.supports('position', 'sticky') || !CSS.supports('selector(:has(*))')) return;
+        !CSS.supports('position', 'sticky') || !CSS.supports('selector(:has(*))') ||
+        !CSS.supports('clip-path', 'inset(50% 0 0)')) return;
 
+    const page = document.body;
     const headerBar = document.querySelector('.header-bar');
     const holdRatios = { hero: .4, practices: .625, publications: .45, profile: .39, office: .275, clients: .45 };
     const stages = Array.from(document.querySelectorAll('[data-home-stage]'), section => ({
@@ -321,13 +323,16 @@
       holdRatio: holdRatios[section.dataset.homeStage],
     }));
     const opening = stages[0];
+    const last = stages.at(-1);
     const practices = stages.find(stage => stage.section.id === 'specjalizacje');
+    const office = stages.find(stage => stage.section.dataset.homeStage === 'office');
     const practiceRail = practices.layout.querySelector('.home-practices-rail');
     const practiceHeading = practices.layout.querySelector('.home-practices-intro');
     const clamp = value => Math.max(0, Math.min(value, 1));
 
     let active = false;
     let height;
+    let reveal;
     let frame = 0;
 
     function setProgress(stage, property, value) {
@@ -341,8 +346,15 @@
       const y = window.scrollY;
       for (const stage of stages) {
         const elapsed = y - stage.start;
-        setProgress(stage, '--stage-entry', clamp(1 + elapsed / height));
-        setProgress(stage, '--stage-progress', clamp(elapsed / stage.hold));
+        const entry = stage === opening ? 0 : reveal;
+        const arrival = entry ? clamp(elapsed / entry) : 1;
+        setProgress(stage, '--stage-entry', arrival);
+        setProgress(stage, '--stage-progress', clamp((elapsed - entry) / stage.hold));
+        if (stage === office) {
+          // Match the apparent travel of the pinned photograph as the masks hand off.
+          const departure = stage === last ? 0 : clamp((elapsed - entry - stage.hold) / reveal);
+          setProgress(stage, '--photo-stage-offset', (1 - arrival - departure) * height);
+        }
       }
     }
 
@@ -352,6 +364,7 @@
 
     function setPinned(enabled) {
       active = enabled;
+      page.classList.toggle('has-home-stages', enabled);
       for (const stage of stages) stage.section.toggleAttribute('data-pinned', enabled);
     }
 
@@ -373,6 +386,8 @@
         return;
       }
 
+      reveal = Math.round(window.innerHeight * .46);
+      page.style.setProperty('--stage-reveal', `${reveal}px`);
       setPinned(true);
       height = opening.viewport.clientHeight;
       const practiceWindow = practiceRail.clientHeight - 12;
@@ -383,10 +398,14 @@
 
       const headingTravel = Math.max(0, practiceWindow - practiceHeading.offsetHeight - height * .035);
       practices.section.style.setProperty('--heading-travel', `${headingTravel}px`);
-      for (const stage of stages) {
+      const rows = stages.map(stage => {
         stage.hold = Math.round(height * stage.holdRatio);
         stage.section.style.setProperty('--stage-hold', `${stage.hold}px`);
-      }
+        const entry = stage === opening ? 0 : reveal;
+        const ending = stage === last ? height : 0;
+        return `${stage.hold + entry + ending}px`;
+      });
+      page.style.setProperty('--stage-rows', rows.join(' '));
 
       const y = window.scrollY;
       for (const stage of stages) stage.start = stage.section.getBoundingClientRect().top + y;
@@ -405,7 +424,8 @@
       const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
       if (box.top >= safeTop && box.bottom <= safeBottom && target.contains(hit)) return;
 
-      window.scrollTo({ top: stage.start + stage.hold * .4, behavior: 'instant' });
+      const entry = stage === opening ? 0 : reveal;
+      window.scrollTo({ top: stage.start + entry + stage.hold * .4, behavior: 'instant' });
       if (frame) cancelAnimationFrame(frame);
       draw();
     });
@@ -443,8 +463,9 @@
         const stage = photo.closest('[data-pinned]');
         const hold = parseFloat(stage?.style.getPropertyValue('--stage-hold')) || 0;
         const pinnedDistance = hold * Number(stage?.style.getPropertyValue('--stage-progress') ?? 0);
-        // Spread the same parallax travel across entry, hold and release.
-        const progress = Math.max(0, Math.min(1, (viewport - top + pinnedDistance) / (viewport + height + hold)));
+        const handoffOffset = Number(stage?.style.getPropertyValue('--photo-stage-offset')) || 0;
+        // Include the apparent travel from the mask as well as the pinned scroll distance.
+        const progress = Math.max(0, Math.min(1, (viewport - top - handoffOffset + pinnedDistance) / (viewport + height + hold)));
         return [photo, (progress - .5) * 16];
       });
       for (const [photo, offset] of offsets) {
