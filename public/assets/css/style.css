@@ -2016,10 +2016,6 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
   margin-block-end: clamp(1.35rem, 2vw, 2rem);
 }
 
-.services-directory .filter-line label:focus-within {
-  border-color: var(--focus);
-}
-
 .services-directory .editorial-row {
   align-items: center;
   grid-template-columns: minmax(0, .75fr) minmax(0, 1.25fr) auto;
@@ -2038,10 +2034,6 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
   line-height: 1;
 }
 
-.services-directory .editorial-row:is(:hover, :focus-visible) .service-row-arrow {
-  translate: .25rem;
-}
-
 .filter-line {
   display: flex;
   flex-wrap: wrap;
@@ -2050,18 +2042,25 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
   margin-bottom: 1.5rem;
 }
 
-.filter-line label {
+.service-search {
   display: flex;
   width: min(100%, 32rem);
   min-height: 3.25rem;
   align-items: center;
-  gap: .75rem;
   border-bottom: 1px solid var(--control-line);
-  padding: .5rem 0;
   color: var(--burgundy);
 }
 
-.filter-line input {
+.service-search label {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: .75rem;
+  padding-block: .5rem;
+}
+
+.service-search input {
   min-width: 0;
   width: 100%;
   border: 0;
@@ -2070,14 +2069,42 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
   outline: 0;
 }
 
-.filter-line input::placeholder {
+.service-search input::placeholder {
   color: var(--text-muted);
   opacity: 1;
 }
 
-.filter-line label:focus-within {
+.service-search:focus-within {
+  border-color: var(--focus);
   outline: 2px solid var(--focus);
   outline-offset: 3px;
+}
+
+.service-search input.has-custom-clear::-webkit-search-cancel-button {
+  display: none;
+}
+
+.service-search-clear {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: none;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  padding: 0;
+  background: transparent;
+  color: var(--quiet-accent);
+  cursor: pointer;
+}
+
+.service-search-clear:is(:hover, :focus-visible) {
+  background: var(--surface);
+  color: var(--burgundy);
+}
+
+.service-search-clear:focus-visible {
+  outline-offset: -3px;
 }
 
 .filter-status {
@@ -2821,8 +2848,12 @@ main:has(.archive-empty) + .site-footer {
     --enter-opacity: 0;
   }
 
-  .service-row-arrow {
+  .services-directory .editorial-row > * {
     transition: translate 180ms var(--motion-ease);
+  }
+
+  .services-directory .editorial-row:is(:hover, :focus-visible) > * {
+    translate: .25rem;
   }
 
   .home-hero-action {

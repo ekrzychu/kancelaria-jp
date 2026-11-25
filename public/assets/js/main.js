@@ -62,11 +62,13 @@
   document.querySelector('.form-status.error')?.focus();
 
   const search = document.querySelector('[data-service-search]');
+  const clearSearch = document.querySelector('[data-service-clear]');
   const rows = document.querySelectorAll('[data-service-row]');
   const searchStatus = document.querySelector('[data-service-status]');
   if (search && rows.length) {
     const filterServices = () => {
       const q = search.value.trim().normalize('NFC').toLocaleLowerCase('pl');
+      if (clearSearch) clearSearch.hidden = search.value === '';
       let visible = 0;
       rows.forEach(row => {
         const matches = !q || (row.dataset.title || '').includes(q);
@@ -85,7 +87,15 @@
     };
 
     search.addEventListener('input', filterServices);
-    if (search.value.trim()) filterServices();
+    if (clearSearch) {
+      search.classList.add('has-custom-clear');
+      clearSearch.addEventListener('click', () => {
+        search.value = '';
+        search.focus();
+        search.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+    }
+    if (search.value) filterServices();
   }
 
   function initHomeNavigation() {

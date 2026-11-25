@@ -8,11 +8,18 @@
 <section class="services-directory" aria-label="Katalog specjalizacji">
   <div class="services-frame">
     <div class="filter-line" data-reveal="subtle">
-      <label>
-        <?= icon('search') ?>
-        <span class="visually-hidden">Szukaj specjalizacji</span>
-        <input type="search" placeholder="Szukaj specjalizacji" autocomplete="off" data-service-search aria-controls="service-list">
-      </label>
+      <div class="service-search">
+        <label>
+          <?= icon('search') ?>
+          <span class="visually-hidden">Szukaj specjalizacji</span>
+          <input type="search" placeholder="Szukaj specjalizacji" autocomplete="off" data-service-search aria-controls="service-list">
+        </label>
+        <button class="service-search-clear" type="button" aria-label="Wyczyść wyszukiwanie" data-service-clear hidden>
+          <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true" focusable="false">
+            <path d="m4 4 8 8m0-8-8 8"/>
+          </svg>
+        </button>
+      </div>
       <p class="filter-status" data-service-status aria-live="polite"></p>
     </div>
 
