@@ -51,13 +51,11 @@
   if (homepage) {
     initHomeStages();
     initHomeNavigation();
-    initHomeContact();
-    initImageScrollMotion();
-    initHomeCursor();
-  } else if (document.querySelector('.about-photo[data-scroll-photo]')) {
-    initImageScrollMotion();
   }
 
+  initFloatingContact();
+  initScrollMotion();
+  initSiteCursor();
   initReveals();
   document.querySelector('.form-status.error')?.focus();
 
@@ -145,8 +143,9 @@
     return element?.closest('[data-home-surface]')?.dataset.homeSurface ?? 'light';
   }
 
-  function initHomeContact() {
+  function initFloatingContact() {
     const contact = document.querySelector('.home-contact-float');
+    if (!contact) return;
     const face = contact.querySelector('.home-contact-face');
     const faceSurfaces = { light: 'beige', beige: 'burgundy', burgundy: 'light', photo: 'burgundy' };
     const motion = window.matchMedia('(prefers-reduced-motion: no-preference)');
@@ -158,6 +157,26 @@
     const overlaps = (first, second) =>
       first.right > second.left && first.left < second.right &&
       first.bottom > second.top && first.top < second.bottom;
+
+    const visibleContent = new Set();
+    if (!homepage) {
+      const protectedContent = document.querySelectorAll(
+        ':is(main, footer) :is(form, input, textarea, select, a, button, h1, h2, h3, h4, p, dt, dd, figcaption, td, th, .row-summary, [contenteditable])'
+      );
+      const observer = 'IntersectionObserver' in window && new IntersectionObserver(entries => {
+        for (const { target, isIntersecting } of entries) {
+          if (isIntersecting) visibleContent.add(target);
+          else visibleContent.delete(target);
+        }
+        scheduleTone();
+      });
+      for (const element of protectedContent) {
+        if (element === contact) continue;
+        visibleContent.add(element);
+        if (observer) observer.observe(element);
+      }
+      contact.classList.add('is-positioned');
+    }
 
     function applyTone(tone) {
       contact.dataset.controlTone = tone;
@@ -193,6 +212,10 @@
     function updateTone() {
       frame = 0;
       const box = contact.getBoundingClientRect();
+      if (!homepage) {
+        const collision = [...visibleContent].some(element => overlaps(box, element.getBoundingClientRect()));
+        contact.classList.toggle('is-yielding', collision);
+      }
       const sample = (x, y) => homeSurfaceFor(
         document.elementsFromPoint(x, y).find(element => !contact.contains(element))
       );
@@ -419,13 +442,14 @@
     measure();
   }
 
-  function initImageScrollMotion() {
+  function initScrollMotion() {
     if (navigator.maxTouchPoints > 0 || !('IntersectionObserver' in window) || !window.CSS?.supports('translate', '0 1%')) return;
 
     const motion = window.matchMedia(
       '(min-width: 57rem) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)'
     );
-    const photos = document.querySelectorAll('[data-scroll-photo]');
+    const targets = document.querySelectorAll('[data-scroll-photo], [data-scroll-shift]');
+    if (!targets.length) return;
     const visible = new Set();
     let frame = 0;
 
@@ -440,17 +464,17 @@
     function draw() {
       frame = 0;
       const viewport = window.innerHeight;
-      const offsets = Array.from(visible, photo => {
-        const { top, height } = photo.getBoundingClientRect();
-        const stage = photo.closest('[data-pinned]');
+      const offsets = Array.from(visible, element => {
+        const { top, height } = element.getBoundingClientRect();
+        const stage = element.closest('[data-pinned]');
         const hold = parseFloat(stage?.style.getPropertyValue('--stage-hold')) || 0;
         const pinnedDistance = hold * Number(stage?.style.getPropertyValue('--stage-progress') ?? 0);
-        // Spread the same parallax travel across entry, hold and release.
+        // Include the pinned scroll distance for fullscreen stages.
         const progress = Math.max(0, Math.min(1, (viewport - top + pinnedDistance) / (viewport + height + hold)));
-        return [photo, (progress - .5) * 16];
+        return [element, (progress - .5) * 16];
       });
-      for (const [photo, offset] of offsets) {
-        photo.style.setProperty('--photo-scroll-offset', `${offset.toFixed(3)}%`);
+      for (const [element, offset] of offsets) {
+        element.style.setProperty('--scroll-motion-offset', `${offset.toFixed(3)}%`);
       }
     }
 
@@ -461,7 +485,7 @@
     function sync() {
       document.body.classList.toggle('has-photo-scroll', motion.matches);
       if (motion.matches) {
-        photos.forEach(photo => observer.observe(photo));
+        targets.forEach(element => observer.observe(element));
         window.addEventListener('scroll', schedule, { passive: true });
         window.addEventListener('resize', schedule, { passive: true });
         return;
@@ -471,7 +495,7 @@
       visible.clear();
       cancelAnimationFrame(frame);
       frame = 0;
-      photos.forEach(photo => photo.style.removeProperty('--photo-scroll-offset'));
+      targets.forEach(element => element.style.removeProperty('--scroll-motion-offset'));
       window.removeEventListener('scroll', schedule);
       window.removeEventListener('resize', schedule);
     }
@@ -480,7 +504,7 @@
     sync();
   }
 
-  function initHomeCursor() {
+  function initSiteCursor() {
     if (navigator.maxTouchPoints > 0 || !('PointerEvent' in window)) return;
 
     const capability = window.matchMedia(
@@ -572,10 +596,12 @@
 
     function trackTarget(element, refresh = false) {
       if (!(element instanceof Element) || !document.body.contains(element) || element.closest(nativeControls)) return false;
+      const control = element.closest(interactive);
+      if (!homepage && (!control || window.getSelection()?.isCollapsed === false)) return false;
       if (target === element && !refresh) return true;
 
       target = element;
-      cursor.classList.toggle('is-interactive', Boolean(target.closest(interactive)));
+      cursor.classList.toggle('is-interactive', Boolean(control));
       const tone = homeSurfaceFor(target);
       if (tone !== pendingTone) {
         window.clearTimeout(toneTimer);
@@ -637,6 +663,9 @@
       document.addEventListener('dragstart', hide, options);
       document.addEventListener('keydown', hide, options);
       document.addEventListener('visibilitychange', hide, options);
+      if (!homepage) document.addEventListener('selectionchange', () => {
+        if (window.getSelection()?.isCollapsed === false) hide();
+      }, options);
       document.addEventListener('homesurfacechange', scheduleTargetRefresh, options);
       window.addEventListener('scroll', scheduleTargetRefresh, options);
       window.addEventListener('resize', scheduleTargetRefresh, options);

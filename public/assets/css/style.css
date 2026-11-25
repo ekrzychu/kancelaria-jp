@@ -37,6 +37,10 @@
   --page-gutter: clamp(1.125rem, 4.6vw, 6rem);
   --section-space: 4.5rem;
   --layout-gap: clamp(2rem, 5vw, 5.5rem);
+  --home-contact-size: 3.25rem;
+  --home-contact-width: 7rem;
+  --home-contact-end: max(1.125rem, calc(env(safe-area-inset-right, 0px) + .625rem));
+  --home-contact-bottom: calc(.75rem + env(safe-area-inset-bottom, 0px));
   --row-space: 1.5rem;
   --type-title: 4rem;
   --type-section: 3rem;
@@ -376,10 +380,6 @@ h3 {
   --home-space: clamp(4rem, 7.25vw, 9rem);
   --home-heading: clamp(2.65rem, 4.15vw, 6.25rem);
   --home-compact-height: 3.625rem;
-  --home-contact-size: 3.25rem;
-  --home-contact-width: 7rem;
-  --home-contact-end: max(1.125rem, calc(env(safe-area-inset-right, 0px) + .625rem));
-  --home-contact-bottom: calc(.75rem + env(safe-area-inset-bottom, 0px));
 }
 
 html:has(> .homepage) {
@@ -1183,6 +1183,17 @@ html:has(> .homepage) {
   outline-offset: -4px;
 }
 
+body:not(.homepage) .home-contact-float:not(.is-positioned) {
+  position: static;
+  display: grid;
+  width: max-content;
+  margin: .75rem var(--page-gutter) 0 auto;
+}
+
+.home-contact-float.is-yielding {
+  visibility: hidden;
+}
+
 .homepage .footer-grid,
 .homepage .legal-row {
   border-top: 1px solid var(--dark-line);
@@ -1237,7 +1248,7 @@ html:has(> .homepage) {
 }
 
 @media (max-width: 42rem) {
-  .homepage {
+  :root {
     --home-contact-size: 2.875rem;
     --home-contact-width: 5.375rem;
     --home-contact-end: max(.75rem, calc(env(safe-area-inset-right, 0px) + .5rem));
@@ -1644,7 +1655,7 @@ html:has(> .homepage) {
   .has-photo-scroll .about-hero .about-photo img {
     inset-block-start: -4%;
     height: 108%;
-    translate: 0 calc(var(--photo-scroll-offset, 0%) * .4);
+    translate: 0 calc(var(--scroll-motion-offset, 0%) * .4);
   }
 
   .about-document-arrow {
@@ -2532,7 +2543,11 @@ main:has(.archive-empty) + .site-footer {
   .has-photo-scroll [data-scroll-photo] img {
     inset-block-start: -10%;
     height: 120%;
-    translate: 0 var(--photo-scroll-offset, 0%);
+    translate: 0 var(--scroll-motion-offset, 0%);
+  }
+
+  .has-photo-scroll [data-scroll-shift] > [data-scroll-shift-content] {
+    translate: 0 calc(var(--scroll-motion-offset, 0%) * -.8);
   }
 
   .home-contact-float {

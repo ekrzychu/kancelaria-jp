@@ -32,11 +32,6 @@ $clientLogos = [
 // Temporary value for this experiment. Verify the experience figure before production.
 $experienceYears = 6;
 ?>
-<a class="home-contact-float" href="/kontakt/" aria-label="Kontakt z kancelarią" data-control-tone="burgundy" data-home-surface="light" data-reveal>
-  <span class="home-contact-label">Kontakt</span>
-  <span class="home-contact-face" aria-hidden="true" hidden><span class="home-contact-label">Kontakt</span></span>
-</a>
-
 <section class="home-hero" aria-labelledby="home-title" data-home-stage="hero" data-home-surface="burgundy">
   <div class="home-stage-viewport">
     <div class="home-stage-backdrop" aria-hidden="true" data-home-surface="burgundy"></div>
