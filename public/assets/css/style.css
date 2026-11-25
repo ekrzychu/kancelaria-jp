@@ -1680,7 +1680,7 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
 }
 
 .about-cooperation {
-  padding-block-end: var(--about-space-section);
+  padding-block-end: calc(var(--about-space-section) - var(--about-space-group) - 1px);
 }
 
 .about-cooperation > .about-frame {
@@ -1710,6 +1710,8 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
 .about-team-layout {
   display: grid;
   gap: var(--about-space-detail);
+  border-block-start: 1px solid var(--line);
+  padding-block-start: var(--about-space-group);
 }
 
 .about-team-copy {
