@@ -1838,8 +1838,11 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
 
   .about-team-copy {
     grid-area: 1 / 2;
-    width: min(100%, 52ch);
-    justify-self: end;
+  }
+
+  .about-team-copy,
+  .about-team-copy p {
+    max-width: none;
   }
 }
 
