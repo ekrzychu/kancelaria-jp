@@ -220,7 +220,7 @@
     document.addEventListener('focusin', ({ target }) => {
       if (target === contact || !target.matches(':is(a, button):focus-visible') || !target.closest('main, .home-contact, footer')) return;
 
-      if (!target.closest('[data-pinned]') && overlaps(contact.getBoundingClientRect(), target.getBoundingClientRect())) {
+      if (overlaps(contact.getBoundingClientRect(), target.getBoundingClientRect())) {
         target.scrollIntoView({ behavior: 'instant', block: 'center', inline: 'nearest' });
       }
     });
@@ -311,11 +311,8 @@
       '(min-width: 64rem) and (min-height: 44rem) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)'
     );
     if (!window.CSS?.supports('overflow', 'clip') || !CSS.supports('height', '100dvh') ||
-        !CSS.supports('position', 'sticky') || !CSS.supports('selector(:has(*))') ||
-        !CSS.supports('clip-path', 'inset(50% 0 0)')) return;
+        !CSS.supports('selector(:has(*))')) return;
 
-    const page = document.body;
-    const headerBar = document.querySelector('.header-bar');
     const stages = Array.from(document.querySelectorAll('[data-home-stage]'), section => ({
       section,
       viewport: section.querySelector('.home-stage-viewport'),
@@ -323,17 +320,13 @@
       layout: section.querySelector('.home-frame'),
     }));
     const opening = stages[0];
-    const last = stages.at(-1);
     const practices = stages.find(stage => stage.section.id === 'specjalizacje');
-    const office = stages.find(stage => stage.section.dataset.homeStage === 'office');
     const practiceRail = practices.layout.querySelector('.home-practices-rail');
     const practiceHeading = practices.layout.querySelector('.home-practices-intro');
     const clamp = value => Math.max(0, Math.min(value, 1));
 
     let active = false;
     let height;
-    let hold;
-    let reveal;
     let frame = 0;
 
     function setProgress(stage, property, value) {
@@ -344,29 +337,24 @@
 
     function draw() {
       frame = 0;
-      const y = window.scrollY;
-      for (const stage of stages) {
-        const elapsed = y - stage.start;
-        const entry = stage === opening ? 0 : reveal;
-        const arrival = entry ? clamp(elapsed / entry) : 1;
+      const positions = stages.map(({ section }) => section.getBoundingClientRect().top);
+      const motionDistance = height * .34;
+      // Ease the elements in while their section enters, then continue their motion as it scrolls past the top.
+      stages.forEach((stage, index) => {
+        const top = positions[index];
+        const arrival = stage === opening ? 1 : clamp(1 - top / height);
         setProgress(stage, '--stage-entry', arrival);
-        setProgress(stage, '--stage-progress', clamp((elapsed - entry) / hold));
-        if (stage === office) {
-          // The mask travels during a handoff even though the viewport itself is sticky.
-          const departure = stage === last ? 0 : clamp((elapsed - entry - hold) / reveal);
-          setProgress(stage, '--photo-stage-offset', (1 - arrival - departure) * height);
-        }
-      }
+        setProgress(stage, '--stage-progress', clamp(-top / motionDistance));
+      });
     }
 
     function schedule() {
       if (active && !frame) frame = requestAnimationFrame(draw);
     }
 
-    function setPinned(enabled) {
+    function setFullscreen(enabled) {
       active = enabled;
-      page.classList.toggle('has-home-stages', enabled);
-      for (const stage of stages) stage.section.toggleAttribute('data-pinned', enabled);
+      for (const stage of stages) stage.section.toggleAttribute('data-fullscreen', enabled);
     }
 
     function fits(stage, practiceWindow) {
@@ -383,49 +371,22 @@
       if (frame) cancelAnimationFrame(frame);
       frame = 0;
       if (!desktop.matches) {
-        setPinned(false);
+        setFullscreen(false);
         return;
       }
 
-      // Count the rows between the opening and the final immersive section.
-      page.style.setProperty('--stage-rows', stages.length - 2);
-      hold = Math.round(window.innerHeight * .34);
-      reveal = Math.round(window.innerHeight * .46);
-      page.style.setProperty('--stage-hold', `${hold}px`);
-      page.style.setProperty('--stage-reveal', `${reveal}px`);
-      setPinned(true);
-
+      setFullscreen(true);
       height = opening.viewport.clientHeight;
       const practiceWindow = practiceRail.clientHeight - 12;
       if (!stages.every(stage => fits(stage, practiceWindow))) {
-        setPinned(false);
+        setFullscreen(false);
         return;
       }
 
       const headingTravel = Math.max(0, practiceWindow - practiceHeading.offsetHeight - height * .055);
       practices.section.style.setProperty('--heading-travel', `${headingTravel}px`);
-      const y = window.scrollY;
-      for (const stage of stages) stage.start = stage.section.getBoundingClientRect().top + y;
       draw();
     }
-
-    document.addEventListener('focusin', ({ target }) => {
-      if (!active || !target.matches('a:focus-visible')) return;
-      const stage = stages.find(({ section }) => section.contains(target));
-      if (!stage) return;
-
-      const box = target.getBoundingClientRect();
-      const bounds = (practiceRail.contains(target) ? practiceRail : stage.viewport).getBoundingClientRect();
-      const safeTop = Math.max(bounds.top + 6, headerBar.getBoundingClientRect().bottom + 8);
-      const safeBottom = Math.min(bounds.bottom, height) - 6;
-      const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
-      if (box.top >= safeTop && box.bottom <= safeBottom && target.contains(hit)) return;
-
-      const entry = stage === opening ? 0 : reveal;
-      window.scrollTo({ top: stage.start + entry + hold * .4, behavior: 'instant' });
-      if (frame) cancelAnimationFrame(frame);
-      draw();
-    });
 
     window.addEventListener('scroll', schedule, { passive: true });
     window.addEventListener('resize', measure, { passive: true });
@@ -457,12 +418,7 @@
       const viewport = window.innerHeight;
       const offsets = Array.from(visible, photo => {
         const { top, height } = photo.getBoundingClientRect();
-        const stage = photo.closest('[data-pinned]');
-        const handoffOffset = Number(stage?.style.getPropertyValue('--photo-stage-offset')) || 0;
-        // Keep the parallax independent of the incoming scene's travel.
-        const arrival = Number(stage?.style.getPropertyValue('--stage-entry') || 1);
-        const photoTop = top - (1 - arrival) * viewport;
-        const progress = Math.max(0, Math.min(1, (viewport - photoTop - handoffOffset) / (viewport + height)));
+        const progress = Math.max(0, Math.min(1, (viewport - top) / (viewport + height)));
         return [photo, (progress - .5) * 16];
       });
       for (const [photo, offset] of offsets) {
