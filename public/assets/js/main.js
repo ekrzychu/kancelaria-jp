@@ -55,6 +55,7 @@
 
   initFloatingContact();
   initScrollMotion();
+  initAboutProcess();
   initSiteCursor();
   initReveals();
   document.querySelector('.form-status.error')?.focus();
@@ -505,6 +506,56 @@
       targets.forEach(element => element.style.removeProperty('--scroll-motion-offset'));
       window.removeEventListener('scroll', schedule);
       window.removeEventListener('resize', schedule);
+    }
+
+    motion.addEventListener('change', sync);
+    sync();
+  }
+
+  function initAboutProcess() {
+    const list = document.querySelector('[data-about-steps]');
+    if (!list?.lastElementChild) return;
+
+    const motion = window.matchMedia('(prefers-reduced-motion: no-preference)');
+    const steps = Array.from(list.children);
+    let current;
+    let frame = 0;
+
+    function draw() {
+      frame = 0;
+      const readingLine = window.innerHeight * .65 - list.getBoundingClientRect().top;
+      const distance = Math.max(0, Math.min(readingLine, list.lastElementChild.offsetTop));
+      let next = steps[0];
+      for (const step of steps) {
+        if (step.offsetTop > distance) break;
+        next = step;
+      }
+      list.style.setProperty('--about-step-progress', `${Math.round(distance)}px`);
+      if (current === next) return;
+      current?.classList.remove('is-current');
+      current = next;
+      current.classList.add('is-current');
+    }
+
+    function schedule() {
+      if (!frame && motion.matches) frame = requestAnimationFrame(draw);
+    }
+
+    function sync() {
+      if (motion.matches) {
+        window.addEventListener('scroll', schedule, { passive: true });
+        window.addEventListener('resize', schedule, { passive: true });
+        schedule();
+        document.fonts?.ready.then(schedule);
+        return;
+      }
+      window.removeEventListener('scroll', schedule);
+      window.removeEventListener('resize', schedule);
+      cancelAnimationFrame(frame);
+      frame = 0;
+      current?.classList.remove('is-current');
+      current = undefined;
+      list.style.removeProperty('--about-step-progress');
     }
 
     motion.addEventListener('change', sync);
