@@ -1800,9 +1800,35 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
     padding-block-start: 1.9rem;
   }
 
-  .about-cooperation > .about-frame > :is(h2, .about-cooperation-options) {
-    width: min(42%, 34rem);
-    margin-inline-start: auto;
+  .about-cooperation > .about-frame {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) min(42%, 34rem);
+    column-gap: clamp(1.7rem, 4vw, 5rem);
+    align-items: start;
+  }
+
+  .about-cooperation > .about-frame > h2 {
+    grid-area: 1 / 2;
+  }
+
+  .about-cooperation-options {
+    grid-area: 1 / 1;
+    max-width: 34rem;
+    margin-block-start: 0;
+  }
+
+  .about-team-layout {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    column-gap: clamp(1.7rem, 4vw, 5rem);
+    align-items: center;
+  }
+
+  .about-team-layout > h2 {
+    grid-area: 1 / 1;
+  }
+
+  .about-team-copy {
+    grid-area: 1 / 2;
   }
 }
 
