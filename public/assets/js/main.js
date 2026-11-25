@@ -220,7 +220,7 @@
     document.addEventListener('focusin', ({ target }) => {
       if (target === contact || !target.matches(':is(a, button):focus-visible') || !target.closest('main, .home-contact, footer')) return;
 
-      if (overlaps(contact.getBoundingClientRect(), target.getBoundingClientRect())) {
+      if (!target.closest('[data-pinned]') && overlaps(contact.getBoundingClientRect(), target.getBoundingClientRect())) {
         target.scrollIntoView({ behavior: 'instant', block: 'center', inline: 'nearest' });
       }
     });
@@ -311,13 +311,16 @@
       '(min-width: 64rem) and (min-height: 44rem) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)'
     );
     if (!window.CSS?.supports('overflow', 'clip') || !CSS.supports('height', '100dvh') ||
-        !CSS.supports('selector(:has(*))')) return;
+        !CSS.supports('position', 'sticky') || !CSS.supports('selector(:has(*))')) return;
 
+    const headerBar = document.querySelector('.header-bar');
+    const holdRatios = { hero: .32, practices: .5, publications: .36, profile: .31, office: .22, clients: .36 };
     const stages = Array.from(document.querySelectorAll('[data-home-stage]'), section => ({
       section,
       viewport: section.querySelector('.home-stage-viewport'),
       content: section.querySelector('.home-stage-content'),
       layout: section.querySelector('.home-frame'),
+      holdRatio: holdRatios[section.dataset.homeStage],
     }));
     const opening = stages[0];
     const practices = stages.find(stage => stage.section.id === 'specjalizacje');
@@ -337,24 +340,21 @@
 
     function draw() {
       frame = 0;
-      const positions = stages.map(({ section }) => section.getBoundingClientRect().top);
-      const motionDistance = height * .34;
-      // Ease the elements in while their section enters, then continue their motion as it scrolls past the top.
-      stages.forEach((stage, index) => {
-        const top = positions[index];
-        const arrival = stage === opening ? 1 : clamp(1 - top / height);
-        setProgress(stage, '--stage-entry', arrival);
-        setProgress(stage, '--stage-progress', clamp(-top / motionDistance));
-      });
+      const y = window.scrollY;
+      for (const stage of stages) {
+        const elapsed = y - stage.start;
+        setProgress(stage, '--stage-entry', clamp(1 + elapsed / height));
+        setProgress(stage, '--stage-progress', clamp(elapsed / stage.hold));
+      }
     }
 
     function schedule() {
       if (active && !frame) frame = requestAnimationFrame(draw);
     }
 
-    function setFullscreen(enabled) {
+    function setPinned(enabled) {
       active = enabled;
-      for (const stage of stages) stage.section.toggleAttribute('data-fullscreen', enabled);
+      for (const stage of stages) stage.section.toggleAttribute('data-pinned', enabled);
     }
 
     function fits(stage, practiceWindow) {
@@ -371,22 +371,46 @@
       if (frame) cancelAnimationFrame(frame);
       frame = 0;
       if (!desktop.matches) {
-        setFullscreen(false);
+        setPinned(false);
         return;
       }
 
-      setFullscreen(true);
+      setPinned(true);
       height = opening.viewport.clientHeight;
       const practiceWindow = practiceRail.clientHeight - 12;
       if (!stages.every(stage => fits(stage, practiceWindow))) {
-        setFullscreen(false);
+        setPinned(false);
         return;
       }
 
       const headingTravel = Math.max(0, practiceWindow - practiceHeading.offsetHeight - height * .055);
       practices.section.style.setProperty('--heading-travel', `${headingTravel}px`);
+      for (const stage of stages) {
+        stage.hold = Math.round(height * stage.holdRatio);
+        stage.section.style.setProperty('--stage-hold', `${stage.hold}px`);
+      }
+
+      const y = window.scrollY;
+      for (const stage of stages) stage.start = stage.section.getBoundingClientRect().top + y;
       draw();
     }
+
+    document.getElementById('main').addEventListener('focusin', ({ target }) => {
+      if (!active || !target.matches('a:focus-visible')) return;
+      const stage = stages.find(({ section }) => section.contains(target));
+      if (!stage) return;
+
+      const box = target.getBoundingClientRect();
+      const bounds = (practiceRail.contains(target) ? practiceRail : stage.viewport).getBoundingClientRect();
+      const safeTop = Math.max(bounds.top + 6, headerBar.getBoundingClientRect().bottom + 8);
+      const safeBottom = Math.min(bounds.bottom, height) - 6;
+      const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+      if (box.top >= safeTop && box.bottom <= safeBottom && target.contains(hit)) return;
+
+      window.scrollTo({ top: stage.start + stage.hold * .4, behavior: 'instant' });
+      if (frame) cancelAnimationFrame(frame);
+      draw();
+    });
 
     window.addEventListener('scroll', schedule, { passive: true });
     window.addEventListener('resize', measure, { passive: true });
@@ -418,7 +442,11 @@
       const viewport = window.innerHeight;
       const offsets = Array.from(visible, photo => {
         const { top, height } = photo.getBoundingClientRect();
-        const progress = Math.max(0, Math.min(1, (viewport - top) / (viewport + height)));
+        const stage = photo.closest('[data-pinned]');
+        const hold = parseFloat(stage?.style.getPropertyValue('--stage-hold')) || 0;
+        const pinnedDistance = hold * Number(stage?.style.getPropertyValue('--stage-progress') ?? 0);
+        // Spread the same parallax travel across entry, hold and release.
+        const progress = Math.max(0, Math.min(1, (viewport - top + pinnedDistance) / (viewport + height + hold)));
         return [photo, (progress - .5) * 16];
       });
       for (const [photo, offset] of offsets) {
