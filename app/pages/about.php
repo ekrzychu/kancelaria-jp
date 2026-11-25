@@ -1,13 +1,13 @@
 <section class="about-hero" aria-labelledby="about-title">
   <div class="container about-hero-grid">
-    <div class="about-hero-copy" data-reveal>
+    <div class="about-hero-copy" data-reveal data-scroll-shift>
       <span class="section-kicker">O kancelarii</span>
-      <h1 id="about-title">Kancelaria <span>tworzona przez</span> <span class="about-title-accent">praktyków.</span></h1>
+      <h1 id="about-title" data-scroll-shift-content>Kancelaria tworzona przez praktyków.</h1>
       <p>Łączymy doradztwo z&nbsp;doświadczeniem w&nbsp;prowadzeniu sporów.</p>
     </div>
     <picture class="about-photo" data-reveal="image" data-scroll-photo>
-      <source type="image/webp" srcset="/assets/img/building-exterior-portrait-760.webp 760w, /assets/img/building-exterior-portrait.webp 1000w" sizes="(max-width: 42rem) 100vw, (min-width: 112rem) 48rem, 42vw">
-      <img src="/assets/img/building-exterior-portrait.jpg" alt="Detal fasady siedziby kancelarii we Wrocławiu" width="1000" height="1300" fetchpriority="high">
+      <source type="image/webp" srcset="/assets/img/building-exterior-800.webp 800w, /assets/img/building-exterior-wide.webp 1800w" sizes="(min-width: 140rem) 112rem, 91vw">
+      <img src="/assets/img/building-exterior-wide.jpg" alt="Detal fasady siedziby kancelarii we Wrocławiu" width="1800" height="980" fetchpriority="high">
     </picture>
   </div>
 </section>
@@ -15,14 +15,14 @@
 <section class="about-section about-identity" aria-labelledby="about-identity-title">
   <div class="container about-editorial-grid">
     <h2 id="about-identity-title" data-reveal>Kim jesteśmy</h2>
-    <div class="about-identity-copy">
-      <p class="about-lead" data-reveal>Doradzamy firmom i&nbsp;klientom indywidualnym oraz reprezentujemy ich w&nbsp;sporach.</p>
+    <div class="about-identity-copy" data-scroll-shift>
+      <p class="about-lead" data-scroll-shift-content data-reveal>Doradzamy firmom i&nbsp;klientom indywidualnym oraz reprezentujemy ich w&nbsp;sporach.</p>
       <p class="about-identity-detail" data-reveal>Radcowie prawni, adwokaci, specjaliści prawni i&nbsp;administracyjni wspólnie organizują pracę nad sprawami.</p>
     </div>
   </div>
 </section>
 
-<section class="about-section about-method" aria-labelledby="about-method-title">
+<section class="about-section about-method" aria-labelledby="about-method-title" data-home-surface="beige">
   <div class="container about-editorial-grid">
     <h2 class="about-section-title" id="about-method-title" data-reveal>Jak pracujemy</h2>
     <dl class="about-steps" data-reveal-children>
