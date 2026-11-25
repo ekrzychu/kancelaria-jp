@@ -58,20 +58,23 @@
   initScrollMotion();
   initSiteCursor();
   initAboutProcess();
-  initReveals();
+  const finishReveal = initReveals();
   document.querySelector('.form-status.error')?.focus();
 
   const search = document.querySelector('[data-service-search]');
   const rows = document.querySelectorAll('[data-service-row]');
   const searchStatus = document.querySelector('[data-service-status]');
   if (search && rows.length) {
-    search.addEventListener('input', () => {
-      const q = search.value.trim().toLocaleLowerCase('pl');
+    const filterServices = () => {
+      const q = search.value.trim().normalize('NFC').toLocaleLowerCase('pl');
       let visible = 0;
       rows.forEach(row => {
         const matches = !q || (row.dataset.title || '').includes(q);
         row.hidden = !matches;
-        if (matches) visible += 1;
+        if (matches) {
+          finishReveal?.(row);
+          visible += 1;
+        }
       });
 
       if (searchStatus) {
@@ -79,7 +82,10 @@
           ? (visible ? `Liczba wyników: ${visible}.` : 'Brak specjalizacji pasujących do wyszukiwania.')
           : '';
       }
-    });
+    };
+
+    search.addEventListener('input', filterServices);
+    if (search.value.trim()) filterServices();
   }
 
   function initHomeNavigation() {
@@ -274,13 +280,14 @@
     const selector = '[data-reveal], [data-reveal-children] > *';
     const targets = document.querySelectorAll(selector);
     const pendingSequence = new Map();
+    const bypassed = new WeakSet();
     const listeners = new AbortController();
     let sequenceObserver;
 
     function revealEntries(entries, observer) {
       const nextDelays = new Map();
       for (const { target, isIntersecting, intersectionRatio } of entries) {
-        if (!isIntersecting || intersectionRatio < revealThreshold) continue;
+        if (bypassed.has(target) || !isIntersecting || intersectionRatio < revealThreshold) continue;
         observer.unobserve(target);
         target.classList.remove('is-awaiting-reveal');
         const sequence = pendingSequence.get(target);
@@ -291,7 +298,7 @@
           nextDelays.set(sequence, delay + 90);
         }
         const reveal = () => {
-          if (target.matches(':focus-within')) return;
+          if (bypassed.has(target) || target.matches(':focus-within')) return;
           target.classList.add('is-revealed');
           if (target.dataset.reveal === 'experience') countExperience(target, listeners.signal);
         };
@@ -318,7 +325,7 @@
     const observer = new IntersectionObserver(revealEntries, { threshold: revealThreshold });
     for (const target of targets) {
       const sequence = target.closest('[data-reveal-sequence]');
-      if (sequence || target.dataset.reveal === 'subtle') {
+      if (sequence || target.matches('[data-reveal="subtle"], [data-reveal="service-row"]')) {
         target.classList.add('is-awaiting-reveal');
       }
       if (sequence) {
@@ -332,14 +339,18 @@
       window.addEventListener('resize', observeSequence, { passive: true, signal: listeners.signal });
     }
 
-    document.addEventListener('focusin', event => {
-      if (!event.target.matches(':focus-visible')) return;
-      const target = event.target.closest(selector);
-      if (!target) return;
+    function finishReveal(target) {
+      bypassed.add(target);
       observer.unobserve(target);
       sequenceObserver?.unobserve(target);
       pendingSequence.delete(target);
       target.classList.remove('is-revealed', 'is-awaiting-reveal');
+    }
+
+    document.addEventListener('focusin', event => {
+      if (!event.target.matches(':focus-visible')) return;
+      const target = event.target.closest(selector);
+      if (target) finishReveal(target);
     }, { signal: listeners.signal });
 
     motion.addEventListener('change', () => {
@@ -348,6 +359,8 @@
       listeners.abort();
       targets.forEach(target => target.classList.remove('is-revealed', 'is-awaiting-reveal'));
     }, { once: true });
+
+    return finishReveal;
   }
 
   function countExperience(target, signal) {
