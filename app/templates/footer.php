@@ -1,4 +1,19 @@
 </main>
+<?php if ($path === '/'): ?>
+<div class="home-ending" data-home-stage="contact" data-home-surface="burgundy">
+  <div class="home-stage-viewport">
+    <div class="home-stage-backdrop" aria-hidden="true"></div>
+    <div class="home-stage-content">
+      <section class="home-contact home-section" aria-labelledby="home-contact-title" data-home-surface="burgundy">
+        <div class="home-frame home-contact-layout" data-reveal="sequence">
+          <h2 id="home-contact-title">Każda sprawa zaczyna się od&nbsp;rozmowy.</h2>
+          <div class="home-contact-detail">
+            <p>Przedstaw nam swoją sytuację. Pomożemy ustalić możliwe kierunki dalszego działania.</p>
+            <a class="button home-contact-action" href="/kontakt/" data-home-surface="light">Skontaktuj się z&nbsp;kancelarią</a>
+          </div>
+        </div>
+      </section>
+<?php endif; ?>
 <footer class="site-footer"<?= $path === '/' ? ' data-home-surface="burgundy"' : '' ?>>
   <?php if ($path !== '/'): ?>
     <div class="container footer-callout">
@@ -42,6 +57,11 @@
     </ul>
   </div>
 </footer>
+<?php if ($path === '/'): ?>
+    </div>
+  </div>
+</div>
+<?php endif; ?>
 <script src="/assets/js/main.js?v=<?= filemtime(__DIR__ . '/../../public/assets/js/main.js') ?>"></script>
 </body>
 </html>
