@@ -56,7 +56,7 @@
     initHomeCursor();
   }
 
-  initReveals(homepage);
+  initReveals();
   document.querySelector('.form-status.error')?.focus();
 
   const search = document.querySelector('[data-service-search]');
@@ -229,43 +229,41 @@
   }
 
 
-  function initReveals(homepage) {
+  function initReveals() {
     const motion = window.matchMedia('(prefers-reduced-motion: no-preference)');
     if (!motion.matches || !('IntersectionObserver' in window)) return;
 
-    const targets = document.querySelectorAll('[data-reveal]');
+    const selector = '[data-reveal], [data-reveal-children] > *';
+    const targets = document.querySelectorAll(selector);
     const listeners = new AbortController();
     const threshold = .15;
     const observer = new IntersectionObserver(entries => {
       for (const { target, isIntersecting, intersectionRatio } of entries) {
         if (!isIntersecting || intersectionRatio < threshold) continue;
         observer.unobserve(target);
-        if (homepage && target.matches(':focus-within')) continue;
-
         const reveal = () => {
+          if (target.matches(':focus-within')) return;
           target.classList.add('is-revealed');
           if (target.dataset.reveal === 'experience') countExperience(target, listeners.signal);
         };
-        const image = homepage && target.dataset.reveal === 'image' && target.querySelector('img');
+        const image = target.dataset.reveal === 'image' && target.querySelector('img');
         if (image && !image.complete) {
           image.addEventListener('load', reveal, { once: true, signal: listeners.signal });
         } else {
           reveal();
         }
       }
-    }, { threshold, rootMargin: homepage ? '0px' : '0px 0px -24px' });
+    }, { threshold });
 
     targets.forEach(target => observer.observe(target));
 
-    if (homepage) {
-      document.addEventListener('focusin', event => {
-        if (!event.target.matches(':focus-visible')) return;
-        const target = event.target.closest('[data-reveal]');
-        if (!target) return;
-        observer.unobserve(target);
-        target.classList.remove('is-revealed');
-      }, { signal: listeners.signal });
-    }
+    document.addEventListener('focusin', event => {
+      if (!event.target.matches(':focus-visible')) return;
+      const target = event.target.closest(selector);
+      if (!target) return;
+      observer.unobserve(target);
+      target.classList.remove('is-revealed');
+    }, { signal: listeners.signal });
 
     motion.addEventListener('change', () => {
       observer.disconnect();

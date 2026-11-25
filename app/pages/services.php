@@ -7,7 +7,7 @@
 
 <section class="section" aria-label="Katalog specjalizacji">
   <div class="container">
-    <div class="filter-line">
+    <div class="filter-line" data-reveal>
       <label>
         <?= icon('search') ?>
         <span class="visually-hidden">Szukaj specjalizacji</span>
@@ -16,7 +16,7 @@
       <p class="filter-status" data-service-status aria-live="polite"></p>
     </div>
 
-    <div class="editorial-list" id="service-list" data-service-list>
+    <div class="editorial-list" id="service-list" data-service-list data-reveal-children>
       <?php foreach ($services as $service): ?>
         <?php $searchText = text_lower($service['title'] . ' ' . $service['summary'] . ' ' . $service['category']); ?>
         <a

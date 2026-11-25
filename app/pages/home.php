@@ -32,7 +32,7 @@ $clientLogos = [
 // Temporary value for this experiment. Verify the experience figure before production.
 $experienceYears = 6;
 ?>
-<a class="home-contact-float" href="/kontakt/" aria-label="Kontakt z kancelarią" data-control-tone="burgundy" data-home-surface="light">
+<a class="home-contact-float" href="/kontakt/" aria-label="Kontakt z kancelarią" data-control-tone="burgundy" data-home-surface="light" data-reveal>
   <span class="home-contact-label">Kontakt</span>
   <span class="home-contact-face" aria-hidden="true" hidden><span class="home-contact-label">Kontakt</span></span>
 </a>
@@ -46,7 +46,7 @@ $experienceYears = 6;
           <p class="section-kicker">Kancelaria radców prawnych we Wrocławiu</p>
           <h1 id="home-title"><span>Prawo</span> <span class="home-hero-title-accent">w&nbsp;praktyce.</span></h1>
         </div>
-        <div class="home-hero-intro" data-reveal="sequence">
+        <div class="home-hero-intro" data-reveal>
           <div class="home-hero-copy">
             <p class="home-hero-lead">Doradzamy firmom, instytucjom i&nbsp;klientom&nbsp;indywidualnym.</p>
             <p>Reprezentujemy ich również w&nbsp;sporach&nbsp;sądowych.</p>

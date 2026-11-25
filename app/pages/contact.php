@@ -13,8 +13,8 @@
 
 <section class="section">
   <div class="container contact-layout">
-    <div class="contact-details">
-      <h2 data-reveal>Dane kontaktowe</h2>
+    <div class="contact-details" data-reveal>
+      <h2>Dane kontaktowe</h2>
       <dl>
         <div>
           <dt><?= icon('pin') ?>Adres</dt>
@@ -44,8 +44,8 @@
       </dl>
     </div>
 
-    <form class="contact-form" id="formularz" aria-labelledby="contact-form-title" tabindex="-1" method="post" action="/kontakt/">
-      <h2 id="contact-form-title" data-reveal>Opisz krótko sprawę</h2>
+    <form class="contact-form" id="formularz" aria-labelledby="contact-form-title" tabindex="-1" method="post" action="/kontakt/" data-reveal>
+      <h2 id="contact-form-title">Opisz krótko sprawę</h2>
       <?php if ($formStatus): ?>
         <p class="form-status <?= $formStatus['ok'] ? 'ok' : 'error' ?>" role="<?= $formStatus['ok'] ? 'status' : 'alert' ?>" tabindex="-1"><?= e($formStatus['message']) ?></p>
       <?php endif; ?>

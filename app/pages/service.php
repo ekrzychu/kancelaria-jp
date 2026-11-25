@@ -8,12 +8,12 @@
 
 <section class="section">
   <div class="container service-layout">
-    <article class="rich-text service-content">
+    <article class="rich-text service-content" data-reveal-children>
       <?php foreach ($service['body'] as $paragraph): ?>
         <p><?= e($paragraph) ?></p>
       <?php endforeach; ?>
 
-      <h2 data-reveal>Zakres działań</h2>
+      <h2>Zakres działań</h2>
       <ul class="service-scope">
         <?php foreach ($service['scope'] as $point): ?>
           <li><?= e($point) ?></li>
@@ -26,7 +26,7 @@
       </div>
     </article>
 
-    <nav class="side-index" aria-label="Specjalizacje">
+    <nav class="side-index" aria-label="Specjalizacje" data-reveal-children>
       <a class="side-index-heading" href="/specjalizacje/">Wszystkie specjalizacje</a>
       <?php foreach ($services as $item): ?>
         <a href="/specjalizacje/<?= e($item['slug']) ?>/"<?= $item['slug'] === $service['slug'] ? ' aria-current="page"' : '' ?>>

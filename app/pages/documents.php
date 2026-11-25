@@ -6,7 +6,7 @@
 </section>
 
 <section class="section" aria-label="Lista dokumentów">
-  <div class="container editorial-list">
+  <div class="container editorial-list" data-reveal-children>
     <?php foreach ($site['documents'] as $doc): ?>
       <a class="editorial-row" href="/dokumenty/<?= e($doc['slug']) ?>/">
         <span class="row-title"><?= e($doc['title']) ?></span>

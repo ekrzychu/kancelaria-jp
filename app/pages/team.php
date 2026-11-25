@@ -20,7 +20,7 @@ foreach ($team as $person) {
 <section class="section" aria-label="Członkowie zespołu">
   <div class="container people-groups">
     <?php foreach (array_filter($teamGroups) as $group => $people): ?>
-      <ul class="people-list people-list--<?= e($group) ?>" role="list">
+      <ul class="people-list people-list--<?= e($group) ?>" role="list" data-reveal-children>
         <?php foreach ($people as $person): ?>
           <?php
           $portrait = $person['portrait'] ?? '';

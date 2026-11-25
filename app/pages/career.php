@@ -11,7 +11,7 @@
     <div data-reveal>
       <h2>Jak wygląda rekrutacja</h2>
     </div>
-    <ol class="process-list">
+    <ol class="process-list" data-reveal-children>
       <li>
         <h3>Aplikacja</h3>
         <p>CV i krótka informacja o doświadczeniu.</p>
@@ -34,6 +34,6 @@
       <span class="section-kicker">Zgłoszenia</span>
       <h2>Wyślij aplikację na adres kancelarii.</h2>
     </div>
-    <a class="button" href="mailto:<?= e($site['email']) ?>">Napisz do kancelarii</a>
+    <a class="button" href="mailto:<?= e($site['email']) ?>" data-reveal>Napisz do kancelarii</a>
   </div>
 </section>

@@ -13,7 +13,7 @@ $publications = array_filter($articles, static fn ($article) =>
 
 <section class="section<?= $publications ? '' : ' archive-empty' ?>">
   <?php if ($publications): ?>
-    <div class="container editorial-list" aria-label="Publikacje">
+    <div class="container editorial-list" aria-label="Publikacje" data-reveal-children>
       <?php foreach ($publications as $article): ?>
         <?php
         $date = $article['date'] ?? '';

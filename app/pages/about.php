@@ -17,7 +17,7 @@
     <div data-reveal>
       <h2>Kim jesteśmy</h2>
     </div>
-    <div class="rich-text">
+    <div class="rich-text" data-reveal>
       <p>Doradzamy firmom i&nbsp;klientom indywidualnym oraz reprezentujemy ich w&nbsp;sporach. Radcowie prawni, adwokaci, specjaliści prawni i&nbsp;administracyjni wspólnie organizują pracę nad sprawami.</p>
     </div>
   </div>
@@ -26,7 +26,7 @@
 <section class="section about-method">
   <div class="container editorial-split">
     <h2 data-reveal>Jak pracujemy</h2>
-    <dl class="method-list">
+    <dl class="method-list" data-reveal-children>
       <div>
         <dt>Rozpoznanie sprawy</dt>
         <dd>Ustalamy fakty, dokumenty i interes klienta.</dd>
@@ -49,7 +49,7 @@
       <span class="section-kicker">Dokumenty</span>
       <h2>Standardy i informacje formalne.</h2>
     </div>
-    <div class="editorial-list">
+    <div class="editorial-list" data-reveal-children>
       <?php foreach ($site['documents'] as $doc): ?>
         <a class="editorial-row" href="/dokumenty/<?= e($doc['slug']) ?>/">
           <span class="row-title"><?= e($doc['title']) ?></span>
