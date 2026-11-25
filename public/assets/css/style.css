@@ -1849,6 +1849,12 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
 }
 
 @media (prefers-reduced-motion: no-preference) {
+  [data-reveal="subtle"] {
+    --enter-y: 6px;
+    --enter-duration: 340ms;
+    --enter-opacity: .84;
+  }
+
   [data-reveal-sequence] {
     --enter-y: 24px;
     --enter-duration: 460ms;
