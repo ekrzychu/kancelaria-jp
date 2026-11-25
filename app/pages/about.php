@@ -14,21 +14,10 @@ SVG;
       <h1 id="about-title">Kancelaria tworzona przez praktyków.</h1>
       <p>Łączymy doradztwo z&nbsp;doświadczeniem w&nbsp;prowadzeniu sporów.</p>
     </div>
-    <svg class="about-relief" viewBox="82 24 504 338" aria-hidden="true" focusable="false">
-      <defs>
-        <clipPath id="about-relief-opening">
-          <path d="M172 337V223l67-72 48-4c65-5 110 35 110 97v75Z"/>
-        </clipPath>
-      </defs>
-      <path class="about-relief-top" d="M110 121 211 70 554 42 453 93Z"/>
-      <path class="about-relief-side" d="M453 93 554 42V263l-101 51Z"/>
-      <g clip-path="url(#about-relief-opening)">
-        <path class="about-relief-reveal" d="M172 337V223l67-72 48-4 39-20-48 4-67 72v114Z"/>
-        <path class="about-relief-inlay" d="M207 319V205l67-72 9-1-68 73v110Z"/>
-        <path class="about-relief-edge" d="M211 317V203l67-72 48-4c65-5 110 35 110 97"/>
-      </g>
-      <path class="about-relief-face" d="M110 121 453 93V314l-56 5v-75c0-62-45-102-110-97l-48 4-67 72v114l-62 5Z"/>
-      <path class="about-relief-edge" d="M126 133 438 108M467 103l72-36"/>
+    <!-- The upright and bowl are cropped from the original favicon.svg artwork. -->
+    <svg class="about-brand-study" viewBox="249 127 232 156" aria-hidden="true" focusable="false" data-home-surface="beige">
+      <path class="about-brand-upright" d="M303.072510,171.082901   C312.249176,161.881592 321.175110,152.931519 330.727448,143.353348   C330.878479,145.510651 331.058685,146.886108 331.058990,148.261597   C331.072968,208.904800 331.106873,269.548096 330.940643,330.190857   C330.933960,332.629242 329.602264,335.630127 327.889130,337.404755   C317.633057,348.028992 307.083893,358.370270 295.702301,369.735779   C295.702301,366.736053 295.702301,364.840576 295.702301,362.945129   C295.702301,304.800964 295.836212,246.656082 295.532349,188.513489   C295.494507,181.265884 296.847046,175.567673 303.072510,171.082901  z"/>
+      <path class="about-brand-bowl" d="M441.623291,216.595001   C436.216736,234.709854 425.455170,247.847885 408.548950,256.869171   C408.548950,218.719864 408.548950,181.368271 408.548950,144.007675   C431.627747,148.829529 448.070221,184.606934 441.623291,216.595001  z"/>
     </svg>
   </div>
 </section>
