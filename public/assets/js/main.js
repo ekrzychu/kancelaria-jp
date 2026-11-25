@@ -55,7 +55,6 @@
 
   initFloatingContact();
   initScrollMotion();
-  initAboutProcess();
   initSiteCursor();
   initReveals();
   document.querySelector('.form-status.error')?.focus();
@@ -268,12 +267,24 @@
 
     const selector = '[data-reveal], [data-reveal-children] > *';
     const targets = document.querySelectorAll(selector);
+    const pendingSequence = new Map();
     const listeners = new AbortController();
     const threshold = .15;
-    const observer = new IntersectionObserver(entries => {
+    let sequenceObserver;
+
+    function revealEntries(entries, observer) {
+      const nextDelays = new Map();
       for (const { target, isIntersecting, intersectionRatio } of entries) {
         if (!isIntersecting || intersectionRatio < threshold) continue;
         observer.unobserve(target);
+        const sequence = pendingSequence.get(target);
+        if (sequence) {
+          pendingSequence.delete(target);
+          target.classList.remove('is-awaiting-reveal');
+          const delay = nextDelays.get(sequence) ?? 0;
+          if (delay) target.style.setProperty('--reveal-delay', `${delay}ms`);
+          nextDelays.set(sequence, delay + 90);
+        }
         const reveal = () => {
           if (target.matches(':focus-within')) return;
           target.classList.add('is-revealed');
@@ -286,22 +297,46 @@
           reveal();
         }
       }
-    }, { threshold });
+    }
 
-    targets.forEach(target => observer.observe(target));
+    function observeSequence() {
+      sequenceObserver?.disconnect();
+      if (!pendingSequence.size) return;
+      const inset = Math.round(window.innerHeight * .27);
+      sequenceObserver = new IntersectionObserver(revealEntries, { rootMargin: `${inset}px 0px -${inset}px`, threshold });
+      pendingSequence.forEach((_, target) => sequenceObserver.observe(target));
+    }
+
+    const observer = new IntersectionObserver(revealEntries, { threshold });
+    for (const target of targets) {
+      const sequence = target.closest('[data-reveal-sequence]');
+      if (sequence) {
+        pendingSequence.set(target, sequence);
+        target.classList.add('is-awaiting-reveal');
+      } else {
+        observer.observe(target);
+      }
+    }
+    if (pendingSequence.size) {
+      observeSequence();
+      window.addEventListener('resize', observeSequence, { passive: true, signal: listeners.signal });
+    }
 
     document.addEventListener('focusin', event => {
       if (!event.target.matches(':focus-visible')) return;
       const target = event.target.closest(selector);
       if (!target) return;
       observer.unobserve(target);
-      target.classList.remove('is-revealed');
+      sequenceObserver?.unobserve(target);
+      pendingSequence.delete(target);
+      target.classList.remove('is-revealed', 'is-awaiting-reveal');
     }, { signal: listeners.signal });
 
     motion.addEventListener('change', () => {
       observer.disconnect();
+      sequenceObserver?.disconnect();
       listeners.abort();
-      targets.forEach(target => target.classList.remove('is-revealed'));
+      targets.forEach(target => target.classList.remove('is-revealed', 'is-awaiting-reveal'));
     }, { once: true });
   }
 
@@ -456,7 +491,7 @@
     const motion = window.matchMedia(
       '(min-width: 57rem) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)'
     );
-    const targets = document.querySelectorAll('[data-scroll-photo], [data-scroll-shift]');
+    const targets = document.querySelectorAll('[data-scroll-photo]');
     if (!targets.length) return;
     const visible = new Set();
     let frame = 0;
@@ -506,56 +541,6 @@
       targets.forEach(element => element.style.removeProperty('--scroll-motion-offset'));
       window.removeEventListener('scroll', schedule);
       window.removeEventListener('resize', schedule);
-    }
-
-    motion.addEventListener('change', sync);
-    sync();
-  }
-
-  function initAboutProcess() {
-    const list = document.querySelector('[data-about-steps]');
-    if (!list?.lastElementChild) return;
-
-    const motion = window.matchMedia('(prefers-reduced-motion: no-preference)');
-    const steps = Array.from(list.children);
-    let current;
-    let frame = 0;
-
-    function draw() {
-      frame = 0;
-      const readingLine = window.innerHeight * .65 - list.getBoundingClientRect().top;
-      const distance = Math.max(0, Math.min(readingLine, list.lastElementChild.offsetTop));
-      let next = steps[0];
-      for (const step of steps) {
-        if (step.offsetTop > distance) break;
-        next = step;
-      }
-      list.style.setProperty('--about-step-progress', `${Math.round(distance)}px`);
-      if (current === next) return;
-      current?.classList.remove('is-current');
-      current = next;
-      current.classList.add('is-current');
-    }
-
-    function schedule() {
-      if (!frame && motion.matches) frame = requestAnimationFrame(draw);
-    }
-
-    function sync() {
-      if (motion.matches) {
-        window.addEventListener('scroll', schedule, { passive: true });
-        window.addEventListener('resize', schedule, { passive: true });
-        schedule();
-        document.fonts?.ready.then(schedule);
-        return;
-      }
-      window.removeEventListener('scroll', schedule);
-      window.removeEventListener('resize', schedule);
-      cancelAnimationFrame(frame);
-      frame = 0;
-      current?.classList.remove('is-current');
-      current = undefined;
-      list.style.removeProperty('--about-step-progress');
     }
 
     motion.addEventListener('change', sync);
