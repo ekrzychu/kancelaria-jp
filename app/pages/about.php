@@ -14,17 +14,21 @@ SVG;
       <h1 id="about-title">Kancelaria tworzona przez praktyków.</h1>
       <p>Łączymy doradztwo z&nbsp;doświadczeniem w&nbsp;prowadzeniu sporów.</p>
     </div>
-    <svg class="about-fold" viewBox="54 39 544 296" aria-hidden="true" focusable="false">
-      <path class="about-fold-edge" d="M70 301C174 271 174 136 271 114C354 95 397 217 478 200C523 190 546 142 581 105v18C546 160 523 208 478 218C397 235 354 113 271 132C174 154 174 289 70 319Z"/>
-      <path class="about-fold-face" d="M70 241C148 194 149 75 259 63C353 53 394 160 467 140C512 128 529 90 581 55v50C546 142 523 190 478 200C397 217 354 95 271 114C174 136 174 271 70 301Z"/>
-      <path class="about-fold-rulings" d="M70 248C151 203 152 82 260 69C353 58 394 166 468 147C513 135 531 96 581 61
-        M70 254C154 211 155 89 262 74C353 62 395 173 469 153C514 142 533 102 581 66
-        M70 261C157 220 157 95 263 80C353 67 395 179 471 160C516 149 535 107 581 72
-        M70 268C160 228 160 102 264 86C353 72 395 185 472 167C517 156 537 113 581 77
-        M70 274C162 237 163 109 266 91C354 76 396 192 473 173C518 162 538 119 581 83
-        M70 281C165 245 166 116 267 97C354 81 396 198 474 180C519 169 540 125 581 88
-        M70 288C168 254 168 122 268 103C354 86 396 204 476 187C521 176 542 130 581 94
-        M70 294C171 262 171 129 270 108C354 90 397 211 477 193C522 183 544 136 581 99"/>
+    <svg class="about-relief" viewBox="82 24 504 338" aria-hidden="true" focusable="false">
+      <defs>
+        <clipPath id="about-relief-opening">
+          <path d="M172 337V223l67-72 48-4c65-5 110 35 110 97v75Z"/>
+        </clipPath>
+      </defs>
+      <path class="about-relief-top" d="M110 121 211 70 554 42 453 93Z"/>
+      <path class="about-relief-side" d="M453 93 554 42V263l-101 51Z"/>
+      <g clip-path="url(#about-relief-opening)">
+        <path class="about-relief-reveal" d="M172 337V223l67-72 48-4 39-20-48 4-67 72v114Z"/>
+        <path class="about-relief-inlay" d="M207 319V205l67-72 9-1-68 73v110Z"/>
+        <path class="about-relief-edge" d="M211 317V203l67-72 48-4c65-5 110 35 110 97"/>
+      </g>
+      <path class="about-relief-face" d="M110 121 453 93V314l-56 5v-75c0-62-45-102-110-97l-48 4-67 72v114l-62 5Z"/>
+      <path class="about-relief-edge" d="M126 133 438 108M467 103l72-36"/>
     </svg>
   </div>
 </section>
@@ -32,7 +36,7 @@ SVG;
 <section class="about-identity" aria-labelledby="about-identity-title">
   <div class="about-frame">
     <div class="about-identity-copy" data-reveal>
-      <div>
+      <div class="about-identity-statement">
         <h2 class="section-kicker" id="about-identity-title">Kim jesteśmy</h2>
         <p class="about-lead">Doradzamy firmom i&nbsp;klientom indywidualnym oraz reprezentujemy ich w&nbsp;sporach.</p>
       </div>
