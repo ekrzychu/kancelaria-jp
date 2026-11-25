@@ -211,8 +211,8 @@ textarea {
 .nav-link::after {
   position: absolute;
   inset: auto 0 .15rem;
-  height: 2px;
-  background: var(--taupe);
+  height: 1px;
+  background: var(--burgundy);
   transform: scaleX(0);
   transform-origin: left;
   content: "";
@@ -402,7 +402,7 @@ html:has(> .homepage) {
 }
 
 .homepage .site-header .nav-link::after {
-  content: none;
+  background: var(--taupe);
 }
 
 .homepage :is(.site-header, .home-hero, .home-publications, .home-contact, .site-footer) :focus-visible {
