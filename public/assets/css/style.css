@@ -1325,14 +1325,10 @@ html:has(> .homepage) {
   padding-top: calc(var(--section-space) * .65);
 }
 
-.page-intro,
-.page-hero-grid {
+.page-intro {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr);
   gap: .9rem var(--layout-gap);
-}
-
-.page-intro {
   align-items: end;
 }
 
@@ -1358,26 +1354,10 @@ html:has(> .homepage) {
   margin-top: .9rem;
 }
 
-.page-hero-grid {
-  align-items: center;
-}
-
-.page-hero-grid p {
-  margin-top: 1rem;
-}
-
-.page-hero-photo,
 .contact-photo picture {
   display: block;
   overflow: hidden;
   background: var(--surface);
-}
-
-.page-hero-photo img {
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
-  object-position: center 62%;
 }
 
 /* Editorial lists */
@@ -1432,29 +1412,256 @@ html:has(> .homepage) {
   color: var(--text-muted);
 }
 
-/* About, team and career */
+/* About */
+
+.about-hero,
+.about-documents {
+  background: var(--burgundy);
+  color: var(--light-text);
+}
+
+.about-hero {
+  padding-block-start: clamp(2.4rem, 4.8vw, 5.5rem);
+}
+
+.about-hero-grid,
+.about-editorial-grid {
+  display: grid;
+  gap: clamp(1.75rem, 4vw, 5rem);
+}
+
+.about-hero-copy {
+  align-self: center;
+}
+
+.about-hero h1 {
+  color: inherit;
+  font-size: clamp(2.75rem, 6.15vw, 9rem);
+  letter-spacing: -.06em;
+  line-height: .98;
+}
+
+.about-hero h1 span {
+  display: block;
+}
+
+.about-hero .section-kicker,
+.about-documents .section-kicker,
+.about-title-accent {
+  color: var(--surface);
+}
+
+.about-hero-copy p {
+  max-width: 42ch;
+  margin: clamp(1.45rem, 3vw, 3rem) 0 0;
+  color: var(--surface);
+  font-size: clamp(1.15rem, 1.65vw, 1.65rem);
+  line-height: 1.45;
+  text-wrap: balance;
+}
+
+.about-photo {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  aspect-ratio: 5 / 4;
+  margin-inline: calc(-1 * var(--page-gutter));
+  background: var(--surface);
+}
+
+.about-photo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 58%;
+}
+
+.about-section {
+  padding-block: clamp(3.75rem, 8vw, 9rem);
+}
+
+.about-section-title {
+  font-size: clamp(2.65rem, 4.65vw, 5.6rem);
+  line-height: 1;
+  letter-spacing: -.05em;
+  text-wrap: balance;
+}
+
+.about-identity h2 {
+  font-size: clamp(1.75rem, 2.65vw, 3.3rem);
+}
+
+.about-lead {
+  max-width: 28ch;
+  margin: 0;
+  color: var(--burgundy);
+  font-size: clamp(2rem, 3.85vw, 4.25rem);
+  letter-spacing: -.04em;
+  line-height: 1.13;
+}
+
+.about-identity-detail {
+  max-width: 46ch;
+  margin: clamp(1.25rem, 3.25vw, 3.5rem) 0 0;
+  color: var(--text-muted);
+  font-size: clamp(1.0625rem, 1.45vw, 1.4rem);
+}
 
 .about-method {
   background: var(--surface);
 }
 
-.method-list,
+.about-steps,
+.about-document-list {
+  margin: 0;
+  padding: 0;
+}
+
+.about-step {
+  --about-step-index: clamp(3rem, 5.2vw, 5.6rem);
+  display: grid;
+  row-gap: .5rem;
+  border-block-start: 1px solid var(--line);
+  padding-block: clamp(1.25rem, 2.9vw, 3rem);
+}
+
+.about-step:last-child {
+  border-block-end: 1px solid var(--line);
+}
+
+.about-step dt {
+  display: flex;
+  align-items: baseline;
+  color: var(--burgundy);
+  font-size: clamp(1.4rem, 2.35vw, 2.6rem);
+  font-weight: 500;
+  line-height: 1.16;
+}
+
+.about-step-index {
+  flex: 0 0 var(--about-step-index);
+  color: var(--quiet-accent);
+  font-size: .82em;
+  font-variant-numeric: tabular-nums;
+}
+
+.about-step dd {
+  margin: 0 0 0 var(--about-step-index);
+  color: var(--text-muted);
+}
+
+.about-documents .about-section-title {
+  color: inherit;
+}
+
+.about-document-list {
+  list-style: none;
+  border-block-end: 1px solid var(--dark-line);
+}
+
+.about-document {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .35rem 1.5rem;
+  border-block-start: 1px solid var(--dark-line);
+  padding-block: clamp(1.15rem, 2.2vw, 2.5rem);
+}
+
+.about-document .row-title {
+  color: var(--light-text);
+  font-size: clamp(1.5rem, 2.65vw, 3rem);
+}
+
+.about-document .row-summary,
+.about-document-arrow {
+  color: var(--surface);
+}
+
+.about-document .row-summary {
+  grid-column: 1;
+}
+
+.about-document-arrow {
+  grid-area: 1 / 2 / 3;
+  font-size: clamp(1.35rem, 2.5vw, 2.25rem);
+}
+
+.about-document:is(:hover, :focus-visible) .row-title {
+  color: var(--surface);
+  text-decoration-color: var(--taupe);
+}
+
+.about-document:focus-visible {
+  outline-color: var(--light-text);
+}
+
+@media (min-width: 42.0625rem) {
+  .about-hero-grid {
+    grid-template-columns: minmax(0, 1.18fr) minmax(0, .82fr);
+  }
+
+  .about-hero-copy {
+    padding-block: 1rem clamp(2rem, 4vw, 5rem);
+  }
+
+  .about-photo {
+    align-self: end;
+    aspect-ratio: 5 / 6;
+    margin-inline: 0;
+  }
+
+  .about-editorial-grid {
+    grid-template-columns: minmax(0, .67fr) minmax(0, 1.33fr);
+    column-gap: clamp(2rem, 5.5vw, 7rem);
+    align-items: start;
+  }
+
+  .about-editorial-grid .about-section-title {
+    text-wrap: wrap;
+  }
+
+  .about-identity-detail {
+    margin-inline-start: clamp(1rem, 4.2vw, 5.5rem);
+  }
+}
+
+@media (min-width: 75rem) {
+  .about-step {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr);
+    column-gap: 1.5rem;
+    align-items: baseline;
+  }
+
+  .about-step dd {
+    margin: 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .has-photo-scroll .about-hero .about-photo img {
+    inset-block-start: -4%;
+    height: 108%;
+    translate: 0 calc(var(--photo-scroll-offset, 0%) * .4);
+  }
+
+  .about-document-arrow {
+    transition: translate 200ms var(--motion-ease);
+  }
+
+  .about-document:is(:hover, :focus-visible) .about-document-arrow {
+    translate: .2em 0;
+  }
+}
+
+/* Team and career */
+
 .process-list {
   margin-block: 0;
 }
 
-.method-list {
-  display: grid;
-  gap: 1rem;
-  max-width: 64ch;
-}
-
-.method-list dt {
-  color: var(--burgundy);
-  font: 500 var(--type-subheading)/1.2 var(--font-family);
-}
-
-.method-list dd,
 .process-list p {
   margin: .35rem 0 0;
   color: var(--text-muted);
@@ -2202,7 +2409,6 @@ main:has(.archive-empty) + .site-footer {
   }
 
 
-  .page-hero-grid,
   .page-intro,
   .editorial-split,
   .people-list,
@@ -2215,10 +2421,6 @@ main:has(.archive-empty) + .site-footer {
 
   .page-hero h1 {
     text-wrap: wrap;
-  }
-
-  .page-hero-photo img {
-    aspect-ratio: 3 / 2;
   }
 
   .editorial-row {

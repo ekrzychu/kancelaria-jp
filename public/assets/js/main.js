@@ -52,8 +52,10 @@
     initHomeStages();
     initHomeNavigation();
     initHomeContact();
-    initHomeImageMotion();
+    initImageScrollMotion();
     initHomeCursor();
+  } else if (document.querySelector('.about-photo[data-scroll-photo]')) {
+    initImageScrollMotion();
   }
 
   initReveals();
@@ -417,7 +419,7 @@
     measure();
   }
 
-  function initHomeImageMotion() {
+  function initImageScrollMotion() {
     if (navigator.maxTouchPoints > 0 || !('IntersectionObserver' in window) || !window.CSS?.supports('translate', '0 1%')) return;
 
     const motion = window.matchMedia(
