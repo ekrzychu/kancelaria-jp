@@ -1704,7 +1704,6 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
 }
 
 .about-team {
-  padding-block-start: var(--about-space-group);
   padding-block-end: calc(var(--about-tone-fade) + var(--about-space-detail));
 }
 
@@ -1828,7 +1827,7 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
   }
 
   .about-team-layout {
-    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     column-gap: clamp(1.7rem, 4vw, 5rem);
     align-items: center;
   }
