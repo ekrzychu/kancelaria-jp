@@ -282,10 +282,10 @@
       for (const { target, isIntersecting, intersectionRatio } of entries) {
         if (!isIntersecting || intersectionRatio < revealThreshold) continue;
         observer.unobserve(target);
+        target.classList.remove('is-awaiting-reveal');
         const sequence = pendingSequence.get(target);
         if (sequence) {
           pendingSequence.delete(target);
-          target.classList.remove('is-awaiting-reveal');
           const delay = nextDelays.get(sequence) ?? 0;
           if (delay) target.style.setProperty('--reveal-delay', `${delay}ms`);
           nextDelays.set(sequence, delay + 90);
@@ -318,9 +318,11 @@
     const observer = new IntersectionObserver(revealEntries, { threshold: revealThreshold });
     for (const target of targets) {
       const sequence = target.closest('[data-reveal-sequence]');
+      if (sequence || target.dataset.reveal === 'subtle') {
+        target.classList.add('is-awaiting-reveal');
+      }
       if (sequence) {
         pendingSequence.set(target, sequence);
-        target.classList.add('is-awaiting-reveal');
       } else {
         observer.observe(target);
       }
