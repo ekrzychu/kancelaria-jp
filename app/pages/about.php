@@ -14,7 +14,7 @@ SVG;
       <h1 id="about-title">Kancelaria tworzona przez praktyków.</h1>
       <p>Łączymy doradztwo z&nbsp;doświadczeniem w&nbsp;prowadzeniu sporów.</p>
     </div>
-    <svg class="about-fold" viewBox="0 0 640 358" aria-hidden="true" focusable="false">
+    <svg class="about-fold" viewBox="54 39 544 296" aria-hidden="true" focusable="false">
       <path class="about-fold-edge" d="M70 301C174 271 174 136 271 114C354 95 397 217 478 200C523 190 546 142 581 105v18C546 160 523 208 478 218C397 235 354 113 271 132C174 154 174 289 70 319Z"/>
       <path class="about-fold-face" d="M70 241C148 194 149 75 259 63C353 53 394 160 467 140C512 128 529 90 581 55v50C546 142 523 190 478 200C397 217 354 95 271 114C174 136 174 271 70 301Z"/>
       <path class="about-fold-rulings" d="M70 248C151 203 152 82 260 69C353 58 394 166 468 147C513 135 531 96 581 61
@@ -32,10 +32,14 @@ SVG;
 <section class="about-identity" aria-labelledby="about-identity-title">
   <div class="about-frame">
     <div class="about-identity-copy" data-reveal>
-      <h2 class="section-kicker" id="about-identity-title">Kim jesteśmy</h2>
-      <p class="about-lead">Doradzamy firmom i&nbsp;klientom indywidualnym oraz reprezentujemy ich w&nbsp;sporach.</p>
-      <p class="about-identity-detail">W naszym wrocławskim zespole pracuje ponad dwadzieścia osób. Łączymy doświadczenie zdobyte w&nbsp;przedsiębiorstwach z&nbsp;praktyką doradczą i&nbsp;procesową. Wspieramy też instytucje, w&nbsp;tym podmioty działające na rynkach regulowanych.</p>
-      <p class="about-identity-detail">Nad sprawami pracują radcowie prawni i&nbsp;adwokaci przy wsparciu specjalistów prawnych i&nbsp;administracji. Łączymy wiedzę z&nbsp;różnych dziedzin prawa, kiedy jedna sprawa wymaga spojrzenia z&nbsp;kilku stron.</p>
+      <div>
+        <h2 class="section-kicker" id="about-identity-title">Kim jesteśmy</h2>
+        <p class="about-lead">Doradzamy firmom i&nbsp;klientom indywidualnym oraz reprezentujemy ich w&nbsp;sporach.</p>
+      </div>
+      <div class="about-identity-details">
+        <p>W naszym wrocławskim zespole pracuje ponad dwadzieścia osób. Łączymy doświadczenie zdobyte w&nbsp;przedsiębiorstwach z&nbsp;praktyką doradczą i&nbsp;procesową. Wspieramy też instytucje, w&nbsp;tym podmioty działające na rynkach regulowanych.</p>
+        <p>Nad sprawami pracują radcowie prawni i&nbsp;adwokaci przy wsparciu specjalistów prawnych i&nbsp;administracji. Łączymy wiedzę z&nbsp;różnych dziedzin prawa, kiedy jedna sprawa wymaga spojrzenia z&nbsp;kilku stron.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -73,7 +77,8 @@ SVG;
   </div>
 </section>
 
-<section class="about-method" aria-labelledby="about-method-title" data-home-surface="beige">
+<div class="about-chapter" data-home-surface="beige">
+<section class="about-method" aria-labelledby="about-method-title">
   <div class="about-frame about-method-layout">
     <h2 class="about-section-title" id="about-method-title">Jak pracujemy</h2>
     <ol class="about-steps" role="list" data-about-process>
@@ -121,15 +126,16 @@ SVG;
   </div>
 </section>
 
-<section class="about-team" aria-labelledby="about-team-title" data-home-surface="beige">
+<section class="about-team" aria-labelledby="about-team-title">
   <div class="about-frame about-team-layout">
     <h2 class="about-section-title" id="about-team-title">Za każdą sprawą stoją ludzie.</h2>
-    <div>
+    <div class="about-team-copy">
       <p>Zobacz, kto tworzy kancelarię i&nbsp;jakie role pełnią poszczególne osoby.</p>
       <a class="text-action about-action" href="/zespol/"><span class="about-action-label">Poznaj nasz zespół</span><?= $aboutArrow ?></a>
     </div>
   </div>
 </section>
+</div>
 
 <section class="about-documents" aria-labelledby="about-documents-title">
   <div class="about-frame">
