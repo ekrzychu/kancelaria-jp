@@ -1457,7 +1457,7 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
   text-wrap: pretty;
 }
 
-.about-monogram {
+.about-planes {
   width: 100%;
   max-width: 52rem;
   height: auto;
@@ -1485,7 +1485,7 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
 }
 
 .about-identity-detail {
-  max-width: 55ch;
+  max-width: 66ch;
   margin: clamp(.9rem, 2vw, 1.55rem) 0 0;
   color: var(--text-muted);
   text-wrap: pretty;
@@ -1494,6 +1494,44 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
 .about-section-title {
   font-size: clamp(2.05rem, 3.15vw, 3.85rem);
   text-wrap: balance;
+}
+
+.about-experience {
+  padding-block-end: clamp(3rem, 6vw, 6rem);
+}
+
+.about-experience-list {
+  margin: clamp(1.3rem, 3vw, 2.4rem) 0 1rem;
+  padding: 0;
+  border-block-end: 1px solid var(--line);
+  list-style: none;
+}
+
+.about-experience-list > li {
+  display: grid;
+  gap: .65rem clamp(1.5rem, 4vw, 5rem);
+  border-block-start: 1px solid var(--line);
+  padding-block: clamp(1.2rem, 2.5vw, 2.15rem);
+}
+
+:is(.about-experience-list, .about-cooperation, .about-team) p {
+  max-width: 63ch;
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.about-experience-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .2rem 1.25rem;
+}
+
+:is(.about-experience-list, .about-team) .text-action {
+  margin-block-start: .4rem;
+}
+
+.about-experience-all {
+  margin-block-start: .35rem;
 }
 
 .about-method {
@@ -1509,11 +1547,56 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
 }
 
 .about-steps {
+  --step-track-axis: .3rem;
+  --step-marker-position: .92rem;
+  position: relative;
   display: grid;
-  gap: clamp(1.5rem, 3vw, 2.8rem);
+  /* Equal rows keep the track aligned with the first and last markers. */
+  grid-auto-rows: 1fr;
 }
 
 .about-step {
+  position: relative;
+  padding: 0 0 clamp(1.4rem, 2.7vw, 2.4rem) clamp(1.45rem, 2.3vw, 2rem);
+}
+
+.about-steps::before,
+.about-steps::after {
+  position: absolute;
+  inset-block-start: var(--step-marker-position);
+  inset-inline-start: var(--step-track-axis);
+  width: 1px;
+  height: calc(100% * 2 / 3);
+  background: var(--taupe);
+  translate: -50% 0;
+  content: "";
+}
+
+.about-steps::after {
+  background: var(--quiet-accent);
+  scale: 1 var(--process-progress, 0);
+  transform-origin: top;
+}
+
+.about-step::before {
+  position: absolute;
+  z-index: 1;
+  inset-block-start: var(--step-marker-position);
+  inset-inline-start: var(--step-track-axis);
+  width: .44rem;
+  height: .44rem;
+  border: 1px solid var(--quiet-accent);
+  border-radius: 50%;
+  background: var(--surface);
+  translate: -50% -50%;
+  content: "";
+}
+
+.about-step.is-reached::before {
+  background: var(--quiet-accent);
+}
+
+.about-step-copy {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: baseline;
@@ -1538,6 +1621,28 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
   color: var(--text-muted);
 }
 
+.about-cooperation {
+  padding-block: clamp(3rem, 6vw, 6rem);
+}
+
+.about-cooperation-options {
+  display: grid;
+  gap: 1.6rem clamp(2rem, 6vw, 6rem);
+  margin-block-start: clamp(1.25rem, 3vw, 2.6rem);
+}
+
+.about-cooperation h3 {
+  margin-block-end: .55rem;
+}
+
+.about-team-layout {
+  display: grid;
+  align-items: center;
+  gap: .8rem clamp(2rem, 5vw, 5rem);
+  border-block: 1px solid var(--line);
+  padding-block: clamp(1.6rem, 3.9vw, 3.5rem);
+}
+
 .about-documents {
   padding-block: clamp(3rem, 6vw, 6rem);
 }
@@ -1546,19 +1651,12 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
   margin-block-end: clamp(1.35rem, 2.6vw, 2.4rem);
 }
 
-.about-document-list,
 .about-document-list > li {
-  border-color: var(--line);
-  border-style: solid;
-  border-width: 0;
+  border-block-start: 1px solid var(--line);
 }
 
-.about-document-list {
-  border-block-end-width: 1px;
-}
-
-.about-document-list > li {
-  border-block-start-width: 1px;
+.about-document-list > li:last-child {
+  border-block-end: 1px solid var(--line);
 }
 
 .about-document {
@@ -1586,13 +1684,22 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
     align-items: center;
   }
 
-  .about-monogram {
+  .about-planes {
     justify-self: end;
   }
 
   .about-method-layout {
     grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
     align-items: start;
+  }
+
+  .about-experience-list > li {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  }
+
+  .about-cooperation-options,
+  .about-team-layout {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .about-document {
@@ -1611,7 +1718,11 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
     --enter-opacity: .28;
   }
 
-  [data-reveal-sequence] .is-awaiting-reveal:not(:focus-within) {
+  .about-steps {
+    --enter-opacity: .68;
+  }
+
+  .about-document-list .is-awaiting-reveal:not(:focus-within) {
     opacity: 0;
     pointer-events: none;
   }

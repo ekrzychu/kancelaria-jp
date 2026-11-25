@@ -2,6 +2,7 @@
   const menuButton = document.querySelector('.menu-button');
   const mainNav = document.getElementById('main-nav');
   const homepage = document.body.classList.contains('homepage');
+  const revealThreshold = .15;
 
   if (menuButton && mainNav) {
     const compactHeader = window.matchMedia('(max-width: 56rem)');
@@ -56,6 +57,7 @@
   initFloatingContact();
   initScrollMotion();
   initSiteCursor();
+  initAboutProcess();
   initReveals();
   document.querySelector('.form-status.error')?.focus();
 
@@ -261,6 +263,10 @@
   }
 
 
+  function revealSequenceInset() {
+    return Math.min(72, Math.round(window.innerHeight * .08));
+  }
+
   function initReveals() {
     const motion = window.matchMedia('(prefers-reduced-motion: no-preference)');
     if (!motion.matches || !('IntersectionObserver' in window)) return;
@@ -269,13 +275,12 @@
     const targets = document.querySelectorAll(selector);
     const pendingSequence = new Map();
     const listeners = new AbortController();
-    const threshold = .15;
     let sequenceObserver;
 
     function revealEntries(entries, observer) {
       const nextDelays = new Map();
       for (const { target, isIntersecting, intersectionRatio } of entries) {
-        if (!isIntersecting || intersectionRatio < threshold) continue;
+        if (!isIntersecting || intersectionRatio < revealThreshold) continue;
         observer.unobserve(target);
         const sequence = pendingSequence.get(target);
         if (sequence) {
@@ -302,12 +307,15 @@
     function observeSequence() {
       sequenceObserver?.disconnect();
       if (!pendingSequence.size) return;
-      const inset = Math.round(window.innerHeight * .27);
-      sequenceObserver = new IntersectionObserver(revealEntries, { rootMargin: `${inset}px 0px -${inset}px`, threshold });
+      const inset = revealSequenceInset();
+      sequenceObserver = new IntersectionObserver(revealEntries, {
+        rootMargin: `${inset}px 0px -${inset}px`,
+        threshold: revealThreshold,
+      });
       pendingSequence.forEach((_, target) => sequenceObserver.observe(target));
     }
 
-    const observer = new IntersectionObserver(revealEntries, { threshold });
+    const observer = new IntersectionObserver(revealEntries, { threshold: revealThreshold });
     for (const target of targets) {
       const sequence = target.closest('[data-reveal-sequence]');
       if (sequence) {
@@ -547,6 +555,50 @@
     sync();
   }
 
+  function initAboutProcess() {
+    const list = document.querySelector('[data-about-process]');
+    if (!list || !('IntersectionObserver' in window)) return;
+    const motion = window.matchMedia('(prefers-reduced-motion: no-preference)');
+    if (!motion.matches) return;
+
+    const steps = Array.from(list.children);
+    const entered = new Set();
+    const controller = new AbortController();
+    const options = { passive: true, signal: controller.signal };
+    let frame = 0;
+
+    function draw() {
+      frame = 0;
+      const readingLine = window.innerHeight - revealSequenceInset() - list.getBoundingClientRect().top;
+      const points = steps.map(step => step.offsetTop + step.firstElementChild.offsetHeight * revealThreshold);
+      let progress = 0;
+      for (let i = 1; i < points.length; i++) {
+        const distance = (readingLine - points[i - 1]) / (points[i] - points[i - 1]);
+        progress += Math.max(0, Math.min(1, distance));
+      }
+      list.style.setProperty('--process-progress', String(progress / (steps.length - 1)));
+      steps.forEach((step, i) => step.classList.toggle('is-reached', readingLine >= points[i] && entered.has(step)));
+    }
+
+    function schedule() {
+      if (!frame) frame = requestAnimationFrame(draw);
+    }
+
+    list.addEventListener('animationstart', ({ target }) => {
+      if (target.matches('.about-step-copy')) entered.add(target.parentElement);
+      schedule();
+    }, options);
+    window.addEventListener('scroll', schedule, options);
+    window.addEventListener('resize', schedule, options);
+    motion.addEventListener('change', () => {
+      controller.abort();
+      cancelAnimationFrame(frame);
+      list.style.removeProperty('--process-progress');
+      steps.forEach(step => step.classList.remove('is-reached'));
+    }, { once: true });
+    schedule();
+  }
+
   function initSiteCursor() {
     if (navigator.maxTouchPoints > 0 || !('PointerEvent' in window)) return;
 
@@ -604,13 +656,7 @@
 
       const elapsed = lastTime ? time - lastTime : 16;
       slowFrames = elapsed > 32 ? slowFrames + 1 : 0;
-      if (slowFrames >= 5) {
-        capability.removeEventListener('change', sync);
-        stop();
-        return;
-      }
-
-      const ease = 1 - Math.exp(-elapsed / 23);
+      const ease = slowFrames >= 5 ? 1 : 1 - Math.exp(-elapsed / 23);
       x += (targetX - x) * ease;
       y += (targetY - y) * ease;
       const distance = Math.hypot(x - targetX, y - targetY);
@@ -638,13 +684,16 @@
     }
 
     function trackTarget(element, refresh = false) {
-      if (!(element instanceof Element) || !document.body.contains(element) || element.closest(nativeControls)) return false;
-      const control = element.closest(interactive);
-      if (!homepage && (!control || window.getSelection()?.isCollapsed === false)) return false;
       if (target === element && !refresh) return true;
+      if (!(element instanceof Element) || !document.body.contains(element) || element.closest(nativeControls)) return false;
+      if (!homepage) {
+        const selection = window.getSelection();
+        if (element.closest('form button, [role="combobox"]') ||
+            (selection && !selection.isCollapsed && selection.containsNode(element, true))) return false;
+      }
 
       target = element;
-      cursor.classList.toggle('is-interactive', Boolean(control));
+      cursor.classList.toggle('is-interactive', Boolean(element.closest(interactive)));
       const tone = homeSurfaceFor(target);
       if (tone !== pendingTone) {
         window.clearTimeout(toneTimer);
