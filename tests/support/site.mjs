@@ -1,5 +1,6 @@
 import { spawn } from 'node:child_process';
-import { cp, mkdir, mkdtemp, readFile, rm } from 'node:fs/promises';
+import { randomBytes } from 'node:crypto';
+import { cp, mkdir, mkdtemp, readFile, rm, symlink } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -47,25 +48,64 @@ export async function startSite() {
   };
 
   try {
-    await Promise.all(['app', 'public'].map(name => cp(join(root, name), join(dir, name), { recursive: true })));
-    await mkdir(join(dir, 'sessions'));
+    const content = join(dir, 'app', 'data');
+    const storage = join(dir, 'storage');
+    const publicDir = join(dir, 'public');
+    const router = join(root, 'vendor', 'laravel', 'framework', 'src', 'Illuminate', 'Foundation', 'resources', 'server.php');
+    await Promise.all([
+      mkdir(join(storage, 'framework', 'views'), { recursive: true }),
+      mkdir(join(storage, 'logs'), { recursive: true }),
+      mkdir(join(dir, 'bootstrap', 'cache'), { recursive: true }),
+      symlink(join(root, 'vendor'), join(dir, 'vendor'), process.platform === 'win32' ? 'junction' : 'dir'),
+    ]);
+    await Promise.all(['app', 'bootstrap/app.php', 'composer.json', 'config', 'public', 'resources', 'routes'].map(name =>
+      cp(join(root, name), join(dir, name), { recursive: true })));
     const host = '127.0.0.1:' + await freePort();
     const origin = 'http://' + host;
+    const env = { ...process.env };
+    for (const name of ['APP_CONFIG_CACHE', 'APP_EVENTS_CACHE', 'APP_PACKAGES_CACHE', 'APP_ROUTES_CACHE', 'APP_SERVICES_CACHE', 'PHP_CLI_SERVER_WORKERS']) {
+      delete env[name];
+    }
     child = spawn(php, [
-      '-d', 'session.save_path=' + join(dir, 'sessions'),
-      '-d', 'display_errors=stderr',
-      '-S', host, '-t', 'public', 'public/router.php',
-    ], { cwd: dir, stdio: ['ignore', 'ignore', 'pipe'], windowsHide: true, env: { ...process.env, PHP_CLI_SERVER_WORKERS: '' } });
+      '-d', 'display_errors=stderr', '-S', host, '-t', publicDir, router,
+    ], {
+      cwd: publicDir,
+      stdio: ['ignore', 'ignore', 'pipe'],
+      windowsHide: true,
+      env: {
+        ...env,
+        APP_ENV: 'testing',
+        APP_DEBUG: 'false',
+        APP_URL: origin,
+        APP_KEY: 'base64:' + randomBytes(32).toString('base64'),
+        APP_MAINTENANCE_DRIVER: 'file',
+        LARAVEL_STORAGE_PATH: storage,
+        VIEW_COMPILED_PATH: join(storage, 'framework', 'views'),
+        SITE_CONTENT_PATH: content,
+        CACHE_STORE: 'array',
+        SESSION_DRIVER: 'array',
+        LOG_CHANNEL: 'single',
+        MAIL_MAILER: 'array',
+        QUEUE_CONNECTION: 'sync',
+      },
+    });
     child.on('error', error => { spawnError = error; });
     child.stderr.setEncoding('utf8').on('data', chunk => { log = (log + chunk).slice(-12000); });
     await until(async () => {
       if (spawnError) throw spawnError;
       if (child.exitCode !== null) throw new Error(log);
-      return fetch(origin + '/robots.txt', { method: 'HEAD' }).then(response => response.ok, () => false);
-    }, 'isolated PHP server');
+      const response = await fetch(origin + '/').catch(() => null);
+      if (!response) return false;
+      if (!response.ok || !(await response.text()).includes('<main id="main"')) {
+        const runtimeLog = await readFile(join(storage, 'logs', 'laravel.log'), 'utf8').catch(() => '');
+        const cause = runtimeLog.split(/\r?\n/).find(line => line.includes('.ERROR:'));
+        throw new Error('Laravel did not render the homepage (HTTP ' + response.status + ')\n' + log + (cause || ''));
+      }
+      return true;
+    }, 'isolated Laravel server');
 
     const entries = await Promise.all(['site', 'services', 'team', 'articles', 'recruitment'].map(async name => [
-      name, JSON.parse(await readFile(join(dir, 'app', 'data', name + '.json'), 'utf8')),
+      name, JSON.parse(await readFile(join(content, name + '.json'), 'utf8')),
     ]));
     return { dir, origin, data: Object.fromEntries(entries), stop, log: () => log };
   } catch (error) {
@@ -78,7 +118,8 @@ export function routes(data) {
   return [...new Set([
     '/', ...data.site.nav.map(item => item.url), '/dokumenty/',
     ...data.services.map(item => '/specjalizacje/' + item.slug + '/'),
-    ...data.articles.map(item => '/' + item.slug + '/'),
+    ...data.articles.filter(item => !Object.hasOwn(item, 'status') || item.status === 'published')
+      .map(item => '/' + item.slug + '/'),
     ...data.site.documents.map(item => '/dokumenty/' + item.slug + '/'),
   ])];
 }

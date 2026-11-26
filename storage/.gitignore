@@ -1,0 +1,6 @@
+*
+!.gitignore
+!framework/
+!framework/.gitignore
+!framework/views/
+!framework/views/.gitignore

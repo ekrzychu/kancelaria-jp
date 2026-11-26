@@ -23,18 +23,23 @@ jobs:
           persist-credentials: false
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
-          extensions: dom, mbstring
+          php-version: '8.4'
+          extensions: curl, dom, mbstring, xml
+          tools: composer:2.11.3
           coverage: none
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Install locked Laravel dependencies
+        run: |
+          composer install --no-interaction --prefer-dist --no-progress
+          composer check-platform-reqs
       - run: google-chrome --version
       - name: PHP and JavaScript syntax
         run: node tests/check.mjs
       - name: JSON and content validation
         run: php tests/content.php
-      - name: HTTP and contact regressions
+      - name: HTTP routes and disabled-intake regressions
         run: node --test tests/http.test.mjs
       - name: Browser regressions
         run: node --test tests/browser.test.mjs

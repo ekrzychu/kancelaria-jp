@@ -1,6 +1,10 @@
 <?php
 declare(strict_types=1);
 
+use App\Support\PublicUrl;
+
+require_once __DIR__ . '/../../vendor/autoload.php';
+
 const ROOT = __DIR__ . '/../..';
 const DATASETS = ['site', 'services', 'team', 'articles', 'recruitment'];
 
@@ -190,14 +194,14 @@ final class ContentValidator
             if (property_exists($article, 'image')) {
                 $this->image($article->image, "$path.image");
             }
+            if (property_exists($article, 'status')) {
+                $this->expect(in_array($article->status, ['published', 'draft'], true), "$path.status", 'published or draft', $article->status);
+            }
             if (is_string($article->body_html ?? null) && trim($article->body_html) !== '') {
                 $this->articleMarkup($article->body_html, "$path.body_html");
             }
         }
-        // Route prefixes and the public assets directory take precedence over article slugs.
-        $this->slugs($this->records($datasets['articles'], 'articles.json'), [
-            'o-kancelarii', 'specjalizacje', 'zespol', 'kariera', 'aktualnosci', 'artykuly', 'kontakt', 'dokumenty', 'assets',
-        ]);
+        $this->slugs($this->records($datasets['articles'], 'articles.json'), PublicUrl::RESERVED_SLUGS);
 
         $recruitment = $datasets['recruitment'];
         if ($this->expect($recruitment instanceof stdClass, 'recruitment.json', 'an object', $recruitment)) {

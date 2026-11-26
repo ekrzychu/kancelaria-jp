@@ -1,0 +1,1 @@
+<svg class="{{ $arrowClass }}" viewBox="0 0 28 18" width="28" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M2 9h24m-7-7 7 7-7 7"/></svg>

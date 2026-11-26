@@ -1,16 +1,19 @@
-# Local environment configuration
+# Local environment and dependencies
 .env
 .env.*
 !.env.example
-
-# PHP dependencies
 /vendor/
 
-# Local runtime data and test artifacts
-/storage/
+# Runtime data, tooling, and test artifacts
 /sessions/
 /test-artifacts/
-/*.log
+/tools/
+*.log
+*.phar
+*.sqlite
+*.sqlite-journal
+*.sqlite-shm
+*.sqlite-wal
 
 # Editor and operating-system files
 /.idea/

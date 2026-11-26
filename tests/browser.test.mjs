@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import { startBrowser } from './support/chrome.mjs';
 import { routes, startSite, until } from './support/site.mjs';
 
-test('browser regression against the real PHP application', async t => {
+test('browser regression against the Laravel application', async t => {
   const app = await startSite();
   t.after(app.stop);
   const browser = await startBrowser();

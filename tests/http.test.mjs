@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
-import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { routes, startSite } from './support/site.mjs';
 
-test('routing and enquiry workflow use a disposable copy', async t => {
+test('public routing and disabled enquiry intake', async t => {
   const app = await startSite();
   t.after(app.stop);
   const { origin, dir, data } = app;
@@ -24,8 +24,15 @@ test('routing and enquiry workflow use a disposable copy', async t => {
     });
   }
 
+  await t.test('the career timeline leaves the page metadata intact', async () => {
+    const html = await (await request('/kariera/')).text();
+    assert(html.includes('<title>Kariera — ' + data.site.name + '</title>'));
+    assert(html.includes('<meta property="og:title" content="Kariera — ' + data.site.name + '">'));
+    assert.doesNotMatch(html, /<meta name="description" content="Informację o wyniku rekrutacji/);
+  });
+
   await t.test('unknown routes are served as noindex 404s', async () => {
-    for (const path of ['/missing-regression-route/', '/specjalizacje/missing-regression-route/', '/dokumenty/missing-regression-route/']) {
+    for (const path of ['/missing-regression-route/', '/specjalizacje/missing-regression-route/', '/dokumenty/missing-regression-route/', '/admin', '/admin/', '/admin/login', '/up', '/api/', '/publikacje/']) {
       const result = await request(path);
       assert.equal(result.status, 404);
       assert.match(await result.text(), /<meta name="robots" content="noindex,follow">/);
@@ -35,12 +42,38 @@ test('routing and enquiry workflow use a disposable copy', async t => {
   await t.test('existing redirects and query string are preserved', async () => {
     for (const [from, to] of [
       ['/aktualnosci/', '/artykuly/'],
+      ['/aktualnosci/?z=2&a=1&a=3', '/artykuly/?z=2&a=1&a=3'],
       ['/artykuly?rok=2026&sort=oldest', '/artykuly/?rok=2026&sort=oldest'],
       ...paths.filter(path => path !== '/').map(path => [path.slice(0, -1), path]),
     ]) {
       const result = await request(from);
       assert.equal(result.status, 301, from);
       assert.equal(result.headers.get('location'), to);
+      await result.text();
+    }
+  });
+
+  await t.test('repeated slashes and HEAD preserve the canonical page', async () => {
+    const path = '/specjalizacje/' + data.services[0].slug + '/';
+    const result = await request(path.replace('/specjalizacje/', '/specjalizacje//'));
+    assert.equal(result.status, 200);
+    assert((await result.text()).includes('<link rel="canonical" href="' + canonical + path + '">'));
+    const head = await request(path.slice(0, -1), { method: 'HEAD' });
+    assert.equal(head.status, 200);
+    assert.equal(await head.text(), '');
+  });
+
+  await t.test('static crawler files and public response headers are preserved', async () => {
+    const robots = await request('/robots.txt');
+    assert.equal(robots.status, 200);
+    assert((await robots.text()).includes('Sitemap: ' + canonical + '/sitemap.xml'));
+    for (const path of ['/', '/artykuly', '/missing-regression-route/']) {
+      const result = await request(path);
+      assert.equal(result.headers.get('x-content-type-options'), 'nosniff');
+      assert.equal(result.headers.get('x-frame-options'), 'SAMEORIGIN');
+      assert.equal(result.headers.get('referrer-policy'), 'strict-origin-when-cross-origin');
+      assert.equal(result.headers.get('permissions-policy'), 'camera=(), microphone=(), geolocation=()');
+      await result.text();
     }
   });
 
@@ -51,71 +84,43 @@ test('routing and enquiry workflow use a disposable copy', async t => {
     assert.deepEqual(urls.sort(), paths.filter(path => !path.startsWith('/dokumenty/')).map(path => canonical + path).sort());
   });
 
-  const page = await request('/kontakt/');
-  const cookie = page.headers.get('set-cookie')?.split(';')[0];
-  const csrf_token = (await page.text()).match(/name="csrf_token" value="([a-f0-9]{64})"/)?.[1];
-  assert.ok(cookie && csrf_token, 'Isolated contact session did not initialize');
-  const sample = { csrf_token, name: 'Synthetic Example', email: 'fixture@example.test', phone: '', message: 'Synthetic regression test only.' };
-  const storage = join(dir, 'storage');
-  const submissions = join(storage, 'contact-submissions.jsonl');
-  const post = overrides => request('/kontakt/', {
-    method: 'POST', headers: { cookie }, body: new URLSearchParams({ ...sample, ...overrides }),
-  });
-
-  for (const [name, overrides, expected] of [
-    ['required fields', { name: '', email: '', message: '' }, /Uzupełnij imię/],
-    ['invalid email', { email: 'invalid-email' }, /Podaj poprawny adres e-mail/],
-    ['name character limit', { name: 'ą'.repeat(121) }, /Skróć dane/],
-    ['email character limit', { email: 'a'.repeat(64) + '@' + 'b'.repeat(60) + '.' + 'c'.repeat(60) + '.test' }, /Skróć dane/],
-    ['phone character limit', { phone: '0'.repeat(41) }, /Skróć dane/],
-    ['message character limit', { message: 'a'.repeat(4001) }, /Skróć dane/],
-    ['bad CSRF token', { csrf_token: 'invalid' }, /Sesja formularza wygasła/],
-  ]) {
-    await t.test(name, async () => {
-      const response = await post(overrides);
+  await t.test('contact keeps its layout, phone and email while inputs are disabled', async () => {
+    for (const path of ['/kontakt/', '/kontakt/?wyslano=1']) {
+      const response = await request(path);
       assert.equal(response.status, 200);
-      assert.match(await response.text(), expected);
-      await assert.rejects(readFile(submissions), { code: 'ENOENT' });
-    });
-  }
-
-  await t.test('honeypot uses the normal redirect and discards the record', async () => {
-    const response = await post({ website: 'fixture' });
-    assert.equal(response.status, 303);
-    assert.equal(response.headers.get('location'), '/kontakt/?wyslano=1');
-    await assert.rejects(readFile(submissions), { code: 'ENOENT' });
+      assert.equal(response.headers.get('set-cookie'), null);
+      const html = await response.text();
+      assert.match(html, /<form class="contact-form" id="formularz"/);
+      assert.match(html, /Formularz jest tymczasowo niedostępny/);
+      assert(html.includes('href="tel:' + data.site.phone_href + '"'));
+      assert(html.includes('href="mailto:' + data.site.email + '"'));
+      for (const field of ['name', 'email', 'phone', 'message']) {
+        assert.match(html, new RegExp('<(?:input|textarea)[^>]*name="' + field + '"[^>]*disabled'));
+      }
+      assert.match(html, /<button class="button contact-submit" type="submit" disabled>/);
+      assert.doesNotMatch(html, /csrf_token|Wiadomość została zapisana|Wiadomość została wysłana/);
+    }
   });
 
-  await t.test('persists a valid enquiry without a phone and confirms once', async () => {
-    const response = await post({});
-    assert.equal(response.status, 303);
-    const location = response.headers.get('location');
-    assert.equal(location, '/kontakt/?wyslano=1');
-    const [line, extra] = (await readFile(submissions, 'utf8')).trim().split(/\r?\n/);
-    const { created_at, ...record } = JSON.parse(line);
-    assert(!Number.isNaN(Date.parse(created_at)));
-    assert.equal(extra, undefined);
-    assert.deepEqual(record, { name: sample.name, email: sample.email, phone: '', message: sample.message });
-    assert.match(await (await request(location, { headers: { cookie } })).text(), /Wiadomość została zapisana/);
-    assert.doesNotMatch(await (await request(location, { headers: { cookie } })).text(), /Wiadomość została zapisana/);
-  });
-
-  await t.test('limits subsequent submissions without another append', async () => {
-    for (let i = 0; i < 2; i++) assert.equal((await post({})).status, 303);
-    const response = await post({});
-    assert.equal(response.status, 200);
-    assert.match(await response.text(), /Otrzymaliśmy zbyt wiele zgłoszeń/);
-    assert.equal((await readFile(submissions, 'utf8')).trim().split(/\r?\n/).length, 3);
-  });
-
-  await t.test('storage failure returns an error and no success redirect', async () => {
-    await rm(join(storage, 'contact-rate-limit.json'));
-    await rm(submissions);
-    await mkdir(submissions); // A directory at this path makes the append fail on all tested platforms.
-    const response = await post({});
-    assert.equal(response.status, 200);
-    assert.equal(response.headers.get('location'), null);
-    assert.match(await response.text(), /Nie udało się zapisać wiadomości/);
+  // The JSONL persistence and throttling tests are preserved at the approved baseline commit.
+  await t.test('direct POSTs cannot start intake or issue a success redirect', async () => {
+    const sample = { name: 'Synthetic Example', email: 'fixture@example.test', message: 'Synthetic only.' };
+    for (const path of ['/kontakt/', '/kontakt', '/kontakt/?wyslano=1']) {
+      for (const [headers, body] of [
+        [{}, new URLSearchParams(sample)],
+        [{ 'content-type': 'application/json' }, JSON.stringify({ ...sample, csrf_token: 'fixture', website: 'fixture' })],
+      ]) {
+        const response = await request(path, { method: 'POST', headers, body });
+        assert.equal(response.status, 405);
+        assert.equal(response.headers.get('location'), null);
+        assert.equal(response.headers.get('set-cookie'), null);
+        assert.equal(response.headers.get('allow'), 'GET, HEAD');
+        assert.doesNotMatch(await response.text(), /Wiadomość została zapisana|Wiadomość została wysłana/);
+      }
+    }
+    for (const file of ['contact-submissions.jsonl', 'contact-rate-limit.json']) {
+      await assert.rejects(readFile(join(dir, 'storage', file)), { code: 'ENOENT' });
+    }
   });
 });
 
@@ -175,5 +180,33 @@ test('related publications use the two newest valid entries out of 100', async t
     assert.deepEqual(links, expected);
     assert.match(html, /href="\/artykuly\/"/);
     assert.equal(html.includes('class="article-navigation"'), expected.length === 0);
+  }
+});
+
+test('drafts and reserved article slugs are unavailable in public output', async t => {
+  const { origin, dir, data, stop } = await startSite();
+  t.after(stop);
+  const marker = 'Unpublished fixture text 8914';
+  const fixture = { title: marker, summary: marker, date: '2099-01-01', body_html: '<p>' + marker + '</p>' };
+  const restricted = [
+    { slug: 'fixture-draft', status: 'draft' },
+    { slug: 'admin', status: 'published' },
+    { slug: 'livewire', status: 'published' },
+    { slug: 'up', status: 'published' },
+  ];
+  const { slug } = data.articles[0];
+  await writeFile(join(dir, 'app', 'data', 'articles.json'), JSON.stringify([
+    ...data.articles, ...restricted.map(entry => ({ ...fixture, ...entry })),
+  ]));
+
+  for (const entry of restricted) {
+    const response = await fetch(origin + '/' + entry.slug + '/');
+    assert.equal(response.status, 404, entry.slug);
+    assert(!(await response.text()).includes(marker));
+  }
+  for (const route of ['/', '/artykuly/', '/' + slug + '/']) {
+    const response = await fetch(origin + route);
+    assert.equal(response.status, 200);
+    assert(!(await response.text()).includes(marker));
   }
 });

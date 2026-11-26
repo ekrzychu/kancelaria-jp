@@ -41,11 +41,13 @@ try {
         'wrong field type' => ['team.json[0].role: expected a non-blank string, got array', static function ($data) { $data['team'][0]->role = []; }],
         'invalid date' => ['.date: expected a valid YYYY-MM-DD date', static function ($data) { $data['articles'][0]->date = '2026-02-31'; }],
         'duplicate slug' => ['.slug: expected a unique slug', static function (&$data) { $data['articles'][] = clone $data['articles'][0]; }],
+        'reserved framework slug' => ['articles.json[admin].slug: expected a non-reserved slug', static function ($data) { $data['articles'][0]->slug = 'admin'; }],
         'reserved slug' => ['articles.json[kontakt].slug: expected a non-reserved slug', static function ($data) { $data['articles'][0]->slug = 'kontakt'; }],
         'missing image' => ['.image: expected an existing, exact-case local asset', static function ($data) { $data['articles'][0]->image = 'missing-fixture.webp'; }],
         'wrong-case asset' => ['.portrait: expected an existing, exact-case local asset', static function ($data) { $data['team'][0]->portrait = 'OFFICE-RECEPTION-HERO.jpg'; }],
         'unsupported URL scheme' => ['.url: expected an allowed URL', static function ($data) { $data['site']->url = 'ftp://example.test'; }],
         'invalid vacancy status' => ['.status: expected open, closed or draft', static function ($data) { $data['recruitment']->vacancies[] = (object) ['status' => 'unknown']; }],
+        'invalid publication status' => ['.status: expected published or draft', static function ($data) { $data['articles'][0]->status = null; }],
         'missing article body' => ['.body_html: expected a non-blank string, got null', static function ($data) { unset($data['articles'][0]->body_html); }],
         'broken inline asset' => ['.body_html.src: expected an existing, exact-case local asset', static function ($data) { $data['articles'][0]->body_html = '<p>Fixture</p><img src="/assets/img/missing.png">'; }],
     ];
