@@ -47,7 +47,7 @@
         @foreach ($related as $index => $publication)
           @php $relatedSummary = is_string($publication['summary'] ?? null) ? trim($publication['summary']) : ''; @endphp
           <a class="publication-entry editorial-row" data-reveal="publication-row"
-             href="/{{ $publication['slug'] }}/" aria-labelledby="article-related-{{ $index }}">
+             href="{{ $previewPublicOrigin ?? '' }}/{{ $publication['slug'] }}/" aria-labelledby="article-related-{{ $index }}">
             <div class="publication-heading">
               @include('partials.publication-meta', ['publication' => $publication])
               <h3 class="row-title" id="article-related-{{ $index }}">{{ $publication['title'] }}</h3>

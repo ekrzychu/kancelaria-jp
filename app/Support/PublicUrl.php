@@ -9,6 +9,7 @@ final class PublicUrl
 {
     public const FRAMEWORK_PREFIXES = [
         'admin', 'api', 'build', 'filament', 'livewire', 'sanctum', 'storage', 'up',
+        'login', 'logout', 'password-reset', 'profile', 'podglad', 'uzytkownicy', 'wiadomosci',
     ];
 
     public const RESERVED_SLUGS = [

@@ -15,7 +15,8 @@ final class PublicWebsite
         $collapsed = preg_replace('#/+#', '/', $requested);
         $prefix = explode('/', ltrim($collapsed, '/'), 2)[0];
 
-        if (in_array($prefix, PublicUrl::FRAMEWORK_PREFIXES, true)) {
+        if (in_array($prefix, PublicUrl::FRAMEWORK_PREFIXES, true)
+            || preg_match('#^/artykuly/(?:dodaj|[^/]+/edytuj)/?$#', $collapsed)) {
             return $this->withHeaders($next($request));
         }
 

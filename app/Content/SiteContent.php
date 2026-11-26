@@ -90,7 +90,7 @@ final class SiteContent
         return null;
     }
 
-    private static function articleData(Article $article): array
+    public static function articleData(Article $article): array
     {
         return $article->only(['slug', 'title', 'summary', 'category', 'author', 'body_html', 'image', 'image_alt'])
             + ['date' => $article->date?->format('Y-m-d')];

@@ -4,7 +4,7 @@
     <h2 id="home-contact-title">Każda sprawa zaczyna się od&nbsp;rozmowy.</h2>
     <div class="home-contact-detail">
       <p>Przedstaw nam swoją sytuację. Pomożemy ustalić możliwe kierunki dalszego działania.</p>
-      <a class="button home-contact-action" href="/kontakt/" data-home-surface="light">Skontaktuj się z&nbsp;kancelarią</a>
+      <a class="button home-contact-action" href="{{ $previewPublicOrigin ?? '' }}/kontakt/" data-home-surface="light">Skontaktuj się z&nbsp;kancelarią</a>
     </div>
   </div>
 </section>
@@ -13,12 +13,12 @@
   @if ($path !== '/')
     <div class="container footer-callout" data-reveal>
       <h2>Porozmawiajmy o sprawie.</h2>
-      <a class="text-action" href="/kontakt/">Skontaktuj się z kancelarią</a>
+      <a class="text-action" href="{{ $previewPublicOrigin ?? '' }}/kontakt/">Skontaktuj się z kancelarią</a>
     </div>
   @endif
   <div class="container footer-grid" data-reveal-children>
     <div class="footer-identity">
-      <a class="footer-brand" href="/">{{ $site['name'] }}</a>
+      <a class="footer-brand" href="{{ $previewPublicOrigin ?? '' }}/">{{ $site['name'] }}</a>
       <p>{{ $site['tagline'] }}</p>
       <ul class="social-links" aria-label="Portale społecznościowe">
         @foreach ($site['socials'] as $label => $href)
@@ -38,7 +38,7 @@
     <nav class="footer-nav" aria-label="Menu w stopce">
       <ul>
         @foreach ($site['nav'] as $item)
-          <li><a href="{{ $item['url'] }}">{{ $item['label'] }}</a></li>
+          <li><a href="{{ ($previewPublicOrigin ?? '') . $item['url'] }}">{{ $item['label'] }}</a></li>
         @endforeach
       </ul>
     </nav>
@@ -47,8 +47,8 @@
   <div class="container legal-row" data-reveal>
     <p>© {{ date('Y') }} {{ $site['legal_name'] }}. Wszelkie prawa zastrzeżone.</p>
     <ul>
-      <li><a href="/dokumenty/">Dokumenty</a></li>
-      <li><a href="/dokumenty/polityka-prywatnosci/">Polityka prywatności</a></li>
+      <li><a href="{{ $previewPublicOrigin ?? '' }}/dokumenty/">Dokumenty</a></li>
+      <li><a href="{{ $previewPublicOrigin ?? '' }}/dokumenty/polityka-prywatnosci/">Polityka prywatności</a></li>
     </ul>
   </div>
 </footer>

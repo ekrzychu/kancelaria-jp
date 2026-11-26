@@ -6,6 +6,7 @@ use DateTimeImmutable;
 use DOMDocument;
 use DOMXPath;
 use Illuminate\Support\HtmlString;
+use League\Uri\Uri;
 
 final class PublicationContent
 {
@@ -65,21 +66,34 @@ final class PublicationContent
         return array_slice($related, 0, 2);
     }
 
-    public function detail(array $article): array
+    public function detail(array $article, string $publicOrigin = ''): array
     {
         $summary = is_string($article['summary'] ?? null) ? trim($article['summary']) : '';
         $author = is_string($article['author'] ?? null) ? trim($article['author']) : '';
-        $bodyHtml = $article['body_html'];
+        $bodyHtml = app(ArticleHtml::class)->sanitize($article['body_html']);
         $sections = [];
         $sectionCount = 0;
 
-        // Add navigation and wrappers to the reviewed article fragment.
+        // Add navigation and wrappers after applying the same allowlist to every article.
         if (class_exists(DOMDocument::class)) {
             $document = new DOMDocument();
             $fragment = '<!doctype html><html><head><meta charset="utf-8"></head><body>' . $bodyHtml . '</body></html>';
             if ($document->loadHTML($fragment, LIBXML_NONET | LIBXML_NOERROR | LIBXML_NOWARNING)) {
                 $body = $document->getElementsByTagName('body')->item(0);
                 $xpath = new DOMXPath($document);
+                if ($publicOrigin !== '') {
+                    $publicArticle = Uri::new($publicOrigin.'/'.$article['slug'].'/');
+                    foreach ($xpath->query('.//a[@href]', $body) as $link) {
+                        $href = $link->getAttribute('href');
+                        if ($href !== '' && ! str_starts_with($href, '#') && ! preg_match('#^(?:[a-z][a-z0-9+.-]*:|//)#i', $href)) {
+                            try {
+                                $link->setAttribute('href', (string) $publicArticle->resolve($href));
+                            } catch (\League\Uri\Exceptions\SyntaxError) {
+                                $link->removeAttribute('href');
+                            }
+                        }
+                    }
+                }
                 $ids = [];
                 foreach ($xpath->query('.//*[@id]', $body) as $node) {
                     $id = $node->getAttribute('id');

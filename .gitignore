@@ -3,6 +3,9 @@
 .env.*
 !.env.example
 /vendor/
+/public/css/filament/
+/public/js/filament/
+/public/fonts/filament/
 
 # Runtime data, tooling, and test artifacts
 /sessions/

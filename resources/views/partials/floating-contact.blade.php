@@ -1,4 +1,4 @@
-<a class="home-contact-float" href="{{ $path === '/kontakt/' ? '#formularz' : '/kontakt/' }}"
+<a class="home-contact-float" href="{{ $path === '/kontakt/' ? '#formularz' : ($previewPublicOrigin ?? '') . '/kontakt/' }}"
    aria-label="{{ $path === '/kontakt/' ? 'Przejdź do formularza kontaktowego' : 'Kontakt z kancelarią' }}"
    data-control-tone="{{ $path === '/' ? 'burgundy' : 'light' }}" data-home-surface="{{ $path === '/' ? 'light' : 'beige' }}" data-reveal>
   <span class="home-contact-label">Kontakt</span>

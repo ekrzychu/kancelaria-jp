@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Content\PublicationContent;
 use App\Content\SiteContent;
+use App\Models\Article;
 use App\Support\PublicUrl;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -76,11 +77,26 @@ final class PublicPages
             return $this->notFound();
         }
 
-        return $this->page('article', $article['title'], $this->publications->detail($article) + [
+        return $this->articlePage($article);
+    }
+
+    public function renderArticle(Article $article, bool $preview): Response
+    {
+        return $this->articlePage(SiteContent::articleData($article), $preview);
+    }
+
+    private function articlePage(array $article, bool $preview = false): Response
+    {
+        $publicOrigin = $preview ? rtrim(config('hosts.public_url'), '/') : '';
+
+        return $this->page('article', $article['title'], $this->publications->detail($article, $publicOrigin) + [
             'article' => $article,
             'related' => $this->publications->related($this->content->publishedArticles(), $article),
             'description' => $article['summary'] ?? null,
-        ]);
+        ] + ($preview ? [
+            'previewPublicOrigin' => $publicOrigin,
+            'robots' => 'noindex,nofollow',
+        ] : []));
     }
 
     public function contact(): Response
@@ -122,7 +138,7 @@ final class PublicPages
     private function page(string $page, string $title, array $data = [], int $status = 200): Response
     {
         $site = $this->content->site();
-        $path = PublicUrl::path($this->request);
+        $path = isset($data['previewPublicOrigin']) ? '/'.$data['article']['slug'].'/' : PublicUrl::path($this->request);
 
         return response()->view('pages.'.$page, [
             ...$data,
