@@ -119,6 +119,35 @@ test('routing and enquiry workflow use a disposable copy', async t => {
   });
 });
 
+test('homepage shows the three newest eligible publications with formatted dates', async t => {
+  const { origin, dir, stop } = await startSite();
+  t.after(stop);
+  const fixtures = [
+    { slug: 'oldest', date: '2023-12-31' },
+    { slug: 'invalid-calendar-date', date: '2026-02-29' },
+    { slug: 'previous', date: '2024-01-01' },
+    { slug: 'missing-date' },
+    { slug: 'noncanonical-date', date: '2026-1-01' },
+    { slug: 'nonstring-date', date: 20260101 },
+    { slug: 'newest', date: '2025-06-02' },
+    { slug: 'leap-day', date: '2024-02-29' },
+    { slug: 'blank-summary', date: '2026-01-01', summary: ' ' },
+  ].map(entry => ({ title: entry.slug, summary: 'Synthetic preview.', ...entry }));
+  await writeFile(join(dir, 'app', 'data', 'articles.json'), JSON.stringify(fixtures));
+
+  const response = await fetch(origin + '/');
+  assert.equal(response.status, 200);
+  const html = await response.text();
+  const previews = html.match(/<ol class="home-publications-list"[^>]*>([\s\S]*?)<\/ol>/)?.[1];
+  assert(previews, 'Homepage publication list is missing');
+  assert.deepEqual([...previews.matchAll(/href="\/([^"]+)\/"/g)].map(match => match[1]), ['newest', 'leap-day', 'previous']);
+  assert.deepEqual([...previews.matchAll(/<time datetime="([^"]+)">([^<]+)<\/time>/g)].map(match => match.slice(1)), [
+    ['2025-06-02', '02.06.2025'],
+    ['2024-02-29', '29.02.2024'],
+    ['2024-01-01', '01.01.2024'],
+  ]);
+});
+
 test('related publications use the two newest valid entries out of 100', async t => {
   const { origin, dir, stop } = await startSite();
   t.after(stop);

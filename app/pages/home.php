@@ -8,11 +8,8 @@ foreach ($articles as $article) {
 
     $title = is_string($article['title'] ?? null) ? trim($article['title']) : '';
     $summary = is_string($article['summary'] ?? null) ? trim($article['summary']) : '';
-    $date = $article['date'] ?? '';
-    $published = is_string($date) && preg_match('/\A\d{4}-\d{2}-\d{2}\z/', $date)
-        ? DateTimeImmutable::createFromFormat('!Y-m-d', $date)
-        : false;
-    if ($title !== '' && $summary !== '' && $published && $published->format('Y-m-d') === $date) {
+    $published = publication_date($article['date'] ?? null);
+    if ($title !== '' && $summary !== '' && $published) {
         $publications[] = compact('title', 'summary', 'published') + ['slug' => $article['slug'] ?? ''];
     }
 }
