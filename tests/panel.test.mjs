@@ -167,6 +167,7 @@ test('administrators and employees manage accounts and publications in the brows
   }
 
   await visit('/artykuly/dodaj');
+  await waitText('Zapisz szkic');
   await wire('.create-article', 'create', { title, slug: 'login', body_0: '<p>Tekst próbny</p>' });
   assert.equal(rows(app, 'SELECT COUNT(*) AS count FROM articles')[0].count, 3);
   const unsafe = '<h2>Test nagłówka</h2><p>Treść <strong>pogrubiona</strong> <a href="javascript:alert(1)">link</a></p>'
@@ -188,15 +189,50 @@ test('administrators and employees manage accounts and publications in the brows
   assert(!await evaluate(() => document.querySelector('.article-body script, .article-body [onerror], .article-body iframe')));
   if (screenshotDir) await browser.screenshot(screenshotDir, 'desktop-private-preview');
 
+  const editPath = '/artykuly/' + id + '/edytuj';
+  assert.equal((await http(app, editPath)).status, 302);
+  assert.equal((await http(app, editPath, { admin: false })).status, 404);
+  const editorAction = async (action, data = {}) => {
+    await wire('.edit-article', 'mountAction', data, [action]);
+    await wire('.edit-article', 'callMountedAction');
+  };
+  const rowActions = () => evaluate(title => {
+    const row = [...document.querySelectorAll('tbody tr')].find(row => row.textContent.includes(title));
+    return [...(row?.querySelectorAll('td:last-child :is(a, button)') ?? [])]
+      .filter(action => action.getClientRects().length)
+      .map(action => action.textContent.trim());
+  }, title);
   await visit('/artykuly');
+  assert.deepEqual((await rowActions()).filter(Boolean), ['Edytuj', 'Podgląd', 'Opublikuj', 'Więcej']);
+  if (screenshotDir) await browser.screenshot(screenshotDir, 'desktop-publication-table');
   await tableAction('.list-articles', 'publish', id);
   assert.equal(article().status, 'published');
+  assert((await rowActions()).includes('Wycofaj publikację'));
   for (const path of ['/' + slug + '/', '/artykuly/', '/sitemap.xml', '/', '/' + app.data.articles[0].slug + '/']) {
     const published = await http(app, path, { admin: false });
     assert.equal(published.status, 200, path);
     assert(published.text.includes(slug), path);
   }
-  await visit('/artykuly/' + id + '/edytuj');
+  await visit(editPath);
+  await editorAction('unpublish', { title: title + ' niezapisany' });
+  assert.equal(article().status, 'unpublished');
+  assert.equal(article().title, title);
+  assert.equal((await http(app, '/' + slug + '/', { admin: false })).status, 404);
+  await waitText('Opublikuj ponownie');
+  if (screenshotDir) {
+    await until(() => evaluate(() => document.querySelector('.tiptap.ProseMirror') !== null), 'rich editor mounted');
+    await browser.screenshot(screenshotDir, 'desktop-editor-republish');
+  }
+  await editorAction('publish', { title: '' });
+  assert.equal(article().status, 'unpublished');
+  assert.equal(article().title, title);
+  assert(await evaluate(() => document.querySelector('[id="form.title"][aria-invalid="true"], [id="data.title"][aria-invalid="true"]') !== null));
+  await editorAction('publish', { title: title + ' z edytora', summary: 'Zapisano przy publikacji.' });
+  assert.equal(article().status, 'published');
+  assert.equal(article().title, title + ' z edytora');
+  assert.equal(article().summary, 'Zapisano przy publikacji.');
+  assert.equal(article().date, '2035-02-01');
+  await waitText('Wycofaj publikację');
   await wire('.edit-article', 'save', { title: title + ' po zmianie', slug: 'niepoprawna-zmiana-adresu' });
   assert.equal(article().title, title + ' po zmianie');
   assert.equal(article().slug, slug);
@@ -234,6 +270,7 @@ test('administrators and employees manage accounts and publications in the brows
   await visit('/artykuly');
   await tableAction('.list-articles', 'unpublish', id);
   assert.equal(article().status, 'unpublished');
+  assert((await rowActions()).includes('Opublikuj ponownie'));
   assert.equal((await http(app, '/' + slug + '/', { admin: false })).status, 404);
   assert(!(await http(app, '/sitemap.xml', { admin: false })).text.includes(slug));
   await tableAction('.list-articles', 'delete', id);
@@ -283,10 +320,13 @@ test('administrators and employees manage accounts and publications in the brows
       Cookie: stale, Origin: app.adminOrigin, 'X-Livewire': '', 'Content-Type': 'application/json',
     },
     body: JSON.stringify({ _token: existingPage.token, components: [
-      { snapshot: existingPage.snapshot, updates: {}, calls: [{ path: '', method: '$refresh', params: [] }] },
+      { snapshot: existingPage.snapshot, updates: {}, calls: [
+        { path: '', method: 'mountAction', params: ['publish', {}, { table: true, recordKey: String(id) }] },
+      ] },
     ] }),
   });
   assert.equal(staleUpdate.status, 403);
+  assert.equal(article().status, 'unpublished');
   await tableAction('.list-users', 'reactivate', account(employeeEmail).id);
   assert.equal(Number(account(employeeEmail).is_active), 1);
   await visit('/uzytkownicy/' + account(employeeEmail).id + '/edytuj');

@@ -120,9 +120,9 @@ final class ArticleResource extends Resource
             ->recordActions([
                 EditAction::make()->label('Edytuj')->icon(null)->hidden(fn (Article $record): bool => $record->trashed()),
                 self::previewAction()->hidden(fn (Article $record): bool => $record->trashed()),
+                self::publicationAction(ArticleStatus::Published),
+                self::publicationAction(ArticleStatus::Unpublished),
                 ActionGroup::make([
-                    self::publicationAction(ArticleStatus::Published),
-                    self::publicationAction(ArticleStatus::Unpublished),
                     DeleteAction::make()->label('Przenieś do kosza')
                         ->modalDescription('Artykuł zniknie ze strony publicznej i będzie można go przywrócić.'),
                     RestoreAction::make()->label('Przywróć')
@@ -150,27 +150,43 @@ final class ArticleResource extends Resource
             ->openUrlInNewTab();
     }
 
-    private static function publicationAction(ArticleStatus $status): Action
+    public static function publicationAction(ArticleStatus $status, ?Closure $saveForm = null): Action
     {
         $publish = $status === ArticleStatus::Published;
-        $label = $publish ? 'Opublikuj' : 'Wycofaj publikację';
+        $label = fn (Article $record): string => match (true) {
+            ! $publish => 'Wycofaj publikację',
+            $record->status === ArticleStatus::Unpublished => 'Opublikuj ponownie',
+            default => 'Opublikuj',
+        };
 
         return Action::make($publish ? 'publish' : 'unpublish')->label($label)
+            ->button()->color($publish ? 'primary' : 'gray')
             ->visible(fn (Article $record): bool => ! $record->trashed() && ($publish
                 ? $record->status !== ArticleStatus::Published
                 : $record->status === ArticleStatus::Published))
             ->authorize('publish')->requiresConfirmation()
-            ->modalDescription($publish ? 'Artykuł pojawi się na stronie publicznej.' : 'Artykuł zniknie ze strony publicznej.')
-            ->action(function (Article $record) use ($publish, $status): void {
-                DB::transaction(function () use ($record, $publish, $status): void {
+            ->modalSubmitActionLabel($label)
+            ->modalDescription(match (true) {
+                ! $publish => 'Artykuł zniknie ze strony publicznej.',
+                $saveForm !== null => 'Zmiany zostaną zapisane, a artykuł pojawi się na stronie publicznej.',
+                default => 'Artykuł pojawi się na stronie publicznej.',
+            })
+            ->action(function (Article $record) use ($publish, $status, $saveForm): void {
+                $current = DB::transaction(function () use ($record, $publish, $status, $saveForm): Article {
                     $current = Article::lockForUpdate()->findOrFail($record->id);
                     Gate::authorize('publish', $current);
-                    if ($publish || $current->status === ArticleStatus::Published) {
-                        $current->date ??= $publish ? now('Europe/Warsaw')->toDateString() : null;
+                    if ($publish ? $current->status !== ArticleStatus::Published : $current->status === ArticleStatus::Published) {
+                        if ($publish) {
+                            $saveForm?->__invoke($current);
+                            $current->date ??= now('Europe/Warsaw')->toDateString();
+                        }
                         $current->status = $status;
                         $current->save();
                     }
+
+                    return $current;
                 });
+                $record->setRawAttributes($current->getAttributes(), sync: true);
             })->successNotificationTitle($publish ? 'Artykuł opublikowany' : 'Publikacja wycofana');
     }
 

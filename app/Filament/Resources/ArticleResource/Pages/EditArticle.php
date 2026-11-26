@@ -35,7 +35,22 @@ final class EditArticle extends EditRecord
 
     protected function getHeaderActions(): array
     {
-        return [ArticleResource::previewAction()];
+        return [
+            ArticleResource::previewAction()->color('gray'),
+            ArticleResource::publicationAction(ArticleStatus::Published, function (Article $record): void {
+                try {
+                    $this->handleRecordUpdate($record, $this->form->getState());
+                } catch (ValidationException $exception) {
+                    $this->unmountAction(cancelParentActions: false);
+
+                    throw $exception;
+                }
+            })->after(function (): void {
+                $this->refreshFormData(['date']);
+                $this->rememberData();
+            }),
+            ArticleResource::publicationAction(ArticleStatus::Unpublished),
+        ];
     }
 
     protected function mutateFormDataBeforeFill(array $data): array

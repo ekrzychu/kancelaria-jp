@@ -5,6 +5,7 @@ namespace App\Filament\Resources\ArticleResource\Pages;
 use App\Content\ArticleEditing;
 use App\Filament\Resources\ArticleResource;
 use App\Models\Article;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Support\Enums\Width;
 use Illuminate\Database\Eloquent\Model;
@@ -20,6 +21,11 @@ final class CreateArticle extends CreateRecord
     protected static bool $canCreateAnother = false;
 
     protected Width|string|null $maxContentWidth = Width::FiveExtraLarge;
+
+    protected function getCreateFormAction(): Action
+    {
+        return parent::getCreateFormAction()->label('Zapisz szkic');
+    }
 
     protected function handleRecordCreation(array $data): Model
     {
