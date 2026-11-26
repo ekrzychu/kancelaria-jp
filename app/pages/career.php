@@ -26,8 +26,8 @@ SVG;
 <section class="career-work" aria-labelledby="career-work-title">
   <div class="career-frame career-split">
     <h2 id="career-work-title" data-reveal="subtle">Praca w&nbsp;zespole</h2>
+    <p class="career-lead" data-reveal="subtle">Nad jedną sprawą często pracują osoby z&nbsp;różnych dziedzin prawa.</p>
     <div class="career-work-copy" data-reveal="subtle">
-      <p class="career-lead">Nad jedną sprawą często pracują osoby z&nbsp;różnych dziedzin prawa.</p>
       <p>Radcowie prawni, adwokaci i&nbsp;specjaliści prawni współpracują przy bieżących sprawach firm i&nbsp;instytucji oraz przy sporach. Doradzamy także klientom indywidualnym i&nbsp;reprezentujemy ich w&nbsp;postępowaniach.</p>
       <a class="text-action career-action" href="/zespol/"><span>Poznaj nasz zespół</span><?= $careerArrow ?></a>
     </div>
@@ -36,7 +36,7 @@ SVG;
 
 <section class="career-opportunities" aria-labelledby="career-opportunities-title">
   <div class="career-frame">
-    <h2 id="career-opportunities-title" data-reveal="subtle">Możliwości współpracy</h2>
+    <h2 id="career-opportunities-title" data-reveal="subtle">Aktualne oferty pracy</h2>
     <?php if ($vacancies): ?>
       <ul class="editorial-list career-openings" role="list">
         <?php foreach ($vacancies as $vacancy): ?>
@@ -57,10 +57,10 @@ SVG;
       </ul>
     <?php else: ?>
       <div class="editorial-row career-opening" data-reveal="subtle">
-        <h3>Zapytaj o&nbsp;nabór</h3>
+        <h3>Brak opublikowanych ofert</h3>
         <div>
-          <p>Dowiedz się, czy prowadzimy nabór i&nbsp;jak przesłać zgłoszenie.</p>
-          <a class="text-action career-action" href="#kontakt-rekrutacja"><span>Przejdź do kontaktu</span><?= $careerArrow ?></a>
+          <p>Jeśli interesuje Cię praca lub współpraca z&nbsp;kancelarią, możesz zapytać o&nbsp;możliwości zgłoszenia.</p>
+          <a class="text-action career-action" href="#kontakt-rekrutacja"><span>Zapytaj o&nbsp;nabór</span><?= $careerArrow ?></a>
         </div>
       </div>
     <?php endif; ?>

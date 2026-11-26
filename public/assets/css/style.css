@@ -2114,6 +2114,7 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
 }
 
 .career-work .career-frame {
+  row-gap: clamp(1rem, 1.75vw, 1.65rem);
   border-block-start: 1px solid var(--line);
   padding-block-start: clamp(1.8rem, 4vw, 4.5rem);
 }
@@ -2122,9 +2123,9 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
   max-width: 62ch;
 }
 
-.career-work-copy .career-lead {
+.career-work .career-lead {
   max-width: 30ch;
-  margin-block-end: clamp(.8rem, 1.6vw, 1.5rem);
+  margin: 0;
   color: var(--burgundy);
   font-size: clamp(1.5rem, 2.5vw, 3rem);
   line-height: 1.15;
@@ -2194,8 +2195,12 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
     grid-area: 1 / 2;
   }
 
+  .career-work .career-lead {
+    grid-area: 1 / 1 / 3;
+  }
+
   .career-work-copy {
-    grid-area: 1 / 1;
+    grid-area: 2 / 2;
   }
 }
 
