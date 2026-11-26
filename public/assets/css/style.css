@@ -45,7 +45,6 @@
   --home-contact-width: 7rem;
   --home-contact-end: max(1.125rem, calc(env(safe-area-inset-right, 0px) + .625rem));
   --home-contact-bottom: calc(.75rem + env(safe-area-inset-bottom, 0px));
-  --row-space: 1.5rem;
   --type-title: 4rem;
   --type-section: 3rem;
   --type-subheading: 1.625rem;

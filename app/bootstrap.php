@@ -108,45 +108,6 @@ function text_lower(string $value): string
     ]);
 }
 
-function text_upper(string $value): string
-{
-    if (function_exists('mb_strtoupper')) {
-        return mb_strtoupper($value, 'UTF-8');
-    }
-
-    return strtr(strtoupper($value), [
-        'ą' => 'Ą',
-        'ć' => 'Ć',
-        'ę' => 'Ę',
-        'ł' => 'Ł',
-        'ń' => 'Ń',
-        'ó' => 'Ó',
-        'ś' => 'Ś',
-        'ź' => 'Ź',
-        'ż' => 'Ż',
-    ]);
-}
-
-function initials(string $name): string
-{
-    $parts = preg_split('/\s+/', trim($name));
-    $out = '';
-    foreach ($parts as $part) {
-        if ($part === '') {
-            continue;
-        }
-
-        preg_match('/^./u', $part, $firstCharacter);
-        $out .= text_upper($firstCharacter[0] ?? '');
-
-        if (text_length($out) >= 2) {
-            break;
-        }
-    }
-
-    return $out ?: 'JP';
-}
-
 function icon(string $name, string $class = 'utility-icon'): string
 {
     $safe = preg_replace('/[^a-z0-9-]/', '', strtolower($name));
@@ -158,14 +119,6 @@ function icon(string $name, string $class = 'utility-icon'): string
     $svg = file_get_contents($path) ?: '';
 
     return preg_replace('/<svg\b/', '<svg class="' . e($class) . '" aria-hidden="true" focusable="false"', $svg, 1) ?: '';
-}
-
-function is_active(string $url): string
-{
-    $current = current_path();
-    $target = rtrim($url, '/') . '/';
-
-    return str_starts_with($current, $target) ? ' is-active' : '';
 }
 
 function is_current_section(string $url): bool
