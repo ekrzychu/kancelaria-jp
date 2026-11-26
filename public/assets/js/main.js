@@ -57,7 +57,7 @@
   initFloatingContact();
   initScrollMotion();
   initSiteCursor();
-  initAboutProcess();
+  document.querySelectorAll('[data-about-process], [data-career-process]').forEach(initProcessTimeline);
   const finishReveal = initReveals();
   document.querySelector('.form-status.error')?.focus();
 
@@ -580,12 +580,10 @@
     sync();
   }
 
-  function initAboutProcess() {
-    const list = document.querySelector('[data-about-process]');
-    if (!list) return;
+  function initProcessTimeline(list) {
     const motion = window.matchMedia('(prefers-reduced-motion: no-preference)');
     const steps = Array.from(list.children);
-    const markers = steps.map(step => step.querySelector('.about-step-marker'));
+    const markers = steps.map(step => step.querySelector('.about-step-marker, .career-step-marker'));
     const resizeObserver = 'ResizeObserver' in window ? new ResizeObserver(schedule) : null;
     let frame = 0;
 
