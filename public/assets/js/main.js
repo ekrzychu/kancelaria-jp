@@ -244,7 +244,7 @@
 
     const visibleContent = new Set();
     const textBounds = document.createRange();
-    const editorialText = 'h1, h2, h3, h4, p, dt, dd, figcaption, td, th, .row-summary, .article-body :is(li, pre)';
+    const editorialText = 'h1, h2, h3, h4, p, dt, dd, figcaption, td, th, .row-summary, .service-scope li, .article-body :is(li, pre)';
     if (!homepage) {
       const protectedContent = document.querySelectorAll(
         `:is(main, footer) :is(form, input, textarea, select, a, button, [contenteditable], .article-body figure, ${editorialText})`
