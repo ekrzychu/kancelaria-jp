@@ -59,6 +59,7 @@
   initSiteCursor();
   document.querySelectorAll('[data-about-process], [data-career-process]').forEach(initProcessTimeline);
   const finishReveal = initReveals();
+  initPublicationArchive(finishReveal);
   document.querySelector('.form-status.error')?.focus();
 
   const search = document.querySelector('[data-service-search]');
@@ -66,9 +67,9 @@
   const rows = document.querySelectorAll('[data-service-row]');
   const searchStatus = document.querySelector('[data-service-status]');
   if (search && rows.length) {
+    initSearchClear(search, clearSearch);
     const filterServices = () => {
       const q = search.value.trim().normalize('NFC').toLocaleLowerCase('pl');
-      if (clearSearch) clearSearch.hidden = search.value === '';
       let visible = 0;
       rows.forEach(row => {
         const matches = !q || (row.dataset.title || '').includes(q);
@@ -87,15 +88,84 @@
     };
 
     search.addEventListener('input', filterServices);
-    if (clearSearch) {
-      search.classList.add('has-custom-clear');
-      clearSearch.addEventListener('click', () => {
-        search.value = '';
-        search.focus();
-        search.dispatchEvent(new Event('input', { bubbles: true }));
-      });
-    }
     if (search.value) filterServices();
+  }
+
+  function initSearchClear(input, button) {
+    if (!button) return;
+    const sync = () => { button.hidden = input.value === ''; };
+    input.classList.add('has-custom-clear');
+    input.addEventListener('input', sync);
+    button.addEventListener('click', () => {
+      input.value = '';
+      input.focus();
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    sync();
+  }
+
+  function initPublicationArchive(finishReveal) {
+    const archive = document.querySelector('[data-publication-archive]');
+    const form = archive?.querySelector('[data-publication-filters]');
+    if (!form) return;
+
+    const { query, category, year, sort } = form.elements;
+    const list = archive.querySelector('#publication-list');
+    const status = form.querySelector('[data-publication-status]');
+    const reset = form.querySelector('[data-publication-reset]');
+    const collator = new Intl.Collator('pl', { sensitivity: 'base', ignorePunctuation: true });
+    const normalize = value => value.toLocaleLowerCase('pl').normalize('NFD').replace(/\p{M}/gu, '').replace(/ł/g, 'l');
+    const entries = Array.from(list.children, row => ({
+      row,
+      title: row.dataset.publicationTitle,
+      date: row.dataset.publicationDate,
+      category: row.dataset.publicationCategory,
+      search: normalize(row.dataset.publicationSearch),
+    }));
+    let currentSort = 'newest';
+
+    function update(revealResults) {
+      const words = normalize(query.value).trim().split(/\s+/u).filter(Boolean);
+      if (sort.value !== currentSort) {
+        const ordered = [...entries].sort((a, b) => {
+          if (sort.value === 'az') return collator.compare(a.title, b.title);
+          if (sort.value === 'za') return collator.compare(b.title, a.title);
+          if (!a.date || !b.date) return Number(Boolean(b.date)) - Number(Boolean(a.date));
+          return sort.value === 'oldest' ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date);
+        });
+        list.append(...ordered.map(entry => entry.row));
+        currentSort = sort.value;
+      }
+
+      let count = 0;
+      for (const entry of entries) {
+        const matches = (!category.value || entry.category === category.value)
+          && (!year.value || entry.date.slice(0, 4) === year.value)
+          && words.every(word => entry.search.includes(word));
+        entry.row.hidden = !matches;
+        if (matches) {
+          if (revealResults) finishReveal?.(entry.row);
+          count += 1;
+        }
+      }
+
+      status.textContent = count
+        ? `Liczba wyników: ${count}.`
+        : 'Nie znaleziono artykułów spełniających wybrane kryteria.';
+      reset.hidden = !(query.value || category.value || year.value || sort.value !== 'newest');
+    }
+
+    initSearchClear(query, form.querySelector('[data-publication-clear]'));
+    query.addEventListener('input', () => update(true));
+    [category, year, sort].forEach(control => control.addEventListener('change', () => update(true)));
+    form.addEventListener('submit', event => event.preventDefault());
+    reset.addEventListener('click', () => {
+      form.reset();
+      query.focus();
+      query.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    update(Boolean(query.value || category.value || year.value || sort.value !== 'newest'));
+    form.hidden = false;
   }
 
   function initHomeNavigation() {
@@ -181,7 +251,7 @@
     const editorialText = 'h1, h2, h3, h4, p, dt, dd, figcaption, td, th, .row-summary, .article-body :is(li, pre)';
     if (!homepage) {
       const protectedContent = document.querySelectorAll(
-        `:is(main, footer) :is(form, input, textarea, select, a, button, [contenteditable], .publication-image, .article-body figure, ${editorialText})`
+        `:is(main, footer) :is(form, input, textarea, select, a, button, [contenteditable], .article-body figure, ${editorialText})`
       );
       const observer = 'IntersectionObserver' in window && new IntersectionObserver(entries => {
         for (const { target, isIntersecting } of entries) {
