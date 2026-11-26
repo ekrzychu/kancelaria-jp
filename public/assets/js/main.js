@@ -2,6 +2,7 @@
   const menuButton = document.querySelector('.menu-button');
   const mainNav = document.getElementById('main-nav');
   const homepage = document.body.classList.contains('homepage');
+  const revealThreshold = .15;
 
   if (menuButton && mainNav) {
     const compactHeader = window.matchMedia('(max-width: 56rem)');
@@ -33,43 +34,49 @@
       else setMenuOpen(false);
     });
 
-    if (homepage) {
-      const header = menuButton.closest('.site-header');
-      const closeOutside = event => {
-        if (!header.contains(event.target) && menuButton.getAttribute('aria-expanded') === 'true') {
-          setMenuOpen(false);
-        }
-      };
-      document.addEventListener('focusin', closeOutside);
-      document.addEventListener('pointerdown', closeOutside, { passive: true });
-    }
+    const header = menuButton.closest('.site-header');
+    const closeOutside = event => {
+      if (!header.contains(event.target) && menuButton.getAttribute('aria-expanded') === 'true') {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('focusin', closeOutside);
+    document.addEventListener('pointerdown', closeOutside, { passive: true });
 
     menuButton.hidden = false;
     syncMenu();
   }
 
-  if (homepage) {
-    initHomeStages();
-    initHomeNavigation();
-    initHomeContact();
-    initHomeImageMotion();
-    initHomeCursor();
-  }
+  if (homepage) initHomeStages();
+  initScrollNavigation();
 
-  initReveals();
+  initFloatingContact();
+  initScrollMotion();
+  initSiteCursor();
+  document.querySelectorAll('[data-about-process], [data-career-process]').forEach(initProcessTimeline);
+  const finishReveal = initReveals();
+  initPublicationArchive(finishReveal);
+  initArticleReading();
   document.querySelector('.form-status.error')?.focus();
 
-  const search = document.querySelector('[data-service-search]');
+  const serviceFilters = document.querySelector('[data-service-filters]');
+  const search = serviceFilters?.querySelector('[data-service-search]');
+  const clearSearch = document.querySelector('[data-service-clear]');
   const rows = document.querySelectorAll('[data-service-row]');
   const searchStatus = document.querySelector('[data-service-status]');
   if (search && rows.length) {
-    search.addEventListener('input', () => {
-      const q = search.value.trim().toLocaleLowerCase('pl');
+    const entries = Array.from(rows, row => ({ row, searchText: normalizeSearch(row.dataset.title || '') }));
+    initSearchClear(search, clearSearch);
+    const filterServices = () => {
+      const q = normalizeSearch(search.value).trim();
       let visible = 0;
-      rows.forEach(row => {
-        const matches = !q || (row.dataset.title || '').includes(q);
+      entries.forEach(({ row, searchText }) => {
+        const matches = !q || searchText.includes(q);
         row.hidden = !matches;
-        if (matches) visible += 1;
+        if (matches) {
+          finishReveal?.(row);
+          visible += 1;
+        }
       });
 
       if (searchStatus) {
@@ -77,15 +84,154 @@
           ? (visible ? `Liczba wyników: ${visible}.` : 'Brak specjalizacji pasujących do wyszukiwania.')
           : '';
       }
-    });
+    };
+
+    search.addEventListener('input', filterServices);
+    if (search.value) filterServices();
+    serviceFilters.hidden = false;
   }
 
-  function initHomeNavigation() {
+  function normalizeSearch(value) {
+    return value.toLocaleLowerCase('pl').normalize('NFD').replace(/\p{M}/gu, '').replace(/ł/g, 'l');
+  }
+
+  function initSearchClear(input, button) {
+    if (!button) return;
+    const sync = () => { button.hidden = input.value === ''; };
+    input.classList.add('has-custom-clear');
+    input.addEventListener('input', sync);
+    button.addEventListener('click', () => {
+      input.value = '';
+      input.focus();
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    sync();
+  }
+
+  function initPublicationArchive(finishReveal) {
+    const archive = document.querySelector('[data-publication-archive]');
+    const form = archive?.querySelector('[data-publication-filters]');
+    if (!form) return;
+
+    const { query, category, year, sort } = form.elements;
+    const list = archive.querySelector('#publication-list');
+    const status = form.querySelector('[data-publication-status]');
+    const reset = form.querySelector('[data-publication-reset]');
+    const collator = new Intl.Collator('pl', { sensitivity: 'base', ignorePunctuation: true });
+    const entries = Array.from(list.children, row => ({
+      row,
+      title: row.dataset.publicationTitle,
+      date: row.dataset.publicationDate,
+      category: row.dataset.publicationCategory,
+      search: normalizeSearch(row.dataset.publicationSearch),
+    }));
+    let currentSort = 'newest';
+
+    function update(revealResults) {
+      const words = normalizeSearch(query.value).trim().split(/\s+/u).filter(Boolean);
+      if (sort.value !== currentSort) {
+        const ordered = [...entries].sort((a, b) => {
+          if (sort.value === 'az') return collator.compare(a.title, b.title);
+          if (sort.value === 'za') return collator.compare(b.title, a.title);
+          if (!a.date || !b.date) return Number(Boolean(b.date)) - Number(Boolean(a.date));
+          return sort.value === 'oldest' ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date);
+        });
+        list.append(...ordered.map(entry => entry.row));
+        currentSort = sort.value;
+      }
+
+      let count = 0;
+      for (const entry of entries) {
+        const matches = (!category.value || entry.category === category.value)
+          && (!year.value || entry.date.slice(0, 4) === year.value)
+          && words.every(word => entry.search.includes(word));
+        entry.row.hidden = !matches;
+        if (matches) {
+          if (revealResults) finishReveal?.(entry.row);
+          count += 1;
+        }
+      }
+
+      status.textContent = count
+        ? `Liczba wyników: ${count}.`
+        : 'Nie znaleziono artykułów spełniających wybrane kryteria.';
+      reset.hidden = !(query.value || category.value || year.value || sort.value !== 'newest');
+    }
+
+    initSearchClear(query, form.querySelector('[data-publication-clear]'));
+    query.addEventListener('input', () => update(true));
+    [category, year, sort].forEach(control => control.addEventListener('change', () => update(true)));
+    form.addEventListener('submit', event => event.preventDefault());
+    reset.addEventListener('click', () => {
+      form.reset();
+      query.focus();
+      query.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    update(Boolean(query.value || category.value || year.value || sort.value !== 'newest'));
+    form.hidden = false;
+  }
+
+  function initArticleReading() {
+    const article = document.querySelector('.article-detail');
+    if (!article) return;
+    const body = article.querySelector('.article-body');
+    const progress = article.querySelector('.article-progress');
+    const contents = article.querySelector('.article-contents');
+    const sections = [...(contents?.querySelectorAll('nav a') ?? [])].map(link => ({
+      link,
+      heading: document.getElementById(decodeURIComponent(link.hash.slice(1))),
+    }));
+    const desktop = window.matchMedia('(min-width: 66rem)');
+    let current;
+    let frame = 0;
+
+    function update() {
+      frame = 0;
+      const bounds = body.getBoundingClientRect();
+      const anchorOffset = sections.length ? parseFloat(getComputedStyle(sections[0].heading).scrollMarginBlockStart) : 0;
+      const readingLine = Math.max(anchorOffset, Math.min(window.innerHeight * .25, 150));
+      const distance = readingLine - bounds.top;
+      const travel = Math.max(1, bounds.bottom - bounds.top - window.innerHeight + readingLine);
+      const value = Math.min(1, Math.max(0, distance / travel));
+      progress.hidden = value === 0;
+      progress.style.setProperty('--article-progress', value);
+
+      let active;
+      if (bounds.bottom >= readingLine) {
+        for (const { heading, link } of sections) {
+          if (heading.getBoundingClientRect().top > readingLine) break;
+          active = link;
+        }
+      }
+      if (active !== current) {
+        current?.removeAttribute('aria-current');
+        active?.setAttribute('aria-current', 'location');
+        current = active;
+      }
+    }
+
+    function schedule() {
+      if (!frame) frame = requestAnimationFrame(update);
+    }
+
+    if (contents) {
+      contents.open = desktop.matches;
+      desktop.addEventListener('change', event => { contents.open = event.matches; });
+      contents.addEventListener('toggle', schedule);
+    }
+    if ('ResizeObserver' in window) new ResizeObserver(schedule).observe(article);
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule, { passive: true });
+    window.addEventListener('pageshow', schedule);
+    schedule();
+  }
+
+  function initScrollNavigation() {
     const header = document.querySelector('.site-header');
     const heroHeading = document.querySelector('.home-hero-heading');
     header.classList.add('is-scroll-aware');
 
-    if ('ResizeObserver' in window) {
+    if (heroHeading && 'ResizeObserver' in window) {
       // The expanded top menu ends at the photo rather than crossing the headline.
       new ResizeObserver(() => {
         header.style.setProperty('--home-menu-cover', `${heroHeading.getBoundingClientRect().height}px`);
@@ -143,8 +289,9 @@
     return element?.closest('[data-home-surface]')?.dataset.homeSurface ?? 'light';
   }
 
-  function initHomeContact() {
+  function initFloatingContact() {
     const contact = document.querySelector('.home-contact-float');
+    if (!contact) return;
     const face = contact.querySelector('.home-contact-face');
     const faceSurfaces = { light: 'beige', beige: 'burgundy', burgundy: 'light', photo: 'burgundy' };
     const motion = window.matchMedia('(prefers-reduced-motion: no-preference)');
@@ -156,6 +303,26 @@
     const overlaps = (first, second) =>
       first.right > second.left && first.left < second.right &&
       first.bottom > second.top && first.top < second.bottom;
+
+    const visibleContent = new Set();
+    const textBounds = document.createRange();
+    const editorialText = 'h1, h2, h3, h4, p, dt, dd, figcaption, td, th, .row-summary, .service-scope li, .article-body :is(li, pre)';
+    const protectedContent = document.querySelectorAll(
+      `:is(main, .home-contact, footer) :is(form, input, textarea, select, a, button, [contenteditable], .article-detail summary, .article-table-scroll, .article-body :is(figure, img), ${editorialText})`
+    );
+    const observer = 'IntersectionObserver' in window && new IntersectionObserver(entries => {
+      for (const { target, isIntersecting } of entries) {
+        if (isIntersecting) visibleContent.add(target);
+        else visibleContent.delete(target);
+      }
+      scheduleTone();
+    });
+    for (const element of protectedContent) {
+      if (element === contact) continue;
+      visibleContent.add(element);
+      if (observer) observer.observe(element);
+    }
+    contact.classList.add('is-positioned');
 
     function applyTone(tone) {
       contact.dataset.controlTone = tone;
@@ -191,6 +358,13 @@
     function updateTone() {
       frame = 0;
       const box = contact.getBoundingClientRect();
+      const collision = [...visibleContent].some(element => {
+        if (!overlaps(box, element.getBoundingClientRect())) return false;
+        if (!element.matches(editorialText)) return true;
+        textBounds.selectNodeContents(element);
+        return [...textBounds.getClientRects()].some(rect => overlaps(box, rect));
+      });
+      contact.classList.toggle('is-yielding', collision);
       const sample = (x, y) => homeSurfaceFor(
         document.elementsFromPoint(x, y).find(element => !contact.contains(element))
       );
@@ -229,20 +403,36 @@
   }
 
 
+  function revealSequenceInset() {
+    return Math.min(72, Math.round(window.innerHeight * .08));
+  }
+
   function initReveals() {
     const motion = window.matchMedia('(prefers-reduced-motion: no-preference)');
     if (!motion.matches || !('IntersectionObserver' in window)) return;
 
     const selector = '[data-reveal], [data-reveal-children] > *';
     const targets = document.querySelectorAll(selector);
+    const pendingSequence = new Map();
+    const bypassed = new WeakSet();
     const listeners = new AbortController();
-    const threshold = .15;
-    const observer = new IntersectionObserver(entries => {
+    let sequenceObserver;
+
+    function revealEntries(entries, observer) {
+      const nextDelays = new Map();
       for (const { target, isIntersecting, intersectionRatio } of entries) {
-        if (!isIntersecting || intersectionRatio < threshold) continue;
+        if (bypassed.has(target) || !isIntersecting || intersectionRatio < revealThreshold) continue;
         observer.unobserve(target);
+        target.classList.remove('is-awaiting-reveal');
+        const sequence = pendingSequence.get(target);
+        if (sequence) {
+          pendingSequence.delete(target);
+          const delay = nextDelays.get(sequence) ?? 0;
+          if (delay) target.style.setProperty('--reveal-delay', `${delay}ms`);
+          nextDelays.set(sequence, delay + 90);
+        }
         const reveal = () => {
-          if (target.matches(':focus-within')) return;
+          if (bypassed.has(target) || target.matches(':focus-within')) return;
           target.classList.add('is-revealed');
           if (target.dataset.reveal === 'experience') countExperience(target, listeners.signal);
         };
@@ -253,23 +443,58 @@
           reveal();
         }
       }
-    }, { threshold });
+    }
 
-    targets.forEach(target => observer.observe(target));
+    function observeSequence() {
+      sequenceObserver?.disconnect();
+      if (!pendingSequence.size) return;
+      const inset = revealSequenceInset();
+      sequenceObserver = new IntersectionObserver(revealEntries, {
+        rootMargin: `${inset}px 0px 0px`,
+        threshold: revealThreshold,
+      });
+      pendingSequence.forEach((_, target) => sequenceObserver.observe(target));
+    }
+
+    const observer = new IntersectionObserver(revealEntries, { threshold: revealThreshold });
+    for (const target of targets) {
+      const sequence = target.closest('[data-reveal-sequence]');
+      if (sequence || target.matches('[data-reveal="subtle"], [data-reveal="service-row"]')) {
+        target.classList.add('is-awaiting-reveal');
+      }
+      if (sequence) {
+        pendingSequence.set(target, sequence);
+      } else {
+        observer.observe(target);
+      }
+    }
+    if (pendingSequence.size) {
+      observeSequence();
+      window.addEventListener('resize', observeSequence, { passive: true, signal: listeners.signal });
+    }
+
+    function finishReveal(target) {
+      bypassed.add(target);
+      observer.unobserve(target);
+      sequenceObserver?.unobserve(target);
+      pendingSequence.delete(target);
+      target.classList.remove('is-revealed', 'is-awaiting-reveal');
+    }
 
     document.addEventListener('focusin', event => {
       if (!event.target.matches(':focus-visible')) return;
       const target = event.target.closest(selector);
-      if (!target) return;
-      observer.unobserve(target);
-      target.classList.remove('is-revealed');
+      if (target) finishReveal(target);
     }, { signal: listeners.signal });
 
     motion.addEventListener('change', () => {
       observer.disconnect();
+      sequenceObserver?.disconnect();
       listeners.abort();
-      targets.forEach(target => target.classList.remove('is-revealed'));
+      targets.forEach(target => target.classList.remove('is-revealed', 'is-awaiting-reveal'));
     }, { once: true });
+
+    return finishReveal;
   }
 
   function countExperience(target, signal) {
@@ -417,13 +642,14 @@
     measure();
   }
 
-  function initHomeImageMotion() {
+  function initScrollMotion() {
     if (navigator.maxTouchPoints > 0 || !('IntersectionObserver' in window) || !window.CSS?.supports('translate', '0 1%')) return;
 
     const motion = window.matchMedia(
       '(min-width: 57rem) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)'
     );
-    const photos = document.querySelectorAll('[data-scroll-photo]');
+    const targets = document.querySelectorAll('[data-scroll-photo]');
+    if (!targets.length) return;
     const visible = new Set();
     let frame = 0;
 
@@ -438,17 +664,17 @@
     function draw() {
       frame = 0;
       const viewport = window.innerHeight;
-      const offsets = Array.from(visible, photo => {
-        const { top, height } = photo.getBoundingClientRect();
-        const stage = photo.closest('[data-pinned]');
+      const offsets = Array.from(visible, element => {
+        const { top, height } = element.getBoundingClientRect();
+        const stage = element.closest('[data-pinned]');
         const hold = parseFloat(stage?.style.getPropertyValue('--stage-hold')) || 0;
         const pinnedDistance = hold * Number(stage?.style.getPropertyValue('--stage-progress') ?? 0);
-        // Spread the same parallax travel across entry, hold and release.
+        // Include the pinned scroll distance for fullscreen stages.
         const progress = Math.max(0, Math.min(1, (viewport - top + pinnedDistance) / (viewport + height + hold)));
-        return [photo, (progress - .5) * 16];
+        return [element, (progress - .5) * 16];
       });
-      for (const [photo, offset] of offsets) {
-        photo.style.setProperty('--photo-scroll-offset', `${offset.toFixed(3)}%`);
+      for (const [element, offset] of offsets) {
+        element.style.setProperty('--scroll-motion-offset', `${offset.toFixed(3)}%`);
       }
     }
 
@@ -459,7 +685,7 @@
     function sync() {
       document.body.classList.toggle('has-photo-scroll', motion.matches);
       if (motion.matches) {
-        photos.forEach(photo => observer.observe(photo));
+        targets.forEach(element => observer.observe(element));
         window.addEventListener('scroll', schedule, { passive: true });
         window.addEventListener('resize', schedule, { passive: true });
         return;
@@ -469,7 +695,7 @@
       visible.clear();
       cancelAnimationFrame(frame);
       frame = 0;
-      photos.forEach(photo => photo.style.removeProperty('--photo-scroll-offset'));
+      targets.forEach(element => element.style.removeProperty('--scroll-motion-offset'));
       window.removeEventListener('scroll', schedule);
       window.removeEventListener('resize', schedule);
     }
@@ -478,7 +704,64 @@
     sync();
   }
 
-  function initHomeCursor() {
+  function initProcessTimeline(list) {
+    const motion = window.matchMedia('(prefers-reduced-motion: no-preference)');
+    const steps = Array.from(list.children);
+    const markers = steps.map(step => step.querySelector('.about-step-marker, .career-step-marker'));
+    const resizeObserver = 'ResizeObserver' in window ? new ResizeObserver(schedule) : null;
+    let frame = 0;
+
+    function draw() {
+      frame = 0;
+      const readingLine = window.innerHeight * .78;
+      const points = markers.map(marker => {
+        const bounds = marker.getBoundingClientRect();
+        return bounds.top + bounds.height / 2;
+      });
+      const progress = Math.max(0, Math.min(readingLine, points.at(-1)) - points[0]);
+      const reached = points.filter(point => point <= readingLine).length;
+      list.style.setProperty('--process-progress', `${progress}px`);
+
+      steps.forEach((step, index) => {
+        const arrived = index < reached;
+        step.classList.toggle('is-reached', arrived);
+        if (!arrived || step.classList.contains('is-revealed')) return;
+        step.classList.add('is-revealed');
+        // A jump past multiple markers settles earlier steps immediately.
+        if (index === reached - 1) step.classList.add('is-entering');
+      });
+    }
+
+    function schedule() {
+      if (!frame && motion.matches) frame = requestAnimationFrame(draw);
+    }
+
+    function sync() {
+      if (motion.matches) {
+        list.classList.add('is-scroll-enhanced');
+        window.addEventListener('scroll', schedule, { passive: true });
+        window.addEventListener('resize', schedule, { passive: true });
+        resizeObserver?.observe(list);
+        draw();
+        return;
+      }
+
+      window.removeEventListener('scroll', schedule);
+      window.removeEventListener('resize', schedule);
+      resizeObserver?.disconnect();
+      cancelAnimationFrame(frame);
+      frame = 0;
+      list.classList.remove('is-scroll-enhanced');
+      list.style.removeProperty('--process-progress');
+      steps.forEach(step => step.classList.remove('is-reached', 'is-entering'));
+    }
+
+    motion.addEventListener('change', sync);
+    document.fonts?.ready.then(schedule);
+    sync();
+  }
+
+  function initSiteCursor() {
     if (navigator.maxTouchPoints > 0 || !('PointerEvent' in window)) return;
 
     const capability = window.matchMedia(
@@ -494,7 +777,7 @@
     cursor.append(ring, dot);
 
     const interactive = 'a[href], button:not(:disabled), summary, [role="button"], [role="link"]';
-    const nativeControls = 'input, textarea, select, label, [contenteditable], [role="textbox"], iframe';
+    const nativeControls = 'input, textarea, select, label, [contenteditable], [role="textbox"], iframe, .article-body';
 
     let listeners;
     let frame = 0;
@@ -535,13 +818,7 @@
 
       const elapsed = lastTime ? time - lastTime : 16;
       slowFrames = elapsed > 32 ? slowFrames + 1 : 0;
-      if (slowFrames >= 5) {
-        capability.removeEventListener('change', sync);
-        stop();
-        return;
-      }
-
-      const ease = 1 - Math.exp(-elapsed / 23);
+      const ease = slowFrames >= 5 ? 1 : 1 - Math.exp(-elapsed / 23);
       x += (targetX - x) * ease;
       y += (targetY - y) * ease;
       const distance = Math.hypot(x - targetX, y - targetY);
@@ -569,11 +846,16 @@
     }
 
     function trackTarget(element, refresh = false) {
-      if (!(element instanceof Element) || !document.body.contains(element) || element.closest(nativeControls)) return false;
       if (target === element && !refresh) return true;
+      if (!(element instanceof Element) || !document.body.contains(element) || element.closest(nativeControls)) return false;
+      if (!homepage) {
+        const selection = window.getSelection();
+        if (element.closest('form button, [role="combobox"]') ||
+            (selection && !selection.isCollapsed && selection.containsNode(element, true))) return false;
+      }
 
       target = element;
-      cursor.classList.toggle('is-interactive', Boolean(target.closest(interactive)));
+      cursor.classList.toggle('is-interactive', Boolean(element.closest(interactive)));
       const tone = homeSurfaceFor(target);
       if (tone !== pendingTone) {
         window.clearTimeout(toneTimer);
@@ -635,6 +917,9 @@
       document.addEventListener('dragstart', hide, options);
       document.addEventListener('keydown', hide, options);
       document.addEventListener('visibilitychange', hide, options);
+      if (!homepage) document.addEventListener('selectionchange', () => {
+        if (window.getSelection()?.isCollapsed === false) hide();
+      }, options);
       document.addEventListener('homesurfacechange', scheduleTargetRefresh, options);
       window.addEventListener('scroll', scheduleTargetRefresh, options);
       window.addEventListener('resize', scheduleTargetRefresh, options);
