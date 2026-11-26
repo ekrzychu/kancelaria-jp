@@ -39,7 +39,7 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-          extensions: curl, dom, mbstring, pdo_mysql, xml
+          extensions: curl, dom, intl, mbstring, pdo_mysql, xml, zip
           tools: composer:2.11.3
           coverage: none
       - uses: actions/setup-node@v4
@@ -47,8 +47,10 @@ jobs:
           node-version: '22'
       - name: Install locked Laravel dependencies
         run: |
+          export APP_ENV=testing
           composer install --no-interaction --prefer-dist --no-progress
           composer check-platform-reqs
+          composer audit --locked
       - name: Provision the disposable-schema test account
         env:
           DB_CONTAINER: ${{ job.services.mariadb.id }}
@@ -74,3 +76,5 @@ jobs:
         run: node --test tests/http.test.mjs
       - name: Browser regressions
         run: node --test tests/browser.test.mjs
+      - name: Administrative hostname and CMS regressions
+        run: node --test tests/panel.test.mjs

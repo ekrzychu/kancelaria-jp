@@ -27,8 +27,10 @@ test('MariaDB 11.4 migrations, dry run, rollback, exact import, and repeat refus
   assert.match(database.version, /^11\.4\.\d+.*MariaDB/i);
   assert.deepEqual(counts(database), [0, 0, 0, 0]);
   const tableSettings = rows(database,
-    'SELECT ENGINE, TABLE_COLLATION FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() ORDER BY TABLE_NAME');
-  assert.equal(tableSettings.length, 5);
+    'SELECT TABLE_NAME, ENGINE, TABLE_COLLATION FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() ORDER BY TABLE_NAME');
+  assert.deepEqual(tableSettings.map(table => table.TABLE_NAME), [
+    ...tables, 'migrations', 'admin_account_lock', 'users', 'password_reset_tokens', 'sessions',
+  ].sort());
   assert(tableSettings.every(table => table.ENGINE === 'InnoDB' && table.TABLE_COLLATION === 'utf8mb4_unicode_ci'));
   const date = rows(database, "SELECT DATA_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='articles' AND COLUMN_NAME='date'");
   assert.equal(date[0].DATA_TYPE, 'date');

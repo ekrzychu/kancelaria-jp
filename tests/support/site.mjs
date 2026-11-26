@@ -1,4 +1,4 @@
-import { execFileSync, spawn } from 'node:child_process';
+import { execFile, execFileSync, spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { cp, mkdir, mkdtemp, readFile, rm, symlink } from 'node:fs/promises';
 import { createServer } from 'node:net';
@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setTimeout } from 'node:timers/promises';
+import { promisify } from 'node:util';
 
 import { createTestDatabase } from './database.mjs';
 
@@ -66,7 +67,7 @@ export async function startSite({ importContent = true, serve = true, cached = f
       mkdir(join(dir, 'bootstrap', 'cache'), { recursive: true }),
       symlink(join(root, 'vendor'), join(dir, 'vendor'), process.platform === 'win32' ? 'junction' : 'dir'),
     ]);
-    await Promise.all(['app', 'artisan', 'bootstrap/app.php', 'composer.json', 'config', 'database', 'public', 'resources', 'routes'].map(name =>
+    await Promise.all(['app', 'artisan', 'bootstrap/app.php', 'bootstrap/providers.php', 'composer.json', 'config', 'database', 'public', 'resources', 'routes'].map(name =>
       cp(join(root, name), join(dir, name), { recursive: true })));
     database = createTestDatabase(php);
     const host = '127.0.0.1:' + await freePort();
@@ -80,13 +81,16 @@ export async function startSite({ importContent = true, serve = true, cached = f
       APP_ENV: 'testing',
       APP_DEBUG: 'false',
       APP_URL: origin,
+      PUBLIC_HOST: '127.0.0.1',
+      ADMIN_HOST: 'panel.localhost',
+      ADMIN_URL: origin.replace('127.0.0.1', 'panel.localhost'),
+      ADMIN_TEST_RECOVERY: 'true',
       APP_KEY: 'base64:' + randomBytes(32).toString('base64'),
       APP_MAINTENANCE_DRIVER: 'file',
       LARAVEL_STORAGE_PATH: storage,
       VIEW_COMPILED_PATH: join(storage, 'framework', 'views'),
       SITE_CONTENT_PATH: content,
       CACHE_STORE: 'array',
-      SESSION_DRIVER: 'array',
       LOG_CHANNEL: 'single',
       MAIL_MAILER: 'array',
       QUEUE_CONNECTION: 'sync',
@@ -95,6 +99,13 @@ export async function startSite({ importContent = true, serve = true, cached = f
     const artisan = (args, overrides = {}) => execFileSync(php, ['artisan', ...args], {
       cwd: dir, env: { ...runtimeEnv, ...overrides }, encoding: 'utf8', windowsHide: true,
     });
+    const panelChecks = (args, input) => execFileSync(php, [join(root, 'tests', 'support', 'panel-checks.php'), dir, ...args], {
+      cwd: dir, env: runtimeEnv, input, encoding: 'utf8', windowsHide: true,
+    });
+    const concurrentPanelCheck = args => promisify(execFile)(
+      php, [join(root, 'tests', 'support', 'panel-checks.php'), dir, ...args],
+      { cwd: dir, env: runtimeEnv, encoding: 'utf8', windowsHide: true },
+    );
     const modelChecks = () => execFileSync(php, [join(root, 'tests', 'support', 'model-checks.php'), dir], {
       cwd: dir, env: runtimeEnv, encoding: 'utf8', windowsHide: true,
     });
@@ -132,7 +143,8 @@ export async function startSite({ importContent = true, serve = true, cached = f
     const entries = await Promise.all(['site', 'services', 'team', 'articles', 'recruitment'].map(async name => [
       name, JSON.parse(await readFile(join(content, name + '.json'), 'utf8')),
     ]));
-    return { dir, origin, data: Object.fromEntries(entries), database, artisan, stop, log: () => log };
+    return { dir, origin, adminOrigin: runtimeEnv.ADMIN_URL, data: Object.fromEntries(entries), database, artisan,
+      panelChecks, concurrentPanelCheck, stop, log: () => log };
   } catch (error) {
     await stop();
     throw error;
