@@ -56,6 +56,7 @@
   document.querySelectorAll('[data-about-process], [data-career-process]').forEach(initProcessTimeline);
   const finishReveal = initReveals();
   initPublicationArchive(finishReveal);
+  initArticleReading();
   document.querySelector('.form-status.error')?.focus();
 
   const search = document.querySelector('[data-service-search]');
@@ -164,6 +165,61 @@
     form.hidden = false;
   }
 
+  function initArticleReading() {
+    const article = document.querySelector('.article-detail');
+    if (!article) return;
+    const body = article.querySelector('.article-body');
+    const progress = article.querySelector('.article-progress');
+    const contents = article.querySelector('.article-contents');
+    const sections = [...(contents?.querySelectorAll('nav a') ?? [])].map(link => ({
+      link,
+      heading: document.getElementById(decodeURIComponent(link.hash.slice(1))),
+    }));
+    const desktop = window.matchMedia('(min-width: 66rem)');
+    let current;
+    let frame = 0;
+
+    function update() {
+      frame = 0;
+      const bounds = body.getBoundingClientRect();
+      const anchorOffset = sections.length ? parseFloat(getComputedStyle(sections[0].heading).scrollMarginBlockStart) : 0;
+      const readingLine = Math.max(anchorOffset, Math.min(window.innerHeight * .25, 150));
+      const distance = readingLine - bounds.top;
+      const travel = Math.max(1, bounds.bottom - bounds.top - window.innerHeight + readingLine);
+      const value = Math.min(1, Math.max(0, distance / travel));
+      progress.hidden = value === 0;
+      progress.style.setProperty('--article-progress', value);
+
+      let active;
+      if (bounds.bottom >= readingLine) {
+        for (const { heading, link } of sections) {
+          if (heading.getBoundingClientRect().top > readingLine) break;
+          active = link;
+        }
+      }
+      if (active !== current) {
+        current?.removeAttribute('aria-current');
+        active?.setAttribute('aria-current', 'location');
+        current = active;
+      }
+    }
+
+    function schedule() {
+      if (!frame) frame = requestAnimationFrame(update);
+    }
+
+    if (contents) {
+      contents.open = desktop.matches;
+      desktop.addEventListener('change', event => { contents.open = event.matches; });
+      contents.addEventListener('toggle', schedule);
+    }
+    if ('ResizeObserver' in window) new ResizeObserver(schedule).observe(article);
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule, { passive: true });
+    window.addEventListener('pageshow', schedule);
+    schedule();
+  }
+
   function initScrollNavigation() {
     const header = document.querySelector('.site-header');
     const heroHeading = document.querySelector('.home-hero-heading');
@@ -247,7 +303,7 @@
     const editorialText = 'h1, h2, h3, h4, p, dt, dd, figcaption, td, th, .row-summary, .service-scope li, .article-body :is(li, pre)';
     if (!homepage) {
       const protectedContent = document.querySelectorAll(
-        `:is(main, footer) :is(form, input, textarea, select, a, button, [contenteditable], .article-body figure, ${editorialText})`
+        `:is(main, footer) :is(form, input, textarea, select, a, button, [contenteditable], .article-detail summary, .article-table-scroll, .article-body :is(figure, img), ${editorialText})`
       );
       const observer = 'IntersectionObserver' in window && new IntersectionObserver(entries => {
         for (const { target, isIntersecting } of entries) {
@@ -719,7 +775,7 @@
     cursor.append(ring, dot);
 
     const interactive = 'a[href], button:not(:disabled), summary, [role="button"], [role="link"]';
-    const nativeControls = 'input, textarea, select, label, [contenteditable], [role="textbox"], iframe';
+    const nativeControls = 'input, textarea, select, label, [contenteditable], [role="textbox"], iframe, .article-body';
 
     let listeners;
     let frame = 0;
