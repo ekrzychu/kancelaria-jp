@@ -13,14 +13,17 @@ export async function startBrowser() {
       : 'google-chrome');
   const child = spawn(executable, [
     '--headless=new', '--disable-extensions', '--no-first-run', '--disable-background-networking',
+    ...(process.platform === 'linux' ? ['--disable-dev-shm-usage'] : []),
     // Headless Linux can lack a primary pointing device. Supply desktop capabilities for the desktop tests.
     '--blink-settings=primaryPointerType=4,availablePointerTypes=4,primaryHoverType=2,availableHoverTypes=2',
     '--no-sandbox', '--remote-debugging-port=0', '--remote-debugging-address=127.0.0.1',
     '--user-data-dir=' + profile, 'about:blank',
-  ], { windowsHide: true, stdio: 'ignore' });
+  ], { windowsHide: true, stdio: ['ignore', 'ignore', 'pipe'] });
   let spawnError;
   let socket;
+  let stderr = '';
   child.on('error', error => { spawnError = error; });
+  child.stderr.setEncoding('utf8').on('data', chunk => { stderr = (stderr + chunk).slice(-8000); });
   const stop = async () => {
     socket?.close();
     await stopProcess(child);
@@ -30,9 +33,14 @@ export async function startBrowser() {
   try {
     const port = await until(async () => {
       if (spawnError) throw new Error('Cannot launch Chrome. Set CHROME_BIN to the executable.', { cause: spawnError });
-      if (child.exitCode !== null) throw new Error('Chrome exited before opening its debugging socket.');
+      if (child.exitCode !== null || child.signalCode !== null) {
+        throw new Error('Chrome exited before opening its debugging socket.');
+      }
       return readFile(join(profile, 'DevToolsActivePort'), 'utf8').then(value => value.split('\n')[0], () => false);
-    }, 'Chrome debugging port');
+    }, 'Chrome debugging port', 25000).catch(error => {
+      if (!stderr.trim()) throw error;
+      throw new Error(error.message + '\n' + stderr.trim(), { cause: error });
+    });
     const targets = await (await fetch('http://127.0.0.1:' + port + '/json/list')).json();
     socket = new WebSocket(targets.find(target => target.type === 'page').webSocketDebuggerUrl);
     await new Promise((resolve, reject) => {
