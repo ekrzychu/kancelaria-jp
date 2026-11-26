@@ -2,7 +2,6 @@
 $publication = $article;
 $summary = is_string($article['summary'] ?? null) ? trim($article['summary']) : '';
 $author = is_string($article['author'] ?? null) ? trim($article['author']) : '';
-$category = is_string($article['category'] ?? null) ? trim($article['category']) : '';
 $bodyHtml = $article['body_html'];
 $sections = [];
 $sectionCount = 0;
@@ -74,12 +73,11 @@ foreach ($articles as $entry) {
         || !is_string($entry['title'] ?? null) || trim($entry['title']) === '') {
         continue;
     }
-    $entry['same_category'] = $category !== '' && is_string($entry['category'] ?? null) && trim($entry['category']) === $category;
     $entry['related_date'] = publication_date($entry['date'] ?? null)?->format('Y-m-d') ?? '';
     $related[] = $entry;
 }
 usort($related, static fn (array $a, array $b): int =>
-    [$b['same_category'], $b['related_date']] <=> [$a['same_category'], $a['related_date']]
+    $b['related_date'] <=> $a['related_date']
 );
 $related = array_slice($related, 0, 2);
 
