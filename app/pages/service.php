@@ -26,13 +26,15 @@
         </ul>
       </section>
 
-      <section class="service-contact" aria-labelledby="service-contact-title" data-reveal="subtle" data-home-surface="beige">
+      <section class="service-contact" aria-labelledby="service-contact-title" data-reveal="subtle">
         <h2 id="service-contact-title">Porozmawiajmy o&nbsp;Twojej sprawie.</h2>
-        <p>Skontaktuj się z&nbsp;kancelarią, aby omówić możliwy zakres współpracy.</p>
-        <a class="text-action service-action" href="/kontakt/">
-          <span>Skontaktuj się</span>
-          <svg class="service-action-arrow" viewBox="0 0 28 18" width="28" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M2 9h24m-7-7 7 7-7 7"/></svg>
-        </a>
+        <div>
+          <p>Skontaktuj się z&nbsp;kancelarią, aby omówić możliwy zakres współpracy.</p>
+          <a class="text-action service-action" href="/kontakt/">
+            <span>Skontaktuj się</span>
+            <svg class="service-action-arrow" viewBox="0 0 28 18" width="28" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M2 9h24m-7-7 7 7-7 7"/></svg>
+          </a>
+        </div>
       </section>
     </article>
 

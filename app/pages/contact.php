@@ -80,25 +80,20 @@ SVG;
         Strona internetowa
         <input name="website" autocomplete="off" tabindex="-1">
       </label>
-      <fieldset class="contact-fieldset">
-        <legend>Dane do kontaktu</legend>
-        <div class="contact-fields">
-          <label>
-            <span>Imię i nazwisko <span class="contact-required" aria-hidden="true">*</span></span>
-            <input name="name" autocomplete="name" maxlength="120" value="<?= e($formFields['name'] ?? '') ?>" required>
-          </label>
-          <label>
-            <span>Adres e-mail <span class="contact-required" aria-hidden="true">*</span></span>
-            <input name="email" type="email" autocomplete="email" maxlength="180" value="<?= e($formFields['email'] ?? '') ?>" required>
-          </label>
-          <label>
-            <span>Telefon <small>(opcjonalnie)</small></span>
-            <input name="phone" type="tel" autocomplete="tel" maxlength="40" value="<?= e($formFields['phone'] ?? '') ?>">
-          </label>
-        </div>
-      </fieldset>
-      <div class="contact-message">
-        <label>
+      <div class="contact-fields">
+        <label class="contact-field">
+          <span>Imię i nazwisko <span class="contact-required" aria-hidden="true">*</span></span>
+          <input name="name" autocomplete="name" maxlength="120" value="<?= e($formFields['name'] ?? '') ?>" required>
+        </label>
+        <label class="contact-field">
+          <span>Adres e-mail <span class="contact-required" aria-hidden="true">*</span></span>
+          <input name="email" type="email" autocomplete="email" maxlength="180" value="<?= e($formFields['email'] ?? '') ?>" required>
+        </label>
+        <label class="contact-field">
+          <span>Telefon <small>(opcjonalnie)</small></span>
+          <input name="phone" type="tel" autocomplete="tel" maxlength="40" value="<?= e($formFields['phone'] ?? '') ?>">
+        </label>
+        <label class="contact-field">
           <span>Opis sprawy <span class="contact-required" aria-hidden="true">*</span></span>
           <textarea name="message" rows="5" maxlength="4000" required><?= e($formFields['message'] ?? '') ?></textarea>
         </label>

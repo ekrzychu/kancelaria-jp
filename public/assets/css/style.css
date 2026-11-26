@@ -2373,9 +2373,10 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
 }
 
 .service-contact {
+  display: grid;
+  gap: .65rem clamp(1.25rem, 3.6vw, 2.5rem);
   border-block-start: 1px solid var(--taupe);
-  padding: clamp(1.2rem, 2.6vw, 2.7rem);
-  background: var(--surface);
+  padding-block-start: clamp(1.2rem, 2.4vw, 2.1rem);
 }
 
 .service-contact h2 {
@@ -2383,8 +2384,14 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
 }
 
 .service-contact p {
-  margin-block-start: .65rem;
   color: var(--text-muted);
+}
+
+@media (min-width: 68rem) {
+  .service-contact {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+    align-items: start;
+  }
 }
 
 .service-contact .service-action {
@@ -3009,10 +3016,9 @@ main:has(.archive-empty) + .site-footer {
 .contact-form {
   position: relative;
   display: grid;
-  gap: clamp(.9rem, 1.6vw, 1.35rem);
-  border-block-start: 2px solid var(--taupe);
-  padding: clamp(1.15rem, 3vw, 3.5rem);
-  background: var(--surface);
+  gap: clamp(1.25rem, 2.2vw, 2rem);
+  border-block-start: 1px solid var(--line);
+  padding-block-start: clamp(1.25rem, 2.4vw, 2rem);
   scroll-margin-block-start: 1.25rem;
 }
 
@@ -3022,28 +3028,16 @@ main:has(.archive-empty) + .site-footer {
   align-items: baseline;
   justify-content: space-between;
   gap: .35rem 1.25rem;
-  border-block-end: 1px solid var(--line);
-  padding-block-end: 1rem;
+}
+
+.contact-form-heading h2 {
+  font-size: clamp(2.1rem, 3.8vw, 4.15rem);
 }
 
 .contact-form-heading p {
   margin: 0;
   color: var(--text-muted);
   font-size: var(--type-small);
-}
-
-.contact-fieldset {
-  min-inline-size: 0;
-  margin: 0;
-  border: 0;
-  padding: 0;
-}
-
-.contact-fieldset legend {
-  margin-block-end: .65rem;
-  padding: 0;
-  color: var(--burgundy);
-  font-weight: 600;
 }
 
 .contact-required,
@@ -3053,12 +3047,7 @@ main:has(.archive-empty) + .site-footer {
 
 .contact-fields {
   display: grid;
-  gap: 1rem;
-}
-
-.contact-message {
-  border-block-start: 1px solid var(--line);
-  padding-block-start: clamp(.9rem, 1.6vw, 1.35rem);
+  gap: clamp(1.25rem, 2.5vw, 2.3rem);
 }
 
 .contact-form-footer {
@@ -3073,47 +3062,45 @@ main:has(.archive-empty) + .site-footer {
   cursor: pointer;
 }
 
-.contact-form label {
+.contact-field {
   display: grid;
-  gap: .35rem;
-  color: var(--ink);
-  font-size: var(--type-small);
+  grid-template-columns: minmax(0, 1fr);
+  gap: .4rem;
+  color: var(--burgundy);
+  font-size: clamp(1.15rem, 1.85vw, 1.7rem);
   font-weight: 500;
+  line-height: 1.35;
 }
 
-.contact-form label small {
+.contact-field small {
   color: var(--text-muted);
   font-weight: 400;
 }
 
-.contact-form input,
-.contact-form textarea {
+.contact-field :is(input, textarea) {
   width: 100%;
-  min-height: 3rem;
-  border: 1px solid var(--control-line);
-  padding: .6rem .75rem;
-  background: color-mix(in srgb, var(--paper) 75%, var(--surface));
-  color: var(--ink);
-  font-size: 1rem;
-  font-weight: 400;
-}
-
-.contact-form input:not([type="hidden"]) {
+  min-height: clamp(3rem, 5vw, 4rem);
   border: 0;
   border-block-end: 1px solid var(--control-line);
+  border-radius: 0;
+  padding: .6rem .15rem;
+  background: transparent;
+  color: var(--ink);
+  font-size: clamp(1rem, 1.5vw, 1.2rem);
+  font-weight: 400;
+  line-height: 1.5;
 }
 
-.contact-form textarea {
+.contact-field textarea {
   resize: vertical;
 }
 
-.contact-form :is(input, textarea):user-invalid {
+.contact-field :is(input, textarea):user-invalid {
   border-color: #7c2931;
 }
 
-.contact-form :is(input, textarea):focus {
+.contact-field :is(input, textarea):focus {
   border-color: var(--focus);
-  background: var(--paper);
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
@@ -3215,10 +3202,6 @@ main:has(.archive-empty) + .site-footer {
 }
 
 @media (min-width: 68rem) {
-  .contact-fields {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .contact-form-footer {
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
