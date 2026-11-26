@@ -108,7 +108,12 @@ test('browser regression against the real PHP application', async t => {
     })));
     const initial = await stages();
     assert.deepEqual(initial.map(stage => stage.id), ['hero', 'practices', 'publications', 'profile', 'office', 'clients']);
-    assert(initial.every(stage => stage.pinned && stage.hold > 0), 'Expected full-screen stages at 1440×900');
+    const desktopCapabilities = await evaluate(() => ({
+      hover: matchMedia('(hover: hover)').matches,
+      finePointer: matchMedia('(pointer: fine)').matches,
+      viewport: [innerWidth, innerHeight],
+    }));
+    assert(initial.every(stage => stage.pinned && stage.hold > 0), 'Expected full-screen stages with ' + JSON.stringify(desktopCapabilities));
     const progress = name => evaluate(name => Number(document.querySelector('[data-home-stage="' + name + '"]').style.getPropertyValue('--stage-progress')), name);
     for (const stage of initial) {
       for (const fraction of [.24, .72, .32]) {

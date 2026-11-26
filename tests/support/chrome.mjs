@@ -13,6 +13,8 @@ export async function startBrowser() {
       : 'google-chrome');
   const child = spawn(executable, [
     '--headless=new', '--disable-extensions', '--no-first-run', '--disable-background-networking',
+    // Headless Linux can lack a primary pointing device. Supply desktop capabilities for the desktop tests.
+    '--blink-settings=primaryPointerType=4,availablePointerTypes=4,primaryHoverType=2,availableHoverTypes=2',
     '--no-sandbox', '--remote-debugging-port=0', '--remote-debugging-address=127.0.0.1',
     '--user-data-dir=' + profile, 'about:blank',
   ], { windowsHide: true, stdio: 'ignore' });
