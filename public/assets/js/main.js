@@ -59,17 +59,19 @@
   initArticleReading();
   document.querySelector('.form-status.error')?.focus();
 
-  const search = document.querySelector('[data-service-search]');
+  const serviceFilters = document.querySelector('[data-service-filters]');
+  const search = serviceFilters?.querySelector('[data-service-search]');
   const clearSearch = document.querySelector('[data-service-clear]');
   const rows = document.querySelectorAll('[data-service-row]');
   const searchStatus = document.querySelector('[data-service-status]');
   if (search && rows.length) {
+    const entries = Array.from(rows, row => ({ row, searchText: normalizeSearch(row.dataset.title || '') }));
     initSearchClear(search, clearSearch);
     const filterServices = () => {
-      const q = search.value.trim().normalize('NFC').toLocaleLowerCase('pl');
+      const q = normalizeSearch(search.value).trim();
       let visible = 0;
-      rows.forEach(row => {
-        const matches = !q || (row.dataset.title || '').includes(q);
+      entries.forEach(({ row, searchText }) => {
+        const matches = !q || searchText.includes(q);
         row.hidden = !matches;
         if (matches) {
           finishReveal?.(row);
@@ -86,6 +88,11 @@
 
     search.addEventListener('input', filterServices);
     if (search.value) filterServices();
+    serviceFilters.hidden = false;
+  }
+
+  function normalizeSearch(value) {
+    return value.toLocaleLowerCase('pl').normalize('NFD').replace(/\p{M}/gu, '').replace(/ł/g, 'l');
   }
 
   function initSearchClear(input, button) {
@@ -111,18 +118,17 @@
     const status = form.querySelector('[data-publication-status]');
     const reset = form.querySelector('[data-publication-reset]');
     const collator = new Intl.Collator('pl', { sensitivity: 'base', ignorePunctuation: true });
-    const normalize = value => value.toLocaleLowerCase('pl').normalize('NFD').replace(/\p{M}/gu, '').replace(/ł/g, 'l');
     const entries = Array.from(list.children, row => ({
       row,
       title: row.dataset.publicationTitle,
       date: row.dataset.publicationDate,
       category: row.dataset.publicationCategory,
-      search: normalize(row.dataset.publicationSearch),
+      search: normalizeSearch(row.dataset.publicationSearch),
     }));
     let currentSort = 'newest';
 
     function update(revealResults) {
-      const words = normalize(query.value).trim().split(/\s+/u).filter(Boolean);
+      const words = normalizeSearch(query.value).trim().split(/\s+/u).filter(Boolean);
       if (sort.value !== currentSort) {
         const ordered = [...entries].sort((a, b) => {
           if (sort.value === 'az') return collator.compare(a.title, b.title);

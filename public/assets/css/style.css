@@ -132,6 +132,7 @@ textarea {
 }
 
 .skip-link:focus {
+  z-index: 6;
   transform: none;
 }
 
@@ -440,7 +441,6 @@ body:has(> main > :is(.about-hero, .page-hero, .service-hero, .team-hero, .caree
 }
 
 .homepage .skip-link {
-  z-index: 6;
   background: var(--light-text);
   color: var(--burgundy);
 }

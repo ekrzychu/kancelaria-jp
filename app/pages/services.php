@@ -7,7 +7,7 @@
 
 <section class="services-directory" aria-label="Katalog specjalizacji">
   <div class="services-frame">
-    <div class="filter-line" data-reveal="subtle">
+    <div class="filter-line" data-service-filters data-reveal="subtle" hidden>
       <div class="service-search">
         <label>
           <?= icon('search') ?>
