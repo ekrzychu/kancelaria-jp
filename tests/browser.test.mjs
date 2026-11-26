@@ -127,14 +127,19 @@ test('browser regression against the real PHP application', async t => {
     const restored = await evaluate(() => scrollY);
     await browser.reload();
     await until(async () => Math.abs(await evaluate(() => scrollY) - restored) < 100, 'reload restores scroll position');
-    await browser.viewport(390, 844, true);
-    await until(async () => (await stages()).every(stage => !stage.pinned), 'mobile fallback');
+    await browser.viewport(960, 844);
+    await until(async () => (await stages()).every(stage => !stage.pinned), 'narrow desktop fallback');
     await browser.viewport(1440, 900);
     await until(async () => (await stages()).every(stage => stage.pinned), 'desktop layout restores');
     await reduced('reduce');
     await until(async () => (await stages()).every(stage => !stage.pinned), 'reduced motion fallback');
     assert(await evaluate(() => !document.querySelector('.home-cursor,.is-awaiting-reveal')));
     await reduced('no-preference');
+
+    await browser.viewport(390, 844, true);
+    await visit('/?viewport=touch');
+    assert((await stages()).every(stage => !stage.pinned), 'Touch layout uses normal document flow');
+    await browser.viewport(1440, 900);
   });
 
   await t.test('specialization search folds Polish accents, clears, and reports zero results', async () => {

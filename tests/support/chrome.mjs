@@ -43,6 +43,7 @@ export async function startBrowser() {
     const pending = new Map();
     const events = new Map();
     let next = 0;
+    let touch;
     socket.addEventListener('message', ({ data }) => {
       const message = JSON.parse(data);
       if (pending.has(message.id)) {
@@ -104,7 +105,10 @@ export async function startBrowser() {
       reload: () => pageLoad('Page.reload'),
       async viewport(width, height, mobile = false) {
         await call('Emulation.setDeviceMetricsOverride', { width, height, screenWidth: width, screenHeight: height, deviceScaleFactor: 1, mobile });
-        await call('Emulation.setTouchEmulationEnabled', { enabled: mobile, maxTouchPoints: mobile ? 1 : undefined });
+        if (touch !== mobile) {
+          await call('Emulation.setTouchEmulationEnabled', { enabled: mobile, maxTouchPoints: mobile ? 1 : undefined });
+          touch = mobile;
+        }
       },
       async key(key, vk) {
         for (const type of ['keyDown', 'keyUp']) {
