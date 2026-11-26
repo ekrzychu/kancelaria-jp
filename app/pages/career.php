@@ -19,18 +19,7 @@ SVG;
       <span class="section-kicker">Kariera</span>
       <h1 id="career-title">Rozwijaj swoją karierę razem z&nbsp;nami.</h1>
     </div>
-    <p class="career-intro" data-reveal="subtle">Jeśli chcesz rozwijać swój warsztat prawniczy i&nbsp;pracować nad sprawami wspólnie z&nbsp;innymi, poznaj nasz zespół i&nbsp;dowiedz się, jak wygląda rekrutacja.</p>
-  </div>
-</section>
-
-<section class="career-work" aria-labelledby="career-work-title">
-  <div class="career-frame career-split">
-    <h2 id="career-work-title" data-reveal="subtle">Praca w&nbsp;zespole</h2>
-    <p class="career-lead" data-reveal="subtle">Nad jedną sprawą często pracują osoby z&nbsp;różnych dziedzin prawa.</p>
-    <div class="career-work-copy" data-reveal="subtle">
-      <p>Radcowie prawni, adwokaci i&nbsp;specjaliści prawni współpracują przy bieżących sprawach firm i&nbsp;instytucji oraz przy sporach. Doradzamy także klientom indywidualnym i&nbsp;reprezentujemy ich w&nbsp;postępowaniach.</p>
-      <a class="text-action career-action" href="/zespol/"><span>Poznaj nasz zespół</span><?= $careerArrow ?></a>
-    </div>
+    <p class="career-intro" data-reveal="subtle">Jeśli chcesz rozwijać swój warsztat prawniczy i&nbsp;pracować nad sprawami wspólnie z&nbsp;innymi, dowiedz się, jak wygląda rekrutacja.</p>
   </div>
 </section>
 

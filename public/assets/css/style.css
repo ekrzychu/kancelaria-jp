@@ -2067,7 +2067,7 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
 
 /* Career */
 
-:where(.career-hero, .career-work, .career-opportunities, .career-process, .career-application) {
+:where(.career-hero, .career-opportunities, .career-process, .career-application) {
   --career-space: clamp(3.5rem, 6vw, 7.5rem);
   --career-gap: clamp(1.25rem, 4vw, 4.5rem);
 }
@@ -2090,7 +2090,6 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
 }
 
 .career-intro,
-.career-work-copy p,
 .career-opening p,
 .career-application-copy p {
   max-width: 49ch;
@@ -2104,31 +2103,11 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
   text-wrap: pretty;
 }
 
-.career-work h2,
 .career-opportunities h2,
 .career-process h2,
 .career-application h2 {
   max-width: 20ch;
   font-size: clamp(1.9rem, 3.2vw, 4rem);
-  text-wrap: balance;
-}
-
-.career-work .career-frame {
-  row-gap: clamp(1rem, 1.75vw, 1.65rem);
-  border-block-start: 1px solid var(--line);
-  padding-block-start: clamp(1.8rem, 4vw, 4.5rem);
-}
-
-.career-work-copy p {
-  max-width: 62ch;
-}
-
-.career-work .career-lead {
-  max-width: 30ch;
-  margin: 0;
-  color: var(--burgundy);
-  font-size: clamp(1.5rem, 2.5vw, 3rem);
-  line-height: 1.15;
   text-wrap: balance;
 }
 
@@ -2139,7 +2118,7 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
 }
 
 .career-opportunities {
-  padding-block: var(--career-space) clamp(2.5rem, 5vw, 5rem);
+  padding-block-end: clamp(2.5rem, 5vw, 5rem);
 }
 
 .career-opportunities h2 {
@@ -2185,22 +2164,6 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
 
   .career-process-layout {
     grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
-  }
-
-  .career-work .career-split {
-    align-items: start;
-  }
-
-  .career-work h2 {
-    grid-area: 1 / 2;
-  }
-
-  .career-work .career-lead {
-    grid-area: 1 / 1 / 3;
-  }
-
-  .career-work-copy {
-    grid-area: 2 / 2;
   }
 }
 
