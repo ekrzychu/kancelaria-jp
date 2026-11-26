@@ -34,25 +34,21 @@
       else setMenuOpen(false);
     });
 
-    if (homepage) {
-      const header = menuButton.closest('.site-header');
-      const closeOutside = event => {
-        if (!header.contains(event.target) && menuButton.getAttribute('aria-expanded') === 'true') {
-          setMenuOpen(false);
-        }
-      };
-      document.addEventListener('focusin', closeOutside);
-      document.addEventListener('pointerdown', closeOutside, { passive: true });
-    }
+    const header = menuButton.closest('.site-header');
+    const closeOutside = event => {
+      if (!header.contains(event.target) && menuButton.getAttribute('aria-expanded') === 'true') {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('focusin', closeOutside);
+    document.addEventListener('pointerdown', closeOutside, { passive: true });
 
     menuButton.hidden = false;
     syncMenu();
   }
 
-  if (homepage) {
-    initHomeStages();
-    initHomeNavigation();
-  }
+  if (homepage) initHomeStages();
+  initScrollNavigation();
 
   initFloatingContact();
   initScrollMotion();
@@ -168,12 +164,12 @@
     form.hidden = false;
   }
 
-  function initHomeNavigation() {
+  function initScrollNavigation() {
     const header = document.querySelector('.site-header');
     const heroHeading = document.querySelector('.home-hero-heading');
     header.classList.add('is-scroll-aware');
 
-    if ('ResizeObserver' in window) {
+    if (heroHeading && 'ResizeObserver' in window) {
       // The expanded top menu ends at the photo rather than crossing the headline.
       new ResizeObserver(() => {
         header.style.setProperty('--home-menu-cover', `${heroHeading.getBoundingClientRect().height}px`);

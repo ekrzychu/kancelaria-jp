@@ -67,7 +67,10 @@ SVG;
     </div>
 
     <form class="contact-form" id="formularz" aria-labelledby="contact-form-title" tabindex="-1" method="post" action="/kontakt/"<?= $formStatus ? '' : ' data-reveal="subtle"' ?>>
-      <h2 id="contact-form-title">Napisz do nas</h2>
+      <div class="contact-form-heading">
+        <h2 id="contact-form-title">Napisz do nas</h2>
+        <p>Pola oznaczone <span aria-hidden="true">*</span> są wymagane.</p>
+      </div>
       <?php if ($formStatus): ?>
         <p class="form-status <?= $formStatus['ok'] ? 'ok' : 'error' ?>" role="<?= $formStatus['ok'] ? 'status' : 'alert' ?>" tabindex="-1" autofocus><?= e($formStatus['message']) ?></p>
       <?php endif; ?>
@@ -77,26 +80,33 @@ SVG;
         Strona internetowa
         <input name="website" autocomplete="off" tabindex="-1">
       </label>
-      <div class="contact-fields">
+      <fieldset class="contact-fieldset">
+        <legend>Dane do kontaktu</legend>
+        <div class="contact-fields">
+          <label>
+            <span>Imię i nazwisko <span class="contact-required" aria-hidden="true">*</span></span>
+            <input name="name" autocomplete="name" maxlength="120" value="<?= e($formFields['name'] ?? '') ?>" required>
+          </label>
+          <label>
+            <span>Adres e-mail <span class="contact-required" aria-hidden="true">*</span></span>
+            <input name="email" type="email" autocomplete="email" maxlength="180" value="<?= e($formFields['email'] ?? '') ?>" required>
+          </label>
+          <label>
+            <span>Telefon <small>(opcjonalnie)</small></span>
+            <input name="phone" type="tel" autocomplete="tel" maxlength="40" value="<?= e($formFields['phone'] ?? '') ?>">
+          </label>
+        </div>
+      </fieldset>
+      <div class="contact-message">
         <label>
-          Imię i nazwisko
-          <input name="name" autocomplete="name" maxlength="120" value="<?= e($formFields['name'] ?? '') ?>" required>
-        </label>
-        <label>
-          Adres e-mail
-          <input name="email" type="email" autocomplete="email" maxlength="180" value="<?= e($formFields['email'] ?? '') ?>" required>
+          <span>Opis sprawy <span class="contact-required" aria-hidden="true">*</span></span>
+          <textarea name="message" rows="5" maxlength="4000" required><?= e($formFields['message'] ?? '') ?></textarea>
         </label>
       </div>
-      <label>
-        <span>Telefon <small>(opcjonalnie)</small></span>
-        <input name="phone" type="tel" autocomplete="tel" maxlength="40" value="<?= e($formFields['phone'] ?? '') ?>">
-      </label>
-      <label>
-        Opis sprawy
-        <textarea name="message" rows="6" maxlength="4000" required><?= e($formFields['message'] ?? '') ?></textarea>
-      </label>
-      <p class="privacy-note">Dane z formularza służą wyłącznie do kontaktu w sprawie zgłoszenia. Szczegóły opisuje <a href="/dokumenty/polityka-prywatnosci/">polityka prywatności</a>.</p>
-      <button class="button contact-submit" type="submit">Wyślij wiadomość <?= $contactArrow ?></button>
+      <div class="contact-form-footer">
+        <p class="privacy-note">Dane z formularza służą wyłącznie do kontaktu w sprawie zgłoszenia. Szczegóły opisuje <a href="/dokumenty/polityka-prywatnosci/">polityka prywatności</a>.</p>
+        <button class="button contact-submit" type="submit">Wyślij wiadomość <?= $contactArrow ?></button>
+      </div>
     </form>
   </div>
 </section>
