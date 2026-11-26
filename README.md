@@ -129,4 +129,4 @@ Kontakt retains its disabled form, telephone and email links. Direct POSTs retur
 
 ## Branches and license
 
-The Laravel migration is on `feature/internal-pages`. `main` and the two fullscreen animation branches retain their existing histories. This is proprietary software. See [LICENSE](LICENSE). Asset licenses remain alongside their assets.
+The Laravel migration is on `feature/laravel-migration`. `main` and the two fullscreen animation branches retain their existing histories. This is proprietary software. See [LICENSE](LICENSE). Asset licenses remain alongside their assets.
