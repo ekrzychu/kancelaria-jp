@@ -394,7 +394,8 @@ html:has(> .homepage) {
 .team-frame,
 .career-frame,
 .publication-frame,
-body:has(> main > :is(.about-hero, .services-hero, .team-hero, .career-hero, .publication-hero, .article-detail)) :is(.header-inner, .footer-callout, .footer-grid, .legal-row) {
+.contact-frame,
+body:has(> main > :is(.about-hero, .services-hero, .team-hero, .career-hero, .publication-hero, .article-detail, .contact-hero)) :is(.header-inner, .footer-callout, .footer-grid, .legal-row) {
   width: calc(100% - 2 * var(--wide-page-gutter));
   margin-inline: auto;
 }
@@ -1340,12 +1341,6 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
   margin-top: .9rem;
 }
 
-.contact-photo picture {
-  display: block;
-  overflow: hidden;
-  background: var(--surface);
-}
-
 /* Editorial lists */
 
 a.editorial-row:is(:hover, :focus-visible) .row-title {
@@ -1531,24 +1526,25 @@ a.editorial-row:is(:hover, :focus-visible) .row-title {
   margin-block-start: .35rem;
 }
 
-:is(.about-action, .team-career-action, .career-action) {
+:is(.about-action, .team-career-action, .career-action, .contact-action) {
   text-decoration: none;
 }
 
 .about-action-label,
-:is(.team-career-action, .career-action) > span {
+:is(.team-career-action, .career-action, .contact-action) > span {
   text-decoration: underline var(--taupe);
   text-underline-offset: .35em;
 }
 
 .about-action:is(:hover, :focus-visible) .about-action-label,
-:is(.team-career-action, .career-action):is(:hover, :focus-visible) > span {
+:is(.team-career-action, .career-action, .contact-action):is(:hover, :focus-visible) > span {
   text-decoration-color: currentColor;
 }
 
 .about-action-arrow,
 .team-career-arrow,
-.career-arrow {
+.career-arrow,
+.contact-arrow {
   flex: none;
   width: 1.55em;
   height: 1em;
@@ -1855,14 +1851,16 @@ a.editorial-row:is(:hover, :focus-visible) .row-title {
   .about-action-arrow,
   .about-document-arrow,
   .team-career-arrow,
-  .career-arrow {
+  .career-arrow,
+  .contact-arrow {
     transition: translate 200ms var(--motion-ease);
   }
 
   .about-action:is(:hover, :focus-visible) .about-action-arrow,
   .about-document:is(:hover, :focus-visible) .about-document-arrow,
   .team-career-action:is(:hover, :focus-visible) .team-career-arrow,
-  .career-action:is(:hover, :focus-visible) .career-arrow {
+  .career-action:is(:hover, :focus-visible) .career-arrow,
+  :is(.contact-action, .contact-submit):is(:hover, :focus-visible) .contact-arrow {
     translate: .25em 0;
   }
 }
@@ -2273,8 +2271,7 @@ a.editorial-row:is(:hover, :focus-visible) .row-title {
   font-size: var(--type-small);
 }
 
-.service-layout,
-.contact-layout {
+.service-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(14rem, .52fr);
   gap: var(--layout-gap);
@@ -2758,100 +2755,151 @@ main:has(.archive-empty) + .site-footer {
 
 /* Contact */
 
-.contact-form-link {
-  display: none;
+.contact-hero,
+.contact-enquiries,
+.contact-location {
+  --contact-gap: clamp(1.75rem, 5vw, 6rem);
+  --contact-space: clamp(3.5rem, 6vw, 7.5rem);
+}
+
+.contact-hero {
+  padding-block: clamp(2.9rem, 5.1vw, 6.3rem) clamp(2.35rem, 4vw, 4.5rem);
+}
+
+.contact-hero-layout,
+.contact-layout,
+.contact-location-layout {
+  display: grid;
+  gap: var(--contact-gap);
+}
+
+.contact-hero h1 {
+  max-width: 16ch;
+  font-size: clamp(2.5rem, 4.5vw, 6rem);
+  line-height: 1;
+  text-wrap: balance;
+}
+
+.contact-intro p,
+.contact-location-copy p {
+  max-width: 45ch;
+  margin: 0;
+  color: var(--text-muted);
+  text-wrap: pretty;
+}
+
+.contact-intro p {
+  font-size: clamp(var(--type-lead), 1.35vw, 1.45rem);
+}
+
+.contact-intro .contact-action,
+.contact-location-copy .contact-action {
+  margin-block-start: .45rem;
 }
 
 .contact-layout {
-  grid-template-areas: "details form" "photo form";
-  grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr);
-  grid-template-rows: auto 1fr;
-  row-gap: 1.5rem;
   align-items: start;
 }
 
 .contact-details {
-  grid-area: details;
+  border-block-start: 1px solid var(--line);
+  padding-block-start: clamp(1.25rem, 2.4vw, 2rem);
 }
 
 .contact-details h2,
 .contact-form h2 {
-  font-size: clamp(1.625rem, 3.1vw, 2.625rem);
+  font-size: clamp(1.85rem, 2.65vw, 3.25rem);
 }
 
 .contact-details dl {
-  margin: 1.35rem 0 0;
-}
-
-.contact-details dl > div {
-  display: grid;
-  grid-template-columns: 7.5rem minmax(0, 1fr);
-  gap: .35rem 1rem;
-  padding-block: .65rem;
-}
-
-.contact-details dl > div + div {
-  border-top: 1px solid var(--line);
+  margin: 0;
 }
 
 .contact-details dt {
-  display: flex;
-  align-items: center;
-  align-self: start;
-  gap: .45rem;
-  color: var(--burgundy);
+  color: var(--quiet-accent);
   font-size: var(--type-label);
   font-weight: 600;
-  letter-spacing: .05em;
+  letter-spacing: .06em;
   text-transform: uppercase;
 }
 
-.contact-details a {
-  display: inline-block;
-  min-height: 1.75rem;
-  color: var(--burgundy);
-  text-decoration: underline;
-  text-decoration-color: var(--taupe);
-  text-underline-offset: .25em;
-}
-
-.contact-details a:hover {
-  text-decoration-color: currentColor;
-}
-
 .contact-details dd {
+  min-width: 0;
   margin: 0;
   color: var(--text-muted);
   overflow-wrap: anywhere;
 }
 
+.contact-details address,
+.contact-location address {
+  font-style: normal;
+}
+
+.contact-details address strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.contact-methods > div {
+  padding-block: clamp(.75rem, 1.4vw, 1.15rem);
+}
+
+.contact-methods > div + div,
+.contact-office-details > div {
+  border-block-start: 1px solid var(--line);
+}
+
+.contact-methods .contact-action {
+  font-size: clamp(1.35rem, 2.25vw, 2.5rem);
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.contact-methods .contact-action > span {
+  text-decoration-thickness: 1px;
+}
+
+.contact-methods .contact-arrow {
+  width: 1.5rem;
+  height: 1rem;
+}
+
+.contact-office-details > div {
+  display: grid;
+  gap: .35rem 1rem;
+  padding-block: clamp(.9rem, 1.4vw, 1.25rem);
+}
+
 .contact-hours {
-  max-width: 18rem;
+  max-width: 21rem;
 }
 
 .contact-hours > span {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  gap: 0 .65rem;
+  gap: 0 1rem;
 }
 
 .contact-form {
   position: relative;
   display: grid;
-  grid-area: form;
-  gap: 1rem;
-  max-width: 46rem;
+  gap: clamp(.9rem, 1.6vw, 1.35rem);
+  border-block-start: 1px solid var(--line);
+  padding: clamp(1.15rem, 3vw, 3.5rem);
+  background: var(--surface);
+  scroll-margin-block-start: 1.25rem;
 }
 
 .contact-fields {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
 }
 
-.contact-form .button {
+.contact-submit {
   justify-self: start;
+  gap: .75rem;
+  cursor: pointer;
 }
 
 .contact-form label {
@@ -2910,14 +2958,20 @@ main:has(.archive-empty) + .site-footer {
 
 .privacy-note a {
   color: var(--burgundy);
-  text-decoration: underline;
+  text-decoration: underline var(--taupe);
   text-underline-offset: .2em;
 }
 
+.privacy-note a:is(:hover, :focus-visible) {
+  color: var(--link-hover);
+  text-decoration-color: currentColor;
+}
+
 .form-status {
-  border-left: 3px solid var(--taupe);
+  border-inline-start: 3px solid var(--taupe);
   padding: .75rem 1rem;
   background: var(--paper);
+  scroll-margin-block: 1.25rem;
 }
 
 .form-status.error {
@@ -2926,15 +2980,70 @@ main:has(.archive-empty) + .site-footer {
   color: #702331;
 }
 
+.contact-location {
+  padding-block: var(--contact-space);
+}
+
+.contact-location-layout {
+  border-block-start: 1px solid var(--line);
+  padding-block-start: clamp(2.25rem, 5vw, 5rem);
+}
+
+.contact-location h2 {
+  max-width: 19ch;
+  font-size: clamp(2rem, 3.5vw, 4.5rem);
+  text-wrap: balance;
+}
+
+.contact-location address {
+  margin-block: 1.1rem .65rem;
+  color: var(--ink);
+  font-size: var(--type-lead);
+}
+
 .contact-photo {
-  grid-area: photo;
+  width: min(100%, 27rem);
   margin: 0;
+  background: var(--surface);
 }
 
 .contact-photo img {
   width: 100%;
-  aspect-ratio: 2 / 1;
-  object-fit: cover;
+}
+
+@media (min-width: 48rem) {
+  .contact-hero-layout {
+    grid-template-columns: minmax(0, 1.18fr) minmax(0, 1fr);
+    align-items: center;
+  }
+
+  .contact-layout {
+    grid-template-columns: minmax(0, .8fr) minmax(0, 1fr);
+  }
+
+  .contact-location-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr);
+    align-items: center;
+  }
+
+  .contact-photo {
+    grid-area: 1 / 1;
+    justify-self: center;
+  }
+
+  .contact-location-copy {
+    grid-area: 1 / 2;
+  }
+}
+
+@media (min-width: 68rem) {
+  .contact-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .contact-office-details > div {
+    grid-template-columns: 8.25rem minmax(0, 1fr);
+  }
 }
 
 
@@ -3148,14 +3257,6 @@ main:has(.archive-empty) + .site-footer {
     inset: auto .5rem .45rem;
   }
 
-  .contact-details dl > div {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .contact-fields {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
   .footer-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 1.25rem;
@@ -3201,8 +3302,7 @@ main:has(.archive-empty) + .site-footer {
 
   .page-intro,
   .editorial-split,
-  .service-layout,
-  .contact-layout {
+  .service-layout {
     min-height: 0;
     grid-template-columns: minmax(0, 1fr);
   }
@@ -3243,17 +3343,6 @@ main:has(.archive-empty) + .site-footer {
 
   .side-index a {
     min-height: 2.75rem;
-  }
-
-  .contact-layout {
-    grid-template-areas: "details" "form" "photo";
-    grid-template-rows: auto;
-    row-gap: 2rem;
-  }
-
-  .contact-form-link {
-    display: inline-flex;
-    margin-top: .45rem;
   }
 
   .footer-callout {
@@ -3309,6 +3398,16 @@ main:has(.archive-empty) + .site-footer {
   :is([data-reveal="subtle"], [data-reveal="service-row"], [data-reveal="publication-row"], [data-reveal="team-person"], .about-document-list li).is-awaiting-reveal:not(:focus-within) {
     opacity: 0;
     pointer-events: none;
+  }
+
+  .contact-form[data-reveal]:is(:target, :focus-within) {
+    opacity: 1;
+    pointer-events: auto;
+    animation: none;
+  }
+
+  .contact-methods .contact-action:is(:hover, :focus-visible) .contact-arrow {
+    translate: .25rem;
   }
 
   :is([data-reveal="service-row"], [data-reveal="publication-row"]) {

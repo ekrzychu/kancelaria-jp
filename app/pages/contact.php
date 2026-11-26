@@ -1,53 +1,75 @@
-<?php $formFields = $formStatus['fields'] ?? []; ?>
+<?php
+$formFields = $formStatus['fields'] ?? [];
+$hours = $site['hours'];
+$weekdays = ['Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek'];
+$hasUniformWeek = count($hours) === count($weekdays)
+    && !array_diff($weekdays, array_keys($hours))
+    && count(array_unique($hours)) === 1;
+$directions = 'https://www.google.com/maps/dir/?api=1&destination='
+    . rawurlencode(implode(', ', $site['address']) . ', Polska');
+$contactArrow = <<<'SVG'
+<svg class="contact-arrow" viewBox="0 0 28 18" width="28" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M2 9h24m-7-7 7 7-7 7"/></svg>
+SVG;
+?>
 
-<section class="page-hero">
-  <div class="container page-intro" data-reveal>
-    <span class="section-kicker">Kontakt</span>
-    <h1>Umów spotkanie z kancelarią.</h1>
-    <div>
-      <p>Spotkania po wcześniejszym umówieniu. Zadzwoń lub napisz.</p>
-      <a class="text-action contact-form-link" href="#formularz">Przejdź do formularza</a>
+<section class="contact-hero" aria-labelledby="contact-title">
+  <div class="contact-frame contact-hero-layout">
+    <div data-reveal="subtle">
+      <span class="section-kicker">Kontakt</span>
+      <h1 id="contact-title">Porozmawiajmy o&nbsp;Twojej sprawie.</h1>
+    </div>
+    <div class="contact-intro" data-reveal="subtle">
+      <p>Skontaktuj się z&nbsp;nami telefonicznie, mailowo lub za pomocą formularza. Spotkania odbywają się po wcześniejszym umówieniu.</p>
+      <a class="text-action contact-action" href="#formularz"><span>Przejdź do formularza</span><?= $contactArrow ?></a>
     </div>
   </div>
 </section>
 
-<section class="section">
-  <div class="container contact-layout">
-    <div class="contact-details" data-reveal>
-      <h2>Dane kontaktowe</h2>
-      <dl>
+<section class="contact-enquiries" aria-labelledby="contact-details-title">
+  <div class="contact-frame contact-layout">
+    <div class="contact-details">
+      <div data-reveal="subtle">
+        <h2 id="contact-details-title">Dane kontaktowe</h2>
+        <dl class="contact-methods">
+          <div>
+            <dt>Telefon</dt>
+            <dd><a class="text-action contact-action" href="tel:<?= e($site['phone_href']) ?>"><span><?= e($site['phone']) ?></span><?= $contactArrow ?></a></dd>
+          </div>
+          <div>
+            <dt>E-mail</dt>
+            <dd><a class="text-action contact-action" href="mailto:<?= e($site['email']) ?>"><span><?= e($site['email']) ?></span><?= $contactArrow ?></a></dd>
+          </div>
+        </dl>
+      </div>
+      <dl class="contact-office-details" data-reveal="subtle">
         <div>
-          <dt><?= icon('pin') ?>Adres</dt>
+          <dt>Adres</dt>
           <dd>
-            <?= e($site['legal_name']) ?><br>
-            <?php foreach ($site['address'] as $line): ?>
-              <?= e($line) ?><br>
-            <?php endforeach; ?>
+            <address>
+              <strong><?= e($site['legal_name']) ?></strong><br>
+              <?= implode('<br>', array_map('e', $site['address'])) ?>
+            </address>
           </dd>
-        </div>
-        <div>
-          <dt><?= icon('phone') ?>Telefon</dt>
-          <dd><a href="tel:<?= e($site['phone_href']) ?>"><?= e($site['phone']) ?></a></dd>
-        </div>
-        <div>
-          <dt><?= icon('mail') ?>E-mail</dt>
-          <dd><a href="mailto:<?= e($site['email']) ?>"><?= e($site['email']) ?></a></dd>
         </div>
         <div>
           <dt>Godziny pracy</dt>
           <dd class="contact-hours">
-            <?php foreach ($site['hours'] as $day => $hours): ?>
-              <span><span><?= e($day) ?></span> <span><?= e($hours) ?></span></span>
-            <?php endforeach; ?>
+            <?php if ($hasUniformWeek): ?>
+              <span><span>Poniedziałek – piątek</span><span><?= e($hours[$weekdays[0]]) ?></span></span>
+            <?php else: ?>
+              <?php foreach ($hours as $day => $time): ?>
+                <span><span><?= e($day) ?></span><span><?= e($time) ?></span></span>
+              <?php endforeach; ?>
+            <?php endif; ?>
           </dd>
         </div>
       </dl>
     </div>
 
-    <form class="contact-form" id="formularz" aria-labelledby="contact-form-title" tabindex="-1" method="post" action="/kontakt/" data-reveal>
-      <h2 id="contact-form-title">Opisz krótko sprawę</h2>
+    <form class="contact-form" id="formularz" aria-labelledby="contact-form-title" tabindex="-1" method="post" action="/kontakt/"<?= $formStatus ? '' : ' data-reveal="subtle"' ?>>
+      <h2 id="contact-form-title">Napisz do nas</h2>
       <?php if ($formStatus): ?>
-        <p class="form-status <?= $formStatus['ok'] ? 'ok' : 'error' ?>" role="<?= $formStatus['ok'] ? 'status' : 'alert' ?>" tabindex="-1"><?= e($formStatus['message']) ?></p>
+        <p class="form-status <?= $formStatus['ok'] ? 'ok' : 'error' ?>" role="<?= $formStatus['ok'] ? 'status' : 'alert' ?>" tabindex="-1" autofocus><?= e($formStatus['message']) ?></p>
       <?php endif; ?>
 
       <input type="hidden" name="csrf_token" value="<?= e($csrfToken) ?>">
@@ -74,14 +96,25 @@
         <textarea name="message" rows="6" maxlength="4000" required><?= e($formFields['message'] ?? '') ?></textarea>
       </label>
       <p class="privacy-note">Dane z formularza służą wyłącznie do kontaktu w sprawie zgłoszenia. Szczegóły opisuje <a href="/dokumenty/polityka-prywatnosci/">polityka prywatności</a>.</p>
-      <button class="button" type="submit">Wyślij zgłoszenie</button>
+      <button class="button contact-submit" type="submit">Wyślij wiadomość <?= $contactArrow ?></button>
     </form>
+  </div>
+</section>
 
-    <figure class="contact-photo" data-reveal="image">
-      <picture>
-        <source type="image/webp" srcset="/assets/img/office-reception-wide.webp">
-        <img src="/assets/img/office-reception-wide.jpg" alt="Recepcja kancelarii z drewnianą ladą i monogramem JP" width="1800" height="900" loading="lazy" decoding="async">
-      </picture>
+<section class="contact-location" aria-labelledby="contact-location-title">
+  <div class="contact-frame contact-location-layout">
+    <div class="contact-location-copy" data-reveal="subtle">
+      <h2 id="contact-location-title">Odwiedź nas we&nbsp;Wrocławiu.</h2>
+      <address><?= implode('<br>', array_map('e', $site['address'])) ?></address>
+      <p>Spotkania odbywają się po wcześniejszym umówieniu.</p>
+      <a class="text-action contact-action" href="<?= e($directions) ?>"><span>Wyznacz trasę</span><?= $contactArrow ?></a>
+    </div>
+    <figure class="contact-photo" data-reveal="subtle" data-home-surface="photo">
+      <img src="/assets/img/office-entrance-760.webp"
+        srcset="/assets/img/office-entrance-760.webp 760w, /assets/img/office-entrance-1280.webp 1280w"
+        sizes="(min-width: 68rem) 27rem, (min-width: 48rem) 42vw, 90vw"
+        width="1280" height="1990" loading="lazy" decoding="async"
+        alt="Drewniane drzwi wejściowe i numer 7–8 na kamiennej fasadzie przy placu Kościuszki">
     </figure>
   </div>
 </section>

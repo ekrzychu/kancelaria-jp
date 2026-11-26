@@ -80,13 +80,16 @@ switch (true) {
     case $path === '/kontakt/':
         $formStatus = handle_contact_submission();
         if (($formStatus['ok'] ?? false) === true) {
+            start_form_session();
+            $_SESSION['contact_submission_status'] = $formStatus;
             header('Location: /kontakt/?wyslano=1', true, 303);
             exit;
         }
-        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET' && isset($_GET['wyslano'])) {
-            $formStatus = ['ok' => true, 'message' => 'Dziękujemy. Wiadomość została zapisana po stronie serwera.'];
-        }
         $csrfToken = csrf_token();
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET' && isset($_GET['wyslano'])) {
+            $formStatus = $_SESSION['contact_submission_status'] ?? null;
+            unset($_SESSION['contact_submission_status']);
+        }
 
         render('contact', $vars + [
             'title' => page_title('Kontakt', $site),
