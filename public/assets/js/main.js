@@ -178,10 +178,10 @@
 
     const visibleContent = new Set();
     const textBounds = document.createRange();
-    const editorialText = 'h1, h2, h3, h4, p, dt, dd, figcaption, td, th, .row-summary';
+    const editorialText = 'h1, h2, h3, h4, p, dt, dd, figcaption, td, th, .row-summary, .article-body :is(li, pre)';
     if (!homepage) {
       const protectedContent = document.querySelectorAll(
-        `:is(main, footer) :is(form, input, textarea, select, a, button, [contenteditable], ${editorialText})`
+        `:is(main, footer) :is(form, input, textarea, select, a, button, [contenteditable], .publication-image, .article-body figure, ${editorialText})`
       );
       const observer = 'IntersectionObserver' in window && new IntersectionObserver(entries => {
         for (const { target, isIntersecting } of entries) {

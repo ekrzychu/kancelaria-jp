@@ -59,6 +59,16 @@ function canonical_url(array $site): string
     return $baseUrl . current_path();
 }
 
+function publication_date(mixed $date): ?DateTimeImmutable
+{
+    if (!is_string($date) || !preg_match('/\A\d{4}-\d{2}-\d{2}\z/', $date)) {
+        return null;
+    }
+
+    $parsed = DateTimeImmutable::createFromFormat('!Y-m-d', $date);
+    return $parsed && $parsed->format('Y-m-d') === $date ? $parsed : null;
+}
+
 function find_by_slug(array $items, string $slug): ?array
 {
     foreach ($items as $item) {

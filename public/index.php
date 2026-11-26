@@ -125,7 +125,7 @@ switch (true) {
         render('article', $vars + [
             'article' => $article,
             'title' => page_title($article['title'], $site),
-            'description' => $article['summary'],
+            'description' => $article['summary'] ?? null,
         ]);
         break;
 

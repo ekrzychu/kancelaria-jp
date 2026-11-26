@@ -393,7 +393,8 @@ html:has(> .homepage) {
 .services-frame,
 .team-frame,
 .career-frame,
-body:has(> main > :is(.about-hero, .services-hero, .team-hero, .career-hero)) :is(.header-inner, .footer-callout, .footer-grid, .legal-row) {
+.publication-frame,
+body:has(> main > :is(.about-hero, .services-hero, .team-hero, .career-hero, .publication-hero, .article-detail)) :is(.header-inner, .footer-callout, .footer-grid, .legal-row) {
   width: calc(100% - 2 * var(--wide-page-gutter));
   margin-inline: auto;
 }
@@ -1005,38 +1006,6 @@ body:has(> main > :is(.about-hero, .services-hero, .team-hero, .career-hero)) :i
 .home-publications-layout {
   grid-template-columns: minmax(0, 1fr);
   row-gap: clamp(1.5rem, 3.5vw, 4.75rem);
-}
-
-.article-detail {
-  max-width: 54rem;
-  padding-block: var(--section-space);
-}
-
-.article-detail header {
-  margin-block-end: 2.5rem;
-}
-
-.article-detail h1 {
-  font-size: clamp(2.15rem, 4vw, 4.25rem);
-  overflow-wrap: anywhere;
-}
-
-.article-detail .rich-text > * + * {
-  margin-block-start: 1.1em;
-}
-
-.article-detail .rich-text :is(h2, h3) {
-  margin-block-start: 1.6em;
-}
-
-.article-detail figure {
-  margin-inline: 0;
-}
-
-.article-detail .rich-text a,
-.publication-entry a:is(:hover, :focus-visible) {
-  text-decoration: underline;
-  text-underline-offset: .16em;
 }
 
 .home-publications-heading {
@@ -2385,10 +2354,6 @@ main:has(.archive-empty) + .site-footer {
   flex: 1;
 }
 
-.page-hero + .archive-empty {
-  padding-block: 1rem calc(var(--section-space) * .68);
-}
-
 .archive-empty .archive-note {
   max-width: 48rem;
   border-top: 1px solid var(--line);
@@ -2410,26 +2375,78 @@ main:has(.archive-empty) + .site-footer {
 }
 
 .archive-note p,
-.publication-summary {
+.publication-summary,
+.article-summary,
+.publication-hero p {
   max-width: 56ch;
   margin: 0;
   color: var(--text-muted);
 }
 
+/* Publications */
+
+.publication-hero,
+.article-detail {
+  padding-block-start: clamp(2.9rem, 5.1vw, 6.3rem);
+}
+
+.publication-hero {
+  padding-block-end: clamp(2.5rem, 5.25vw, 6rem);
+}
+
+.publication-hero-layout,
+.article-intro {
+  display: grid;
+  gap: clamp(1rem, 4vw, 4.5rem);
+}
+
+.publication-hero h1 {
+  font-size: clamp(2.5rem, 4.5vw, 6.25rem);
+  line-height: 1;
+}
+
+.publication-hero p,
+.article-summary {
+  max-width: 43ch;
+  font-size: clamp(var(--type-lead), 1.35vw, 1.55rem);
+  text-wrap: pretty;
+}
+
+.publication-archive,
+.article-detail {
+  padding-block-end: clamp(3.5rem, 6vw, 7.5rem);
+}
+
 .publication-entry {
   display: grid;
   align-items: start;
-  gap: 1rem var(--layout-gap);
-  padding-block: 1.75rem;
+  gap: clamp(.75rem, 1.4vw, 1.25rem) clamp(1.5rem, 4vw, 5rem);
+  border-block-start: 1px solid var(--line);
+  padding-block: clamp(1.4rem, 3vw, 3.5rem);
 }
 
-.publication-entry.has-image {
-  grid-template-columns: minmax(0, 1fr) minmax(0, .42fr);
+.publication-entry:last-child {
+  border-block-end: 1px solid var(--line);
+}
+
+.publication-entry.is-featured {
+  padding-block: clamp(1.65rem, 3.75vw, 4.5rem);
 }
 
 .publication-entry h2 {
-  max-width: 28ch;
-  font-size: clamp(1.625rem, 3.5vw, 2.75rem);
+  max-width: 37ch;
+  font-size: clamp(1.5rem, 2.5vw, 2.9rem);
+  line-height: 1.15;
+  text-wrap: pretty;
+}
+
+.publication-entry.is-featured h2 {
+  max-width: 31ch;
+  font-size: clamp(1.9rem, 3.3vw, 3.75rem);
+}
+
+.publication-heading .section-kicker {
+  margin-block-end: .7rem;
 }
 
 .publication-meta {
@@ -2439,14 +2456,196 @@ main:has(.archive-empty) + .site-footer {
   margin: 0 0 .55rem;
 }
 
-.publication-summary {
-  margin-top: .65rem;
+.publication-image {
+  width: 100%;
+  max-width: 34rem;
 }
 
-.publication-entry img {
-  width: 100%;
-  aspect-ratio: 3 / 2;
-  object-fit: cover;
+.publication-arrow {
+  flex: none;
+  width: 1.55em;
+  height: 1em;
+}
+
+.publication-title-link .publication-arrow {
+  display: inline-block;
+  width: clamp(1.15rem, 1.7vw, 1.55rem);
+  height: .66em;
+}
+
+.publication-title-link:is(:hover, :focus-visible) {
+  color: var(--link-hover);
+}
+
+.publication-title-link:is(:hover, :focus-visible) > span,
+.publication-back > span,
+.article-body a {
+  text-decoration: underline var(--taupe);
+  text-underline-offset: .2em;
+}
+
+.publication-back {
+  text-decoration: none;
+}
+
+.publication-back:is(:hover, :focus-visible) > span,
+.article-body a:is(:hover, :focus-visible) {
+  color: var(--link-hover);
+  text-decoration-color: currentColor;
+}
+
+.article-header {
+  border-block-end: 1px solid var(--line);
+  padding-block-end: clamp(1.75rem, 4vw, 4.5rem);
+}
+
+.article-intro {
+  margin-block-start: clamp(.95rem, 2vw, 1.8rem);
+}
+
+.article-header h1 {
+  max-width: 32ch;
+  font-size: clamp(2rem, 3.9vw, 4.85rem);
+  text-wrap: pretty;
+}
+
+.article-body,
+.article-navigation {
+  max-inline-size: min(72ch, 49rem);
+  margin-inline: auto;
+  font-size: clamp(1.0625rem, 1.35vw, 1.25rem);
+}
+
+.article-body {
+  margin-block-start: clamp(1.75rem, 4vw, 4rem);
+  color: var(--ink);
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.article-body :where(p, ul, ol, blockquote, figure, pre, dl) {
+  margin: 0;
+}
+
+.article-body > * + * {
+  margin-block-start: 1.05em;
+}
+
+.article-body :is(h2, h3, h4) {
+  color: var(--burgundy);
+  font-weight: 600;
+  line-height: 1.2;
+  text-wrap: pretty;
+}
+
+.article-body :is(h2, h3, h4) strong {
+  font-weight: inherit;
+}
+
+.article-body h2 {
+  font-size: clamp(1.55rem, 2.3vw, 2.25rem);
+}
+
+.article-body h3 {
+  font-size: clamp(1.25rem, 1.7vw, 1.65rem);
+}
+
+.article-body > * + :is(h2, h3, h4) {
+  margin-block-start: 1.55em;
+}
+
+.article-body > :is(h2, h3, h4) + * {
+  margin-block-start: .65em;
+}
+
+.article-body :is(ul, ol) {
+  padding-inline-start: 1.45em;
+}
+
+.article-body li + li {
+  margin-block-start: .4em;
+}
+
+.article-body li::marker {
+  color: var(--quiet-accent);
+}
+
+.article-body blockquote {
+  border-inline-start: 2px solid var(--taupe);
+  padding-inline-start: clamp(.85rem, 2.5vw, 1.5rem);
+}
+
+.article-body blockquote p + p {
+  margin-block-start: .65em;
+}
+
+.article-body figcaption {
+  margin-block-start: .5em;
+  color: var(--text-muted);
+  font-size: var(--type-small);
+}
+
+.article-body table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.article-body :is(th, td) {
+  border-block-end: 1px solid var(--line);
+  padding: .4em .55em;
+  text-align: start;
+}
+
+.article-body pre {
+  overflow-x: auto;
+}
+
+.article-navigation {
+  margin-block-start: clamp(2rem, 5vw, 4.5rem);
+  border-block-start: 1px solid var(--line);
+  padding-block-start: .85rem;
+}
+
+@media (min-width: 48rem) {
+  .publication-hero-layout {
+    grid-template-columns: minmax(0, 1.18fr) minmax(0, 1fr);
+    align-items: end;
+  }
+
+  .publication-entry:is(.has-summary, .has-image) {
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    align-items: center;
+  }
+
+  .publication-entry.has-image .publication-image {
+    grid-column: 2;
+  }
+
+  .publication-entry.has-image.has-summary .publication-heading {
+    grid-row: span 2;
+    align-self: start;
+  }
+}
+
+@media (min-width: 72rem) {
+  .article-intro.has-summary {
+    grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr);
+    align-items: end;
+  }
+
+  .publication-entry.has-image.has-summary {
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, .82fr);
+  }
+
+  .publication-entry.has-image.has-summary .publication-heading {
+    grid-row: auto;
+    align-self: center;
+  }
+
+  .publication-entry.has-image.has-summary .publication-image {
+    grid-column: 3;
+  }
 }
 
 /* Contact */
@@ -2894,7 +3093,6 @@ main:has(.archive-empty) + .site-footer {
 
   .page-intro,
   .editorial-split,
-  .publication-entry.has-image,
   .service-layout,
   .contact-layout {
     min-height: 0;
@@ -3021,12 +3219,28 @@ main:has(.archive-empty) + .site-footer {
     animation-delay: min(var(--reveal-delay, 0ms), 180ms);
   }
 
+  [data-reveal-sequence] .publication-entry.is-revealed {
+    animation-delay: min(var(--reveal-delay, 0ms), 160ms);
+  }
+
   .services-directory .editorial-row > * {
     transition: translate 180ms var(--motion-ease);
   }
 
   .services-directory .editorial-row:is(:hover, :focus-visible) > * {
     translate: .25rem;
+  }
+
+  .publication-arrow {
+    transition: translate 200ms var(--motion-ease);
+  }
+
+  .publication-title-link:is(:hover, :focus-visible) .publication-arrow {
+    translate: .18rem;
+  }
+
+  .publication-back:is(:hover, :focus-visible) .publication-arrow {
+    translate: -.18rem;
   }
 
   .home-hero-action {
