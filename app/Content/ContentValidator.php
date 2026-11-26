@@ -1,25 +1,19 @@
 <?php
+
 declare(strict_types=1);
 
+namespace App\Content;
+
 use App\Support\PublicUrl;
-
-require_once __DIR__ . '/../../vendor/autoload.php';
-
-const ROOT = __DIR__ . '/../..';
-const DATASETS = ['site', 'services', 'team', 'articles', 'recruitment'];
-
-function decodeDataset(string $name, string $json): mixed
-{
-    try {
-        return json_decode($json, false, 512, JSON_THROW_ON_ERROR);
-    } catch (JsonException $e) {
-        throw new RuntimeException("$name.json: invalid JSON (" . $e->getMessage() . ')', 0, $e);
-    }
-}
+use DOMDocument;
+use DOMXPath;
+use stdClass;
 
 final class ContentValidator
 {
     private array $errors = [];
+
+    public function __construct(private readonly string $publicDirectory) {}
 
     private function expect(bool $valid, string $field, string $expected, mixed $actual): bool
     {
@@ -41,6 +35,22 @@ final class ContentValidator
         foreach ($optional as $key) {
             if (property_exists($record, $key)) {
                 $this->expect(is_string($record->$key), "$path.$key", 'a string', $record->$key);
+            }
+        }
+    }
+
+    private function lengths(object $record, string $path, array $varchar, array $text = []): void
+    {
+        foreach ($varchar as $key) {
+            $value = $record->$key ?? null;
+            if (is_string($value)) {
+                $this->expect(mb_strlen($value, 'UTF-8') <= 255, "$path.$key", 'at most 255 characters', $value);
+            }
+        }
+        foreach ($text as $key) {
+            $value = $record->$key ?? null;
+            if (is_string($value)) {
+                $this->expect(strlen($value) <= 65535, "$path.$key", 'at most 65535 UTF-8 bytes', $value);
             }
         }
     }
@@ -73,7 +83,7 @@ final class ContentValidator
         $seen = [];
         foreach ($records as $path => $record) {
             $slug = $record->slug ?? null;
-            if ($this->expect(is_string($slug) && preg_match('/\A[a-z0-9-]+\z/', $slug) === 1, "$path.slug", 'a lowercase route slug', $slug)) {
+            if ($this->expect(PublicUrl::isSlug($slug), "$path.slug", 'a lowercase route slug of at most 191 characters', $slug)) {
                 $this->expect(!isset($seen[$slug]), "$path.slug", 'a unique slug', $slug);
                 $this->expect(!in_array($slug, $reserved, true), "$path.slug", 'a non-reserved slug', $slug);
                 $seen[$slug] = true;
@@ -94,7 +104,7 @@ final class ContentValidator
     private function asset(string $url, string $path): void
     {
         $relative = rawurldecode((string) parse_url($url, PHP_URL_PATH));
-        $dir = ROOT . '/public';
+        $dir = $this->publicDirectory;
         foreach (explode('/', ltrim($relative, '/')) as $part) {
             if ($part === '' || $part === '.' || $part === '..' || !is_dir($dir) || !in_array($part, scandir($dir), true)) {
                 $this->expect(false, $path, 'an existing, exact-case local asset', $url);
@@ -138,6 +148,7 @@ final class ContentValidator
 
     public function validate(array $datasets): array
     {
+        $this->errors = [];
         $site = $datasets['site'];
         if ($this->expect($site instanceof stdClass, 'site.json', 'an object', $site)) {
             $this->fields($site, 'site.json', ['name', 'legal_name', 'tagline', 'phone', 'phone_href', 'email']);
@@ -171,6 +182,7 @@ final class ContentValidator
         $services = $this->records($datasets['services'], 'services.json');
         foreach ($services as $path => $record) {
             $this->fields($record, $path, ['title', 'summary', 'category'], ['home_summary']);
+            $this->lengths($record, $path, ['title', 'category'], ['summary', 'home_summary']);
             $this->strings($record->body ?? null, "$path.body", true);
             $this->strings($record->scope ?? null, "$path.scope", true);
         }
@@ -178,6 +190,7 @@ final class ContentValidator
 
         foreach ($this->records($datasets['team'], 'team.json') as $path => $person) {
             $this->fields($person, $path, ['name', 'role']);
+            $this->lengths($person, $path, ['name', 'role', 'portrait']);
             if (property_exists($person, 'portrait')) {
                 $this->image($person->portrait, "$path.portrait");
             }
@@ -186,16 +199,16 @@ final class ContentValidator
         $articles = $this->records($datasets['articles'], 'articles.json');
         foreach ($articles as $path => $article) {
             $this->fields($article, $path, ['title', 'body_html'], ['summary', 'category', 'author', 'image_alt']);
+            $this->lengths($article, $path, ['title', 'category', 'author', 'image', 'image_alt'], ['summary']);
             if (property_exists($article, 'date')) {
                 $date = $article->date;
-                $parsed = is_string($date) && preg_match('/\A\d{4}-\d{2}-\d{2}\z/', $date) ? DateTimeImmutable::createFromFormat('!Y-m-d', $date) : false;
-                $this->expect($parsed && $parsed->format('Y-m-d') === $date, "$path.date", 'a valid YYYY-MM-DD date', $date);
+                $this->expect(PublicationContent::date($date) !== null && $date >= '1000-01-01', "$path.date", 'a valid YYYY-MM-DD date from year 1000', $date);
             }
             if (property_exists($article, 'image')) {
                 $this->image($article->image, "$path.image");
             }
             if (property_exists($article, 'status')) {
-                $this->expect(in_array($article->status, ['published', 'draft'], true), "$path.status", 'published or draft', $article->status);
+                $this->expect(in_array($article->status, ['published', 'draft', 'unpublished'], true), "$path.status", 'draft, published or unpublished', $article->status);
             }
             if (is_string($article->body_html ?? null) && trim($article->body_html) !== '') {
                 $this->articleMarkup($article->body_html, "$path.body_html");
@@ -209,6 +222,7 @@ final class ContentValidator
                 $status = $vacancy->status ?? null;
                 $this->expect(in_array($status, ['open', 'closed', 'draft'], true), "$path.status", 'open, closed or draft', $status);
                 $this->fields($vacancy, $path, $status === 'open' ? ['title'] : [], ['title', 'description']);
+                $this->lengths($vacancy, $path, ['title'], ['description', 'url']);
                 if (property_exists($vacancy, 'url')) {
                     $this->url($vacancy->url, "$path.url", true, true);
                 }

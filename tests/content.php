@@ -1,15 +1,14 @@
 <?php
 declare(strict_types=1);
 
-require __DIR__ . '/support/content-validator.php';
+use App\Content\ContentValidator;
+use App\Content\ReviewedContent;
+
+require_once __DIR__ . '/../vendor/autoload.php';
 
 function loadContent(): array
 {
-    $data = [];
-    foreach (DATASETS as $dataset) {
-        $data[$dataset] = decodeDataset($dataset, file_get_contents(ROOT . "/app/data/$dataset.json"));
-    }
-    return $data;
+    return (new ReviewedContent(__DIR__ . '/../app/data'))->all();
 }
 
 function contentTest(string $name, callable $check): void
@@ -30,7 +29,7 @@ function requireDiagnostic(array $errors, string $needle): void
 
 try {
     contentTest('current content', static function (): void {
-        $errors = (new ContentValidator())->validate(loadContent());
+        $errors = (new ContentValidator(__DIR__ . '/../public'))->validate(loadContent());
         if ($errors) {
             throw new RuntimeException(implode("\n", $errors));
         }
@@ -47,7 +46,7 @@ try {
         'wrong-case asset' => ['.portrait: expected an existing, exact-case local asset', static function ($data) { $data['team'][0]->portrait = 'OFFICE-RECEPTION-HERO.jpg'; }],
         'unsupported URL scheme' => ['.url: expected an allowed URL', static function ($data) { $data['site']->url = 'ftp://example.test'; }],
         'invalid vacancy status' => ['.status: expected open, closed or draft', static function ($data) { $data['recruitment']->vacancies[] = (object) ['status' => 'unknown']; }],
-        'invalid publication status' => ['.status: expected published or draft', static function ($data) { $data['articles'][0]->status = null; }],
+        'invalid publication status' => ['.status: expected draft, published or unpublished', static function ($data) { $data['articles'][0]->status = null; }],
         'missing article body' => ['.body_html: expected a non-blank string, got null', static function ($data) { unset($data['articles'][0]->body_html); }],
         'broken inline asset' => ['.body_html.src: expected an existing, exact-case local asset', static function ($data) { $data['articles'][0]->body_html = '<p>Fixture</p><img src="/assets/img/missing.png">'; }],
     ];
@@ -55,12 +54,12 @@ try {
         contentTest($name, static function () use ($mutate, $needle): void {
             $data = loadContent();
             $mutate($data);
-            requireDiagnostic((new ContentValidator())->validate($data), $needle);
+            requireDiagnostic((new ContentValidator(__DIR__ . '/../public'))->validate($data), $needle);
         });
     }
     contentTest('malformed JSON', static function (): void {
         try {
-            decodeDataset('fixture', '{"bad":');
+            ReviewedContent::decode('fixture', '{"bad":');
         } catch (RuntimeException $e) {
             requireDiagnostic([$e->getMessage()], 'fixture.json: invalid JSON');
             return;
