@@ -2442,11 +2442,85 @@ main:has(.archive-empty) + .site-footer {
   min-height: 2.75rem;
   border: 0;
   border-block-end: 1px solid var(--control-line);
+  border-radius: 0;
   padding: .25rem 0;
   background-color: transparent;
   color: var(--ink);
+  cursor: pointer;
   font: inherit;
   text-overflow: ellipsis;
+}
+
+@supports (appearance: base-select) and selector(::picker(select)) {
+  .publication-filter select,
+  .publication-filter select::picker(select) {
+    appearance: base-select;
+  }
+
+  .publication-filter select::picker(select) {
+    max-block-size: 18rem;
+    margin-block-start: .3rem;
+    border: 1px solid var(--line);
+    border-block-start-color: var(--taupe);
+    padding-block: .2rem;
+    background: var(--paper);
+    color: var(--ink);
+    box-shadow: 0 .4rem 1rem color-mix(in srgb, var(--burgundy) 8%, transparent);
+  }
+
+  .publication-filter select::picker-icon {
+    width: .45rem;
+    height: .45rem;
+    align-self: center;
+    margin-inline-end: .2rem;
+    border-inline-end: 1px solid;
+    border-block-end: 1px solid;
+    color: var(--burgundy);
+    content: "";
+    rotate: 45deg;
+    translate: 0 -.12rem;
+  }
+
+  .publication-filter select:open {
+    border-block-end-color: var(--burgundy);
+  }
+
+  .publication-filter select:open::picker-icon {
+    rotate: 225deg;
+    translate: 0 .12rem;
+  }
+
+  .publication-filter option {
+    min-block-size: 2.75rem;
+    gap: .65rem;
+    padding: .45rem .75rem;
+    white-space: normal;
+  }
+
+  .publication-filter option + option {
+    border-block-start: 1px solid var(--line);
+  }
+
+  .publication-filter option:is(:hover, :focus-visible) {
+    background: color-mix(in srgb, var(--surface) 65%, var(--paper));
+    color: var(--burgundy);
+  }
+
+  .publication-filter option:focus-visible {
+    outline-offset: -2px;
+  }
+
+  .publication-filter option:checked {
+    background: var(--surface);
+    color: var(--burgundy);
+    font-weight: 600;
+  }
+
+  .publication-filter option::checkmark {
+    order: 1;
+    margin-inline-start: auto;
+    color: var(--burgundy);
+  }
 }
 
 .publication-filter-feedback {
