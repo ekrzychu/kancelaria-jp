@@ -1,97 +1,132 @@
 # Jaroch-Konwent Pakos
 
-Public website for Jaroch-Konwent Pakos Kancelaria Radców Prawnych sp.k. Laravel 13 handles HTTP routing and renders Blade views. The approved CSS, vanilla JavaScript, assets and JSON content are served without a frontend build.
+Public website for Jaroch-Konwent Pakos Kancelaria Radców Prawnych sp.k. Laravel 13 serves Blade views with the approved CSS, vanilla JavaScript, photography and fonts. The public site has no frontend build step.
 
-## Architecture
+## Architecture and content ownership
 
-- `routes/web.php` defines the public routes, legacy archive redirect and 404 fallback.
-- `app/Http/` contains the controller and middleware for trailing slashes and public response headers.
-- `app/Content/` reads the private JSON datasets and prepares publication lists and reviewed article HTML.
-- `resources/views/` contains the Blade page templates, shared layout and partials.
-- `public/` contains the web entry point, assets, `robots.txt`, and `sitemap.xml`.
-- `storage/` and `bootstrap/cache/` are private, writable runtime directories.
+- `routes/web.php` and `app/Http/` define public routes, HTTP behavior and the database-aware `/sitemap.xml`.
+- `app/Content/SiteContent.php` reads editable content through four Eloquent models and preserves the existing Blade data shapes. `PublicationContent` prepares publication lists, anchor navigation and table wrappers.
+- MariaDB is authoritative for articles, specializations, team profiles and job offers. Changes made through the database appear on the corresponding public pages without a deployment. A database failure returns a generic HTTP 503 for affected pages.
+- `app/data/site.json` is authoritative for firm identity, navigation, contact details, office hours, the canonical origin, social links and static documents.
+- `app/data/{articles,services,team,recruitment}.json` are reviewed migration inputs and regression fixtures. Edit current public database content in MariaDB.
+- `resources/views/` and `public/` contain the approved public templates and assets. `storage/` and `bootstrap/cache/` are private writable runtime directories.
 
-The approved baseline is `2cdb87b1b770cf3636e5aa985e536597beadbbc3`. It contains the homepage, six top-level landing pages, the documents index, 13 specialization details, three root-level articles and three document details. The Laravel implementation preserves these 27 pages, the archive redirect and the noindex 404. Article URLs remain at `/<slug>/`, and the canonical domain comes from `site.json`. Shared Blade partials preserve the header, navigation, floating Contact link and footer. Framework paths such as `/admin`, `/api` and `/livewire` are reserved.
+Phase 2 preserves the approved Phase 1 baseline `cca68503e4666e7c268e448c3c2d9d4821844e5c` and its 27 public pages. The sitemap preserves the canonical paths, includes published articles and active specializations, and excludes documents and deleted or hidden content. Laravel serves it directly through a cacheable route.
 
-## Local development
+## Requirements
 
-Use PHP 8.4 and Composer 2. Phase 1 was verified with PHP 8.4.28, Composer 2.11.3 and Laravel 13.44.1. Enable the Laravel-required extensions and the article parser extensions, including cURL, DOM, libxml, mbstring, OpenSSL and XML. `composer check-platform-reqs` verifies the installed package requirements.
+Use PHP 8.4 with `pdo_mysql` and the standard Laravel extensions, including cURL, DOM, libxml, mbstring, OpenSSL and XML. Use Composer 2 and MariaDB 11.4. Phase 2 was verified against PHP 8.4.28 with mysqlnd 8.4.28, Composer 2.11.3, Laravel 13.44.1 and MariaDB 11.4.14. The `mariadb` connection uses native PDO parameter binding, InnoDB, strict SQL, `utf8mb4_unicode_ci` and a UTC session timezone.
 
-From the repository root on Linux or macOS:
+## Local MariaDB
 
-```sh
-composer install --no-interaction --prefer-dist
-composer check-platform-reqs
-if [ ! -f .env ]; then
-    cp .env.example .env
-    php artisan key:generate
-fi
-php artisan serve --host=127.0.0.1 --port=8743
+The Windows workstation uses the portable toolchain at `C:\Users\krzyc\Projects\kancelaria-jp-toolchain` and MariaDB listening on `127.0.0.1:3314`. Its database files and private credential file are in `mariadb-kancelaria-jp` under that directory. The initialized application schema is `kancelaria_jp` and its dedicated user is `kjp_app`. The `kjp_test` account can create and drop only the test-schema namespace.
+
+On a fresh workstation, extract the official MariaDB 11.4 Windows ZIP outside the repository and initialize an empty, private data directory with the ZIP's `mariadb-install-db.exe --datadir=<path> --port=3314 --password=<new-local-root-password>`. Use a unique root password and omit the `--service` option to run it as an ordinary process. Verify the archive checksum before extracting. [Portable MariaDB ZIP installation](https://mariadb.com/docs/server/server-management/install-and-upgrade-mariadb/installing-mariadb/binary-packages/installing-mariadb-windows-zip-packages)
+
+Start the existing workstation instance in a separate foreground PowerShell window with:
+
+```powershell
+$toolchain = 'C:\Users\krzyc\Projects\kancelaria-jp-toolchain'
+$bundle = Join-Path $toolchain 'mariadb-11.4.14-winx64'
+$instance = Join-Path $toolchain 'mariadb-kancelaria-jp'
+& (Join-Path $bundle 'bin\mariadbd.exe') --no-defaults --console "--basedir=$bundle" `
+    "--datadir=$(Join-Path $instance 'data')" --bind-address=127.0.0.1 --port=3314 `
+    --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
 ```
 
-Generate an application key only during initial setup of an environment. Keep production keys and credentials private. Local `.env.example` defaults keep cache and sessions on disk and mail in memory. The public routes use no database, sessions or outbound mail.
+To stop the existing workstation instance cleanly, run the following with the same variables and private root option file:
 
-On this Windows machine, the portable toolchain is installed in `C:\Users\krzyc\Projects\kancelaria-jp-toolchain`. From the repository root in PowerShell:
+```powershell
+& (Join-Path $bundle 'bin\mariadb-admin.exe') "--defaults-file=$(Join-Path $instance 'root-client.ini')" `
+    --protocol=tcp --host=127.0.0.1 --port=3314 shutdown
+```
+
+Provision a new instance using an administrator connection to that isolated server. Replace both password placeholders with independently generated secrets:
+
+```sql
+CREATE DATABASE kancelaria_jp CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'kjp_app'@'127.0.0.1' IDENTIFIED BY '<application-password>';
+CREATE USER 'kjp_test'@'127.0.0.1' IDENTIFIED BY '<test-password>';
+GRANT ALL PRIVILEGES ON `kancelaria\_jp`.* TO 'kjp_app'@'127.0.0.1';
+GRANT ALL PRIVILEGES ON `kancelaria\_jp\_test\_%`.* TO 'kjp_test'@'127.0.0.1';
+```
+
+## Setup, migration and startup
+
+From the repository root, select PHP 8.4 and install the Composer lockfile. On Windows:
 
 ```powershell
 $toolchain = 'C:\Users\krzyc\Projects\kancelaria-jp-toolchain'
 $env:PHPRC = Join-Path $toolchain 'php84'
 $env:PHP_BIN = Join-Path $env:PHPRC 'php.exe'
-& $env:PHP_BIN (Join-Path $toolchain 'composer.phar') install --no-interaction --prefer-dist
+& $env:PHP_BIN (Join-Path $toolchain 'composer.phar') install --prefer-dist --no-interaction
 & $env:PHP_BIN (Join-Path $toolchain 'composer.phar') check-platform-reqs
 if (!(Test-Path -LiteralPath '.env')) {
     Copy-Item -LiteralPath '.env.example' -Destination '.env'
     & $env:PHP_BIN artisan key:generate
 }
+```
+
+Set the `DB_*` values in the ignored `.env` to the dedicated application schema and account. Keep `APP_DEBUG=false` whenever others can reach the preview. With MariaDB running, use the following on a new database:
+
+```powershell
+& $env:PHP_BIN artisan migrate
+& $env:PHP_BIN artisan site:import-content --dry-run
+& $env:PHP_BIN artisan site:import-content
 & $env:PHP_BIN artisan serve --host=127.0.0.1 --port=8743
 ```
 
-Open `http://127.0.0.1:8743`. Press Ctrl+C to stop the foreground server. Adjust the executable path if you install PHP elsewhere. Keep Apache's document root pointed at `public/` when testing Apache separately.
+On macOS or Linux, use the equivalent `composer install`, `composer check-platform-reqs`, `php artisan key:generate` and `php artisan ...` commands with your installed PHP 8.4 and a dedicated MariaDB instance. Open `http://127.0.0.1:8743`. Press Ctrl+C to stop a foreground PHP development server.
 
-## Editing content
+## Import and schema
 
-All five reviewed datasets live under `app/data/`. Run `php tests/content.php` after editing them. The validator checks required fields, optional field types, publication dates, route slugs, URL schemes and exact-case local asset references.
+`site:import-content --dry-run` validates all five JSON files and reports planned counts without connecting to MariaDB. Run `site:import-content` after migrations against an empty schema. The importer locks the schema for concurrent imports and writes the four datasets in one transaction. It refuses a populated table, including soft-deleted records, and rolls back partial writes on error. The reviewed source contains 3 articles, 13 specializations, 23 profiles and 0 offers.
 
-- **Articles** use `slug`, `title`, and reviewed `body_html` in `articles.json`. Add date as `YYYY-MM-DD`, category, summary, or author where available. The homepage picks up to three dated articles with a title and summary. Article detail shows up to two newest other publications. Existing entries without a status are published, and `status: "draft"` is excluded everywhere. Update `public/sitemap.xml` when adding or removing indexable routes.
-- **Article images** are in the reviewed `body_html`. Use rights-cleared `/assets/img/` links and provide alternative text and dimensions. Optional `image` and `image_alt` are metadata.
-- **Specializations** use `slug`, `title`, `category`, `summary`, `body` and `scope` in `services.json`. The first eight entries appear on the homepage. `home_summary` can override their preview text.
-- **Team** entries use `name` and `role` in `team.json`. Optional portraits are exact-case filenames in `public/assets/img/`. The page groups entries by displayed role.
-- **Recruitment** uses `recruitment.json`. Vacancies appear when `status` is `open`. An empty list shows the usual vacancy notice.
-- **Office details and documents** come from `site.json`. Office hours may vary by day. Document details display the existing publication placeholder.
+| Table and model | Content columns |
+| --- | --- |
+| `articles` / `Article` | Unique ASCII slug `VARCHAR(191)`, title, category, author and image metadata `VARCHAR(255)`, summary `TEXT`, body `LONGTEXT`, nullable date-only `DATE`, status enum. |
+| `specializations` / `Specialization` | Unique ASCII slug `VARCHAR(191)`, title and category `VARCHAR(255)`, summary and optional homepage summary `TEXT`, body and scope `JSON`, active flag, unsigned display order. |
+| `team_members` / `TeamMember` | Name, displayed role and optional portrait `VARCHAR(255)`, explicit group enum, homepage partner flag, unsigned display order. |
+| `job_offers` / `JobOffer` | Nullable title `VARCHAR(255)`, optional description and URL `TEXT`, status enum, unsigned display order. Open offers require a title. |
 
-## Contact during Phase 1
+Each table has a bigint ID, `created_at` and `updated_at` UTC timestamps, and a nullable `deleted_at` timestamp for recoverable deletion. The JSON values in specializations are ordered lists. Team group and homepage partner eligibility are stored independently. Ordered lists use display order then ID. Publication lists sort newest first, undated items follow dated ones, and equal dates retain insertion order by ascending ID.
 
-The contact page retains the form layout, phone links and email links. The form fields and submit button are disabled, and the page directs visitors to phone or email. Direct POST requests receive HTTP 405. The application stores no enquiries or rate-limit records and generates no success messages.
+`draft` means an article has never been public, `published` is public, and `unpublished` is withdrawn and can be republished. The article model locks the slug once a record is published or withdrawn. Reserved application paths are rejected by the importer and model. A soft-deleted slug stays reserved by the unique index. Job offers are public only while `open`. Offers marked `closed` or `draft` remain private. Soft-deleted articles, specializations, team profiles and offers are excluded from public queries.
 
-The historical validation, CSRF session, honeypot, JSONL persistence, rate limiter and storage-error tests are preserved in `git show 2cdb87b1b770cf3636e5aa985e536597beadbbc3:tests/http.test.mjs`. The Laravel suite replaces those cases with assertions for disabled controls, unhandled POSTs, no success redirect or cookie, and no legacy files written. Full enquiry tests return when intake is implemented.
+## Editorial HTML boundary
 
-## Regression checks and screenshot comparison
+The importer preserves reviewed `body_html` byte for byte. Current publications use headings, paragraphs, line breaks, lists, blockquotes, emphasis, links, figures and images. Existing links use `href`. Images use `src`, `width`, `height`, `alt` and `loading`. Generated article navigation uses anchors and heading IDs. Tables, captions and their scroll wrappers are supported and regression-tested.
 
-Install Node.js 22 or newer and Chrome. The tests use Node's built-in runner and Chrome DevTools Protocol. Set `PHP_BIN` and `CHROME_BIN` if the tools are not on their default paths. Run from the repository root:
+Future CMS authoring must sanitize new rich text using a reviewed allowlist before publication. Preserve the elements above plus `figcaption`, table sections, rows and cells, caption, safe images and accessible labels. Permit HTTP(S) and safe local paths, with fragment, mailto and tel URLs where links need them. Reject executable schemes, event handlers, script and unsafe embedded content. The current DOM processing adds navigation and table wrappers to trusted input. It is a formatting pass and offers no sanitization.
 
-```sh
+## Regression checks
+
+Install Node.js 22 or newer and Chrome. Set `PHP_BIN` and `CHROME_BIN` as needed. Set these variables explicitly before running database-backed tests:
+
+```powershell
+$instance = Join-Path $toolchain 'mariadb-kancelaria-jp'
+$credentials = Get-Content -Raw -LiteralPath (Join-Path $instance 'local-credentials.json') | ConvertFrom-Json
+$env:TEST_DB_HOST = '127.0.0.1'
+$env:TEST_DB_PORT = '3314'
+$env:TEST_DB_USERNAME = 'kjp_test'
+$env:TEST_DB_PASSWORD = $credentials.test
 node tests/run.mjs
-node tests/check.mjs
-php tests/content.php
-node --test tests/http.test.mjs
-node --test tests/browser.test.mjs
-node tests/snapshots.mjs test-artifacts/laravel-after --details --stable
 ```
 
-`tests/run.mjs` runs syntax, content, HTTP and browser checks. The server harness starts Laravel from a disposable copy of the source and JSON datasets, reuses installed dependencies, and puts configuration caches and compiled views in temporary storage. It binds to loopback and removes its temporary copy after each run.
+Each run creates random `kancelaria_jp_test_<hex>` schemas using the isolated account, runs migrations and imports fixtures as needed, then drops only schemas it created. The harness rejects missing test credentials, port 3306 and servers outside the MariaDB 11.4 series. It uses disposable files and an explicit test connection. The GitHub Actions workflow starts its own MariaDB service and generates a masked ephemeral test password. Tests cover real MariaDB operations, route/config caching, public visibility, search, filtering, browser interactions and disabled contact submissions.
 
-Export and unpack the baseline into a temporary directory with `git archive --format=zip --output=<path> 2cdb87b1b770cf3636e5aa985e536597beadbbc3`. Copy the current `tests/snapshots.mjs` into that temporary export to apply the same capture conditions to both implementations. Run the command from each directory with different output paths. Compare matching files at 1440×900 and 390×844 using the same Chrome version, fonts and device scale. The standard capture includes the six homepage stages and eight representative pages at each viewport. `--details` adds the contact form, footer and open mobile menu. `--stable` captures the internal pages with reduced motion so scroll-reveal timing cannot skew pixel comparison. Homepage stages still use normal motion. The temporary Kontakt messaging and disabled fields are intentional differences.
+Run `php tests/content.php`, `node --test tests/database.test.mjs`, `node --test tests/http.test.mjs`, and `node --test tests/browser.test.mjs` individually when needed.
 
-The [Regression checks workflow](.github/workflows/regression.yml) installs locked Composer dependencies, verifies platform requirements, and runs the same checks on Ubuntu with PHP 8.4, Node 22 and Chrome. Its repository permissions are read-only.
+Use `node tests/snapshots.mjs test-artifacts/phase2-mariadb --details --stable` for visual comparisons. Export `cca68503e4666e7c268e448c3c2d9d4821844e5c` to a temporary directory with `git archive`, install its locked dependencies there, and run the same capture command with a separate output directory. The 33 views use 1440×900 and 390×844. The six homepage stages use regular motion and the internal layouts use reduced motion for stable comparison.
 
-## Hosting and next phases
+## Hosting and deferred work
 
-dhosting must run PHP 8.4 for both web and CLI, serve only `public/`, and allow PHP to write `storage/` and `bootstrap/cache/`. Install with `composer install --no-dev --prefer-dist --optimize-autoloader`, set the production `APP_URL`, configure a private `APP_KEY`, set `APP_DEBUG=false`, and run `composer check-platform-reqs --no-dev`. Verify rewrites, static files, permissions, HTTPS and cache commands on staging. The actual hosting account and MariaDB schema have yet to be verified. [Laravel deployment](https://laravel.com/docs/13.x/deployment) · [dhosting Laravel setup](https://dhosting.pl/pomoc/baza-wiedzy/jak-zainstalowac-laravel-na-serwerze/)
+Serve only Laravel's `public/` directory. Verify dhosting's PHP CLI and web runtime, `pdo_mysql`, MariaDB 11.4 credentials and TLS settings, write access to `storage/` and `bootstrap/cache/`, HTTPS, rewrites for `/sitemap.xml`, route/config caching, and backup/restore in staging. The hosting account has yet to be verified. [dhosting hosting capabilities](https://dhosting.pl/elastyczny-hosting) · [Laravel database configuration](https://laravel.com/docs/13.x/database)
 
-MariaDB and Filament will be added to this application in subsequent phases. Enquiry storage, mail delivery, deployment and the broader SEO migration are deferred. Obtain owner confirmation for the homepage client logos, experience figure and final privacy notice before production rollout.
+Back up the persistent MariaDB schema before deployments that run migrations. Include the database in restore rehearsals because Git contains the original import, while live edits exist in MariaDB. Future deployments run forward migrations and use the existing content. Reserve `site:import-content` for first-time provisioning of empty schemas and avoid reset or reimport operations on a live schema.
+
+Kontakt retains its disabled form, telephone and email links. Direct POSTs return HTTP 405. Filament, admin accounts, rich-text authoring, enquiry storage, email delivery and deployment are deferred.
 
 ## Branches and license
 
-`main` is the default branch. The Laravel migration is on `feature/internal-pages`. The `continue-fullscreen-animation` and `collapse-fullscreen-animation` branches retain the earlier homepage variants.
-
-This is proprietary software. See [LICENSE](LICENSE). Asset license notices remain alongside their assets.
+The Laravel migration is on `feature/internal-pages`. `main` and the two fullscreen animation branches retain their existing histories. This is proprietary software. See [LICENSE](LICENSE). Asset licenses remain alongside their assets.
