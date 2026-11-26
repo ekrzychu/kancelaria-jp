@@ -6,10 +6,11 @@
 # PHP dependencies
 /vendor/
 
-# Runtime-generated data
-/storage/*.log
-/storage/contact-submissions.jsonl
-/storage/contact-rate-limit.json
+# Local runtime data and test artifacts
+/storage/
+/sessions/
+/test-artifacts/
+/*.log
 
 # Editor and operating-system files
 /.idea/

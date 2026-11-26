@@ -1,70 +1,125 @@
 <?php
-$publications = array_filter($articles, static fn ($article) =>
-    is_array($article) && is_string($article['title'] ?? null) && trim($article['title']) !== ''
-);
+$publications = array_values(array_filter($articles, static fn ($entry) =>
+    is_array($entry) && is_string($entry['title'] ?? null) && trim($entry['title']) !== ''
+));
+foreach ($publications as &$publication) {
+    $publication['archive_date'] = publication_date($publication['date'] ?? null)?->format('Y-m-d') ?? '';
+    $publication['archive_category'] = is_string($publication['category'] ?? null) ? trim($publication['category']) : '';
+}
+unset($publication);
+usort($publications, static fn (array $a, array $b): int => $b['archive_date'] <=> $a['archive_date']);
+
+$categories = array_unique(array_filter(array_column($publications, 'archive_category'), 'strlen'));
+$years = array_unique(array_filter(array_map(static fn (array $entry): string => substr($entry['archive_date'], 0, 4), $publications), 'strlen'));
 ?>
-<section class="page-hero">
-  <div class="container page-intro" data-reveal>
-    <span class="section-kicker">Artykuły</span>
-    <h1>Publikacje prawne.</h1>
-    <p>Analizy i&nbsp;komentarze do zmian w&nbsp;prawie.</p>
+<section class="publication-hero" aria-labelledby="publications-title">
+  <div class="publication-frame publication-hero-layout">
+    <div data-reveal="subtle">
+      <span class="section-kicker">Artykuły</span>
+      <h1 id="publications-title">Publikacje prawne.</h1>
+    </div>
+    <p data-reveal="subtle">Analizy i&nbsp;komentarze do zmian w&nbsp;prawie.</p>
   </div>
 </section>
 
-<section class="section<?= $publications ? '' : ' archive-empty' ?>">
-  <?php if ($publications): ?>
-    <div class="container editorial-list" aria-label="Publikacje" data-reveal-children>
-      <?php foreach ($publications as $article): ?>
-        <?php
-        $date = $article['date'] ?? '';
-        $published = is_string($date) && preg_match('/\A\d{4}-\d{2}-\d{2}\z/', $date)
-            ? DateTimeImmutable::createFromFormat('!Y-m-d', $date)
-            : false;
-        $hasDate = $published && $published->format('Y-m-d') === $date;
-        $category = is_string($article['category'] ?? null) ? trim($article['category']) : '';
-        $summary = is_string($article['summary'] ?? null) ? trim($article['summary']) : '';
-        $image = $article['image'] ?? '';
-        $imageAlt = is_string($article['image_alt'] ?? null) ? $article['image_alt'] : '';
-        $hasImage = is_string($image)
-            && preg_match('/\A[\w.-]+\.(?:avif|jpe?g|png|webp)\z/i', $image)
-            && is_file(__DIR__ . '/../../public/assets/img/' . $image);
-        ?>
-        <article class="publication-entry<?= $hasImage ? ' has-image' : '' ?>">
-          <div>
-            <?php if ($hasDate || $category !== ''): ?>
-              <p class="publication-meta">
-                <?php if ($hasDate): ?>
-                  <time datetime="<?= e($date) ?>"><?= e($published->format('d.m.Y')) ?></time>
-                <?php endif; ?>
-                <?php if ($category !== ''): ?>
-                  <span><?= e($category) ?></span>
-                <?php endif; ?>
-              </p>
-            <?php endif; ?>
-            <h2>
-              <?php if (!empty($article['slug'])): ?>
-                <a href="/<?= e($article['slug']) ?>/"><?= e($article['title']) ?></a>
-              <?php else: ?>
-                <?= e($article['title']) ?>
+<section class="publication-archive<?= $publications ? '' : ' archive-empty' ?>" aria-label="Publikacje" data-publication-archive>
+  <div class="publication-frame">
+    <?php if ($publications): ?>
+      <form class="publication-filters" role="search" aria-label="Szukaj i filtruj artykuły" data-publication-filters data-reveal="subtle" hidden>
+        <div class="publication-search">
+          <label>
+            <?= icon('search') ?>
+            <span class="visually-hidden">Szukaj artykułów</span>
+            <input type="search" name="query" placeholder="Szukaj artykułów" autocomplete="off" aria-controls="publication-list">
+          </label>
+          <button class="publication-search-clear" type="button" aria-label="Wyczyść wyszukiwanie" data-publication-clear hidden>
+            <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true" focusable="false">
+              <path d="m4 4 8 8m0-8-8 8"/>
+            </svg>
+          </button>
+        </div>
+
+        <label class="publication-filter">
+          <span>Tematyka</span>
+          <select name="category" aria-controls="publication-list">
+            <option value="">Wszystkie kategorie</option>
+            <?php foreach ($categories as $category): ?>
+              <option value="<?= e($category) ?>"><?= e($category) ?></option>
+            <?php endforeach; ?>
+          </select>
+        </label>
+
+        <label class="publication-filter">
+          <span>Rok publikacji</span>
+          <select name="year" aria-controls="publication-list">
+            <option value="">Wszystkie lata</option>
+            <?php foreach ($years as $year): ?>
+              <option value="<?= e($year) ?>"><?= e($year) ?></option>
+            <?php endforeach; ?>
+          </select>
+        </label>
+
+        <label class="publication-filter">
+          <span>Sortowanie</span>
+          <select name="sort" aria-controls="publication-list">
+            <option value="newest">Od najnowszych</option>
+            <option value="oldest">Od najstarszych</option>
+            <option value="az">Alfabetycznie A–Z</option>
+            <option value="za">Alfabetycznie Z–A</option>
+          </select>
+        </label>
+
+        <div class="publication-filter-feedback">
+          <p class="filter-status" data-publication-status role="status"></p>
+          <button class="text-action publication-filter-reset" type="button" data-publication-reset hidden>Wyczyść filtry</button>
+        </div>
+      </form>
+      <div id="publication-list" data-reveal-sequence>
+        <?php foreach ($publications as $index => $publication): ?>
+          <?php
+          $date = $publication['archive_date'];
+          $featured = $index === 0 && $date !== '';
+          $summary = is_string($publication['summary'] ?? null) ? trim($publication['summary']) : '';
+          $bodyHtml = is_string($publication['body_html'] ?? null) ? $publication['body_html'] : '';
+          $body = preg_replace('~</(?:p|li|h[1-6]|div|blockquote|td|th|figcaption)\s*>|<br\b[^>]*>~i', ' ', $bodyHtml);
+          $bodyText = html_entity_decode(strip_tags($body), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+          $searchText = preg_replace('/\s+/u', ' ', implode(' ', [$publication['title'], $summary, $publication['archive_category'], $bodyText]));
+          $slug = $publication['slug'] ?? null;
+          $linked = is_string($slug) && preg_match('/\A[a-z0-9-]+\z/D', $slug);
+          $tag = $linked ? 'a' : 'div';
+          $titleId = 'publication-title-' . $index;
+          ?>
+          <<?= $tag ?>
+            class="publication-entry editorial-row"
+            data-reveal="publication-row"
+            data-publication-title="<?= e($publication['title']) ?>"
+            data-publication-date="<?= e($date) ?>"
+            data-publication-category="<?= e($publication['archive_category']) ?>"
+            data-publication-search="<?= e($searchText) ?>"
+            <?php if ($linked): ?>href="/<?= e($slug) ?>/" aria-labelledby="<?= e($titleId) ?>"<?php endif; ?>
+          >
+            <div class="publication-heading">
+              <?php if ($featured): ?>
+                <p class="section-kicker">Najnowsza publikacja</p>
               <?php endif; ?>
-            </h2>
+              <?php require __DIR__ . '/../templates/publication-meta.php'; ?>
+              <h2 class="row-title" id="<?= e($titleId) ?>"><?= e($publication['title']) ?></h2>
+            </div>
             <?php if ($summary !== ''): ?>
-              <p class="publication-summary"><?= e($summary) ?></p>
+              <p class="publication-summary row-summary"><?= e($summary) ?></p>
             <?php endif; ?>
-          </div>
-          <?php if ($hasImage): ?>
-            <img src="/assets/img/<?= e($image) ?>" alt="<?= e($imageAlt) ?>" loading="lazy" decoding="async">
-          <?php endif; ?>
-        </article>
-      <?php endforeach; ?>
-    </div>
-  <?php else: ?>
-    <div class="container">
-      <div class="archive-note" data-reveal>
+            <?php if ($linked): ?>
+              <span class="service-row-arrow publication-row-arrow" aria-hidden="true">&rarr;</span>
+            <?php endif; ?>
+          </<?= $tag ?>>
+        <?php endforeach; ?>
+      </div>
+    <?php else: ?>
+      <div class="archive-note" data-reveal="subtle">
         <h2>Archiwum w przygotowaniu</h2>
         <p>W sprawie konkretnego zagadnienia napisz lub zadzwoń.</p>
         <a class="text-action" href="/kontakt/">Skontaktuj się</a>
       </div>
-    </div>
-  <?php endif; ?>
+    <?php endif; ?>
+  </div>
 </section>

@@ -10,7 +10,7 @@
   </div>
 </section>
 <?php endif; ?>
-<footer class="site-footer"<?= $path === '/' ? ' data-home-surface="burgundy"' : '' ?>>
+<footer class="site-footer" data-home-surface="<?= $path === '/' ? 'burgundy' : 'beige' ?>">
   <?php if ($path !== '/'): ?>
     <div class="container footer-callout" data-reveal>
       <h2>Porozmawiajmy o sprawie.</h2>
