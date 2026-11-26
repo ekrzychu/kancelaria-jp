@@ -23,7 +23,7 @@ jobs:
       TEST_DB_USERNAME: kjp_test
     services:
       mariadb:
-        image: mariadb:11.4.14
+        image: mariadb:11.4.13@sha256:a8992b5e5404d11e03c54a31d0c1bdea3fd116d283aa6d1a627551f29045309b
         env:
           MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: '1'
           MARIADB_ROOT_HOST: localhost
@@ -61,6 +61,7 @@ jobs:
           GRANT ALL PRIVILEGES ON `kancelaria\_jp\_test\_%`.* TO 'kjp_test'@'%';
           SQL
           } | docker exec -i "$DB_CONTAINER" mariadb --user=root --protocol=socket
+          docker exec "$DB_CONTAINER" mariadb --user=root --protocol=socket --execute 'SELECT VERSION() AS ci_mariadb_version;'
           printf 'TEST_DB_PASSWORD=%s\n' "$test_password" >> "$GITHUB_ENV"
       - run: google-chrome --version
       - name: PHP and JavaScript syntax

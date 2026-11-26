@@ -113,7 +113,7 @@ $env:TEST_DB_PASSWORD = $credentials.test
 node tests/run.mjs
 ```
 
-Each run creates random `kancelaria_jp_test_<hex>` schemas using the isolated account, runs migrations and imports fixtures as needed, then drops only schemas it created. The harness rejects missing test credentials, port 3306 and servers outside the MariaDB 11.4 series. It uses disposable files and an explicit test connection. The GitHub Actions workflow starts its own MariaDB service and generates a masked ephemeral test password. Tests cover real MariaDB operations, route/config caching, public visibility, search, filtering, browser interactions and disabled contact submissions.
+Each run creates random `kancelaria_jp_test_<hex>` schemas using the isolated account, runs migrations and imports fixtures as needed, then drops only schemas it created. The harness rejects missing test credentials, port 3306 and servers outside the MariaDB 11.4 series. It uses disposable files and an explicit test connection. GitHub Actions pins its own MariaDB 11.4.13 service image and generates a masked ephemeral test password. Tests cover real MariaDB operations, route/config caching, public visibility, search, filtering, browser interactions and disabled contact submissions.
 
 Run `php tests/content.php`, `node --test tests/database.test.mjs`, `node --test tests/http.test.mjs`, and `node --test tests/browser.test.mjs` individually when needed.
 
