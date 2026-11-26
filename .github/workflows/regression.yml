@@ -1,0 +1,40 @@
+name: Regression checks
+
+on:
+  push:
+    branches:
+      - main
+      - feature/internal-pages
+  pull_request:
+    branches:
+      - main
+      - feature/internal-pages
+
+permissions:
+  contents: read
+
+jobs:
+  regression:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: dom, mbstring
+          coverage: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: google-chrome --version
+      - name: PHP and JavaScript syntax
+        run: node tests/check.mjs
+      - name: JSON and content validation
+        run: php tests/content.php
+      - name: HTTP and contact regressions
+        run: node --test tests/http.test.mjs
+      - name: Browser regressions
+        run: node --test tests/browser.test.mjs
