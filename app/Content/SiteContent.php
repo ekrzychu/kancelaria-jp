@@ -2,40 +2,81 @@
 
 namespace App\Content;
 
-use App\Support\PublicUrl;
+use App\Models\Article;
+use App\Models\JobOffer;
+use App\Models\Specialization;
+use App\Models\TeamMember;
 use RuntimeException;
 
 final class SiteContent
 {
-    private const DATASETS = ['site', 'services', 'team', 'articles', 'recruitment'];
+    private ?array $site = null;
 
-    public function read(string $name): array
+    public function site(): array
     {
-        if (! in_array($name, self::DATASETS, true)) {
-            throw new RuntimeException("Unknown content dataset: {$name}.");
+        if ($this->site === null) {
+            $data = (new ReviewedContent(config('site.content_path')))->read('site', associative: true);
+            if (! is_array($data)) {
+                throw new RuntimeException('Invalid site.json.');
+            }
+            $this->site = $data;
         }
 
-        $path = config('site.content_path')."/{$name}.json";
-        $json = is_file($path) ? file_get_contents($path) : false;
-        if ($json === false) {
-            throw new RuntimeException("Unable to read content dataset: {$name}.json.");
+        return $this->site;
+    }
+
+    public function specializations(): array
+    {
+        return Specialization::visible()->get()->map->only([
+            'slug', 'title', 'category', 'summary', 'home_summary', 'body', 'scope',
+        ])->all();
+    }
+
+    public function homepagePartners(): array
+    {
+        return TeamMember::homepagePartners()->limit(2)->get()->map->only(['name', 'role', 'portrait'])->all();
+    }
+
+    public function teamGroups(): array
+    {
+        $groups = [];
+        foreach (TeamGroup::cases() as $group) {
+            $groups[$group->value] = ['heading' => $group->heading(), 'people' => []];
         }
 
-        $data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
-        if (! is_array($data)) {
-            throw new RuntimeException("Invalid content dataset: {$name}.json.");
+        foreach (TeamMember::ordered()->get() as $person) {
+            $groups[$person->team_group->value]['people'][] = $person->only(['name', 'role', 'portrait']);
         }
 
-        return $data;
+        return $groups;
+    }
+
+    public function openVacancies(): array
+    {
+        return JobOffer::open()->get()->map->only(['title', 'description', 'url'])->all();
     }
 
     public function publishedArticles(): array
     {
-        return array_values(array_filter($this->read('articles'), static function (mixed $article): bool {
-            return is_array($article)
-                && (! array_key_exists('status', $article) || $article['status'] === 'published')
-                && ! in_array($article['slug'] ?? null, PublicUrl::RESERVED_SLUGS, true);
-        }));
+        // PublicationContent's stable date sorting keeps ID order for equal dates.
+        return Article::published()->orderBy('id')->get()->map(self::articleData(...))->all();
+    }
+
+    public function publishedArticle(string $slug): ?array
+    {
+        $article = Article::published()->where('slug', $slug)->first();
+
+        return $article === null ? null : self::articleData($article);
+    }
+
+    public function sitemapPaths(): array
+    {
+        return [
+            '/', '/o-kancelarii/', '/specjalizacje/',
+            ...Specialization::visible()->pluck('slug')->map(static fn (string $slug): string => '/specjalizacje/'.$slug.'/'),
+            '/zespol/', '/kariera/', '/kontakt/', '/artykuly/',
+            ...Article::published()->orderBy('id')->pluck('slug')->map(static fn (string $slug): string => '/'.$slug.'/'),
+        ];
     }
 
     public static function findBySlug(array $items, string $slug): ?array
@@ -47,5 +88,11 @@ final class SiteContent
         }
 
         return null;
+    }
+
+    private static function articleData(Article $article): array
+    {
+        return $article->only(['slug', 'title', 'summary', 'category', 'author', 'body_html', 'image', 'image_alt'])
+            + ['date' => $article->date?->format('Y-m-d')];
     }
 }

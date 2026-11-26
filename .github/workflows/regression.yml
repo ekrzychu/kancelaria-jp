@@ -17,6 +17,21 @@ jobs:
   regression:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
+    env:
+      TEST_DB_HOST: 127.0.0.1
+      TEST_DB_PORT: '3314'
+      TEST_DB_USERNAME: kjp_test
+    services:
+      mariadb:
+        image: mariadb:11.4.14
+        env:
+          MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: '1'
+          MARIADB_ROOT_HOST: localhost
+        ports:
+          - 127.0.0.1:3314:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s --health-timeout=5s --health-retries=15
     steps:
       - uses: actions/checkout@v4
         with:
@@ -24,7 +39,7 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-          extensions: curl, dom, mbstring, xml
+          extensions: curl, dom, mbstring, pdo_mysql, xml
           tools: composer:2.11.3
           coverage: none
       - uses: actions/setup-node@v4
@@ -34,11 +49,26 @@ jobs:
         run: |
           composer install --no-interaction --prefer-dist --no-progress
           composer check-platform-reqs
+      - name: Provision the disposable-schema test account
+        env:
+          DB_CONTAINER: ${{ job.services.mariadb.id }}
+        run: |
+          test_password="$(openssl rand -hex 24)"
+          echo "::add-mask::$test_password"
+          {
+            printf "CREATE USER 'kjp_test'@'%%' IDENTIFIED BY '%s';\n" "$test_password"
+            cat <<'SQL'
+          GRANT ALL PRIVILEGES ON `kancelaria\_jp\_test\_%`.* TO 'kjp_test'@'%';
+          SQL
+          } | docker exec -i "$DB_CONTAINER" mariadb --user=root --protocol=socket
+          printf 'TEST_DB_PASSWORD=%s\n' "$test_password" >> "$GITHUB_ENV"
       - run: google-chrome --version
       - name: PHP and JavaScript syntax
         run: node tests/check.mjs
       - name: JSON and content validation
         run: php tests/content.php
+      - name: MariaDB migrations and import
+        run: node --test tests/database.test.mjs
       - name: HTTP routes and disabled-intake regressions
         run: node --test tests/http.test.mjs
       - name: Browser regressions

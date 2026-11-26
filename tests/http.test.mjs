@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { routes, startSite } from './support/site.mjs';
@@ -124,55 +124,66 @@ test('public routing and disabled enquiry intake', async t => {
   });
 });
 
-test('homepage shows the three newest eligible publications with formatted dates', async t => {
-  const { origin, dir, stop } = await startSite();
+function articleRows(database, rows, replace = false) {
+  const operations = replace ? [{ sql: 'DELETE FROM articles' }] : [];
+  for (const row of rows) {
+    operations.push({
+      sql: 'INSERT INTO articles (slug,title,summary,category,body_html,date,status,deleted_at) VALUES (?,?,?,?,?,?,?,?)',
+      params: [
+        row.slug, row.title ?? row.slug, row.summary ?? null, row.category ?? null,
+        row.body_html ?? '<p>Synthetic article.</p>', row.date ?? null, row.status ?? 'published', row.deleted_at ?? null,
+      ],
+    });
+  }
+  database.query(operations);
+}
+
+test('homepage applies publication eligibility, date order, and a stable tie-break', async t => {
+  const { origin, database, stop } = await startSite();
   t.after(stop);
   const fixtures = [
     { slug: 'oldest', date: '2023-12-31' },
-    { slug: 'invalid-calendar-date', date: '2026-02-29' },
     { slug: 'previous', date: '2024-01-01' },
     { slug: 'missing-date' },
-    { slug: 'noncanonical-date', date: '2026-1-01' },
-    { slug: 'nonstring-date', date: 20260101 },
     { slug: 'newest', date: '2025-06-02' },
     { slug: 'leap-day', date: '2024-02-29' },
+    { slug: 'same-day', date: '2024-02-29' },
     { slug: 'blank-summary', date: '2026-01-01', summary: ' ' },
   ].map(entry => ({ title: entry.slug, summary: 'Synthetic preview.', ...entry }));
-  await writeFile(join(dir, 'app', 'data', 'articles.json'), JSON.stringify(fixtures));
+  articleRows(database, fixtures, true);
 
   const response = await fetch(origin + '/');
   assert.equal(response.status, 200);
   const html = await response.text();
   const previews = html.match(/<ol class="home-publications-list"[^>]*>([\s\S]*?)<\/ol>/)?.[1];
   assert(previews, 'Homepage publication list is missing');
-  assert.deepEqual([...previews.matchAll(/href="\/([^"]+)\/"/g)].map(match => match[1]), ['newest', 'leap-day', 'previous']);
+  assert.deepEqual([...previews.matchAll(/href="\/([^"]+)\/"/g)].map(match => match[1]), ['newest', 'leap-day', 'same-day']);
   assert.deepEqual([...previews.matchAll(/<time datetime="([^"]+)">([^<]+)<\/time>/g)].map(match => match.slice(1)), [
     ['2025-06-02', '02.06.2025'],
     ['2024-02-29', '29.02.2024'],
-    ['2024-01-01', '01.01.2024'],
+    ['2024-02-29', '29.02.2024'],
   ]);
 });
 
 test('related publications use the two newest valid entries out of 100', async t => {
-  const { origin, dir, stop } = await startSite();
+  const { origin, database, stop } = await startSite();
   t.after(stop);
   const rows = Array.from({ length: 100 }, (_, index) => ({
     slug: 'fixture-' + index,
     title: 'Fixture article ' + index,
     category: index >= 97 && index <= 98 ? 'Other category' : 'Current category',
     date: new Date(Date.UTC(2024, 0, index + 1)).toISOString().slice(0, 10),
-    body_html: '<p>Synthetic article.</p>',
   }));
-  const file = join(dir, 'app', 'data', 'articles.json');
   const current = rows[99];
-  rows[96].slug = 'invalid/fixture';
+  rows[96].slug = 'admin';
   rows[96].date = '2099-01-01';
+
   for (const [dataset, expected] of [
     [[...rows.filter((_, i) => i % 2 === 0), ...rows.filter((_, i) => i % 2 !== 0).reverse()], ['fixture-98', 'fixture-97']],
     [[current, rows[0]], ['fixture-0']],
     [[current], []],
   ]) {
-    await writeFile(file, JSON.stringify(dataset));
+    articleRows(database, dataset, true);
     const response = await fetch(origin + '/' + current.slug + '/');
     assert.equal(response.status, 200);
     const html = await response.text();
@@ -183,30 +194,112 @@ test('related publications use the two newest valid entries out of 100', async t
   }
 });
 
-test('drafts and reserved article slugs are unavailable in public output', async t => {
-  const { origin, dir, data, stop } = await startSite();
+test('cached routes serve live edits and hide withdrawn, draft, deleted, and reserved content', async t => {
+  const { origin, database, data, stop } = await startSite({ cached: true });
   t.after(stop);
-  const marker = 'Unpublished fixture text 8914';
-  const fixture = { title: marker, summary: marker, date: '2099-01-01', body_html: '<p>' + marker + '</p>' };
-  const restricted = [
+  const marker = 'Ukryta publikacja regresyjna';
+  const article = { title: marker, summary: marker, date: '2099-01-01', body_html: '<p>' + marker + '</p>' };
+  const hidden = [
     { slug: 'fixture-draft', status: 'draft' },
-    { slug: 'admin', status: 'published' },
-    { slug: 'livewire', status: 'published' },
-    { slug: 'up', status: 'published' },
+    { slug: 'fixture-unpublished', status: 'unpublished' },
+    { slug: 'fixture-deleted', deleted_at: '2026-11-01 12:00:00' },
+    { slug: 'admin' }, { slug: 'livewire' }, { slug: 'up' },
   ];
-  const { slug } = data.articles[0];
-  await writeFile(join(dir, 'app', 'data', 'articles.json'), JSON.stringify([
-    ...data.articles, ...restricted.map(entry => ({ ...fixture, ...entry })),
-  ]));
+  const originalSlug = data.articles[0].slug;
+  articleRows(database, hidden.map(row => ({ ...article, ...row })));
+  const htmlAt = async (path, status = 200) => {
+    const response = await fetch(origin + path);
+    assert.equal(response.status, status, path);
+    return response.text();
+  };
 
-  for (const entry of restricted) {
-    const response = await fetch(origin + '/' + entry.slug + '/');
-    assert.equal(response.status, 404, entry.slug);
-    assert(!(await response.text()).includes(marker));
+  for (const entry of hidden) {
+    assert(!(await htmlAt('/' + entry.slug + '/', 404)).includes(marker));
   }
-  for (const route of ['/', '/artykuly/', '/' + slug + '/']) {
-    const response = await fetch(origin + route);
-    assert.equal(response.status, 200);
-    assert(!(await response.text()).includes(marker));
+  for (const path of ['/', '/artykuly/', '/' + originalSlug + '/', '/sitemap.xml']) {
+    assert(!(await htmlAt(path)).includes(marker));
   }
+  const oldSitemap = await htmlAt('/sitemap.xml');
+  for (const entry of hidden) assert(!oldSitemap.includes('/' + entry.slug + '/'));
+
+  articleRows(database, [{
+    slug: 'fixture-live', title: 'Opublikowana próba Łódź', summary: 'Zażółć gęślą jaźń 😀', date: '2098-01-01',
+    body_html: '<h2>Treść</h2><p><a href="/kontakt/">Łącze</a></p><h2>Dane</h2><table><caption>Próba</caption><tr><td>Wartość</td></tr></table>',
+  }]);
+  assert.match(await htmlAt('/'), /Opublikowana próba Łódź/);
+  assert.match(await htmlAt('/artykuly/'), /Opublikowana próba Łódź/);
+  assert.match(await htmlAt('/' + originalSlug + '/'), /Opublikowana próba Łódź/);
+  const live = await htmlAt('/fixture-live/');
+  assert.match(live, /Zażółć gęślą jaźń 😀/);
+  assert.match(live, /id="sekcja-tresc"/);
+  assert.match(live, /class="article-table-scroll"/);
+  assert.match(live, /href="\/kontakt\/">Łącze/);
+  assert.match(await htmlAt('/sitemap.xml'), /\/fixture-live\//);
+
+  database.query([{ sql: 'UPDATE articles SET title=? WHERE slug=?', params: ['Zmieniona próba Poznań', 'fixture-live'] }]);
+  assert.match(await htmlAt('/fixture-live/'), /Zmieniona próba Poznań/);
+  database.query([{ sql: 'UPDATE articles SET status=? WHERE slug=?', params: ['unpublished', 'fixture-live'] }]);
+  await htmlAt('/fixture-live/', 404);
+  assert.doesNotMatch(await htmlAt('/artykuly/'), /Zmieniona próba Poznań/);
+  assert.doesNotMatch(await htmlAt('/sitemap.xml'), /\/fixture-live\//);
+  assert.doesNotMatch(await htmlAt('/sitemap.xml'), /\/dokumenty\//);
+
+  database.query([{ sql: 'DROP TABLE articles' }]);
+  const outage = await htmlAt('/artykuly/', 503);
+  assert.match(outage, /Usługa jest tymczasowo niedostępna/);
+  assert.doesNotMatch(outage, /SQLSTATE|SELECT|pdo_mysql|kancelaria_jp_test/);
+});
+
+test('specialization order, persisted team groups, and active vacancies are database driven', async t => {
+  const { origin, database, data, stop } = await startSite();
+  t.after(stop);
+  const htmlAt = async (path, status = 200) => {
+    const response = await fetch(origin + path);
+    assert.equal(response.status, status, path);
+    return response.text();
+  };
+  const homeLinks = html => [...html.matchAll(/class="home-practice-link" href="\/specjalizacje\/([^/]+)\//g)].map(match => match[1]);
+
+  assert.deepEqual(homeLinks(await htmlAt('/')), data.services.slice(0, 8).map(entry => entry.slug));
+  const initialHome = await htmlAt('/');
+  assert(initialHome.includes(data.team[0].name) && initialHome.includes(data.team[1].name));
+  assert(!initialHome.includes(data.team[2].name));
+  assert.match(await htmlAt('/kariera/'), /Brak opublikowanych ofert/);
+
+  database.query([
+    { sql: 'UPDATE specializations SET active=0 WHERE slug=?', params: [data.services[0].slug] },
+    { sql: 'UPDATE specializations SET deleted_at=? WHERE slug=?', params: ['2026-11-01 12:00:00', data.services[1].slug] },
+    { sql: 'UPDATE specializations SET display_order=0, title=? WHERE slug=?', params: ['Próba specjalizacji Łódź', data.services[9].slug] },
+    { sql: 'UPDATE team_members SET homepage_partner=0 WHERE name=?', params: [data.team[0].name] },
+    { sql: 'UPDATE team_members SET homepage_partner=1, team_group=?, name=? WHERE name=?', params: ['support', 'Próba profilu Łódź', data.team[2].name] },
+    { sql: 'UPDATE team_members SET deleted_at=? WHERE name=?', params: ['2026-11-01 12:00:00', data.team[3].name] },
+    ...[
+      ['Próba naboru otwarta', 'open', null],
+      ['Nabór utajniony zamknięty', 'closed', null],
+      ['Nabór utajniony szkic', 'draft', null],
+      ['Nabór utajniony skasowany', 'open', '2026-11-01 12:00:00'],
+    ].map(([title,status,deleted], index) => ({
+      sql: 'INSERT INTO job_offers (title,description,url,status,deleted_at,display_order) VALUES (?,?,?,?,?,?)',
+      params: [title,'Opis próby – żółć','https://fixture.example.test/job',status,deleted,index+1],
+    })),
+  ]);
+  const home = await htmlAt('/');
+  assert.deepEqual(homeLinks(home), [data.services[9].slug, ...data.services.slice(2, 9).map(entry => entry.slug)]);
+  assert.match(home, /Próba profilu Łódź/);
+  assert(!home.includes(data.team[0].name));
+  for (const entry of data.services.slice(0, 2)) await htmlAt('/specjalizacje/' + entry.slug + '/', 404);
+  assert.match(await htmlAt('/specjalizacje/' + data.services[9].slug + '/'), /Próba specjalizacji Łódź/);
+  const sitemap = await htmlAt('/sitemap.xml');
+  assert(!sitemap.includes('/' + data.services[0].slug + '/') && !sitemap.includes('/' + data.services[1].slug + '/'));
+
+  const team = await htmlAt('/zespol/');
+  assert.match(team, /team-group--support[\s\S]*Próba profilu Łódź/);
+  assert(!team.includes(data.team[3].name));
+  const career = await htmlAt('/kariera/');
+  assert.match(career, /Próba naboru otwarta/);
+  assert.match(career, /https:\/\/fixture\.example\.test\/job/);
+  assert.doesNotMatch(career, /Nabór utajniony/);
+  database.query([{ sql: 'UPDATE job_offers SET status=? WHERE title=?', params: ['closed', 'Próba naboru otwarta'] }]);
+  assert.doesNotMatch(await htmlAt('/kariera/'), /Próba naboru otwarta/);
+  assert.match(await htmlAt('/kariera/'), /Brak opublikowanych ofert/);
 });

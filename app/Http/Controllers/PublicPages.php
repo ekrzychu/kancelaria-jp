@@ -18,9 +18,8 @@ final class PublicPages
 
     public function home(): Response
     {
-        $services = $this->content->read('services');
-        $team = $this->content->read('team');
-        $partners = array_filter($team, static fn (array $person): bool => str_starts_with(mb_strtolower($person['role']), 'wspólnik'));
+        $services = $this->content->specializations();
+        $partners = $this->content->homepagePartners();
         $publications = $this->publications->home($this->content->publishedArticles());
 
         return $this->page('home', 'Kancelaria Radców Prawnych', compact('services', 'partners', 'publications'));
@@ -33,12 +32,12 @@ final class PublicPages
 
     public function services(): Response
     {
-        return $this->page('services', 'Specjalizacje', ['services' => $this->content->read('services')]);
+        return $this->page('services', 'Specjalizacje', ['services' => $this->content->specializations()]);
     }
 
     public function service(string $slug): Response
     {
-        $services = $this->content->read('services');
+        $services = $this->content->specializations();
         $service = SiteContent::findBySlug($services, $slug);
 
         return $service === null ? $this->notFound() : $this->page('service', $service['title'], [
@@ -50,33 +49,12 @@ final class PublicPages
 
     public function team(): Response
     {
-        $team = $this->content->read('team');
-        $teamGroups = [
-            'leadership' => ['heading' => 'Wspólnicy i dyrekcja', 'people' => []],
-            'coordinators' => ['heading' => 'Koordynatorzy zespołu', 'people' => []],
-            'lawyers' => ['heading' => 'Prawnicy', 'people' => []],
-            'support' => ['heading' => 'Specjaliści i administracja', 'people' => []],
-        ];
-        foreach ($team as $person) {
-            [$title] = explode(' · ', mb_strtolower($person['role']), 2);
-            $group = match (true) {
-                str_starts_with($title, 'wspólnik'), str_starts_with($title, 'dyrektor') => 'leadership',
-                str_starts_with($title, 'koordynator') => 'coordinators',
-                in_array($title, ['radca prawny', 'adwokat'], true) => 'lawyers',
-                default => 'support',
-            };
-            $teamGroups[$group]['people'][] = $person;
-        }
-
-        return $this->page('team', 'Zespół', compact('teamGroups'));
+        return $this->page('team', 'Zespół', ['teamGroups' => $this->content->teamGroups()]);
     }
 
     public function career(): Response
     {
-        $recruitment = $this->content->read('recruitment');
-        $vacancies = array_filter($recruitment['vacancies'], static fn (array $vacancy): bool => ($vacancy['status'] ?? '') === 'open');
-
-        return $this->page('career', 'Kariera', compact('vacancies'));
+        return $this->page('career', 'Kariera', ['vacancies' => $this->content->openVacancies()]);
     }
 
     public function legacyArchive(): Response
@@ -93,22 +71,21 @@ final class PublicPages
 
     public function article(string $slug): Response
     {
-        $articles = $this->content->publishedArticles();
-        $article = SiteContent::findBySlug($articles, $slug);
+        $article = $this->content->publishedArticle($slug);
         if ($article === null) {
             return $this->notFound();
         }
 
         return $this->page('article', $article['title'], $this->publications->detail($article) + [
             'article' => $article,
-            'related' => $this->publications->related($articles, $article),
+            'related' => $this->publications->related($this->content->publishedArticles(), $article),
             'description' => $article['summary'] ?? null,
         ]);
     }
 
     public function contact(): Response
     {
-        $site = $this->content->read('site');
+        $site = $this->content->site();
         $hours = $site['hours'];
         $weekdays = ['Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek'];
         $hasUniformWeek = count($hours) === count($weekdays)
@@ -127,7 +104,7 @@ final class PublicPages
 
     public function document(string $slug): Response
     {
-        $documents = $this->content->read('site')['documents'] ?? [];
+        $documents = $this->content->site()['documents'] ?? [];
         $document = SiteContent::findBySlug($documents, $slug);
 
         return $document === null ? $this->notFound() : $this->page('document', $document['title'], [
@@ -144,7 +121,7 @@ final class PublicPages
 
     private function page(string $page, string $title, array $data = [], int $status = 200): Response
     {
-        $site = $this->content->read('site');
+        $site = $this->content->site();
         $path = PublicUrl::path($this->request);
 
         return response()->view('pages.'.$page, [

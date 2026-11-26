@@ -1,4 +1,4 @@
-import { spawn } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { cp, mkdir, mkdtemp, readFile, rm, symlink } from 'node:fs/promises';
 import { createServer } from 'node:net';
@@ -6,6 +6,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setTimeout } from 'node:timers/promises';
+
+import { createTestDatabase } from './database.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 export const php = process.env.PHP_BIN || 'php';
@@ -37,14 +39,20 @@ async function freePort() {
   }
 }
 
-export async function startSite() {
+export async function startSite({ importContent = true, serve = true, cached = false } = {}) {
   const dir = await mkdtemp(join(tmpdir(), 'kancelaria-jp-test-'));
   let child;
+  let database;
   let log = '';
   let spawnError;
   const stop = async () => {
-    if (child) await stopProcess(child);
-    await rm(dir, { recursive: true, force: true, maxRetries: 4 });
+    try {
+      if (child) await stopProcess(child);
+      database?.drop();
+      database = undefined;
+    } finally {
+      await rm(dir, { recursive: true, force: true, maxRetries: 4 });
+    }
   };
 
   try {
@@ -58,36 +66,53 @@ export async function startSite() {
       mkdir(join(dir, 'bootstrap', 'cache'), { recursive: true }),
       symlink(join(root, 'vendor'), join(dir, 'vendor'), process.platform === 'win32' ? 'junction' : 'dir'),
     ]);
-    await Promise.all(['app', 'bootstrap/app.php', 'composer.json', 'config', 'public', 'resources', 'routes'].map(name =>
+    await Promise.all(['app', 'artisan', 'bootstrap/app.php', 'composer.json', 'config', 'database', 'public', 'resources', 'routes'].map(name =>
       cp(join(root, name), join(dir, name), { recursive: true })));
+    database = createTestDatabase(php);
     const host = '127.0.0.1:' + await freePort();
     const origin = 'http://' + host;
     const env = { ...process.env };
     for (const name of ['APP_CONFIG_CACHE', 'APP_EVENTS_CACHE', 'APP_PACKAGES_CACHE', 'APP_ROUTES_CACHE', 'APP_SERVICES_CACHE', 'PHP_CLI_SERVER_WORKERS']) {
       delete env[name];
     }
+    const runtimeEnv = {
+      ...env,
+      APP_ENV: 'testing',
+      APP_DEBUG: 'false',
+      APP_URL: origin,
+      APP_KEY: 'base64:' + randomBytes(32).toString('base64'),
+      APP_MAINTENANCE_DRIVER: 'file',
+      LARAVEL_STORAGE_PATH: storage,
+      VIEW_COMPILED_PATH: join(storage, 'framework', 'views'),
+      SITE_CONTENT_PATH: content,
+      CACHE_STORE: 'array',
+      SESSION_DRIVER: 'array',
+      LOG_CHANNEL: 'single',
+      MAIL_MAILER: 'array',
+      QUEUE_CONNECTION: 'sync',
+      ...database.env,
+    };
+    const artisan = (args, overrides = {}) => execFileSync(php, ['artisan', ...args], {
+      cwd: dir, env: { ...runtimeEnv, ...overrides }, encoding: 'utf8', windowsHide: true,
+    });
+    const modelChecks = () => execFileSync(php, [join(root, 'tests', 'support', 'model-checks.php'), dir], {
+      cwd: dir, env: runtimeEnv, encoding: 'utf8', windowsHide: true,
+    });
+    artisan(['migrate', '--force', '--no-ansi']);
+    if (importContent) artisan(['site:import-content', '--no-ansi']);
+    if (cached) {
+      artisan(['config:cache', '--no-ansi']);
+      artisan(['route:cache', '--no-ansi']);
+    }
+    if (!serve) return { dir, database, artisan, modelChecks, stop };
+
     child = spawn(php, [
       '-d', 'display_errors=stderr', '-S', host, '-t', publicDir, router,
     ], {
       cwd: publicDir,
       stdio: ['ignore', 'ignore', 'pipe'],
       windowsHide: true,
-      env: {
-        ...env,
-        APP_ENV: 'testing',
-        APP_DEBUG: 'false',
-        APP_URL: origin,
-        APP_KEY: 'base64:' + randomBytes(32).toString('base64'),
-        APP_MAINTENANCE_DRIVER: 'file',
-        LARAVEL_STORAGE_PATH: storage,
-        VIEW_COMPILED_PATH: join(storage, 'framework', 'views'),
-        SITE_CONTENT_PATH: content,
-        CACHE_STORE: 'array',
-        SESSION_DRIVER: 'array',
-        LOG_CHANNEL: 'single',
-        MAIL_MAILER: 'array',
-        QUEUE_CONNECTION: 'sync',
-      },
+      env: runtimeEnv,
     });
     child.on('error', error => { spawnError = error; });
     child.stderr.setEncoding('utf8').on('data', chunk => { log = (log + chunk).slice(-12000); });
@@ -107,7 +132,7 @@ export async function startSite() {
     const entries = await Promise.all(['site', 'services', 'team', 'articles', 'recruitment'].map(async name => [
       name, JSON.parse(await readFile(join(content, name + '.json'), 'utf8')),
     ]));
-    return { dir, origin, data: Object.fromEntries(entries), stop, log: () => log };
+    return { dir, origin, data: Object.fromEntries(entries), database, artisan, stop, log: () => log };
   } catch (error) {
     await stop();
     throw error;

@@ -73,7 +73,7 @@ final class PublicationContent
         $sections = [];
         $sectionCount = 0;
 
-        // Add navigation and wrappers to the reviewed JSON fragment.
+        // Add navigation and wrappers to the reviewed article fragment.
         if (class_exists(DOMDocument::class)) {
             $document = new DOMDocument();
             $fragment = '<!doctype html><html><head><meta charset="utf-8"></head><body>' . $bodyHtml . '</body></html>';
@@ -133,7 +133,7 @@ final class PublicationContent
             }
         }
 
-        // Only body_html from the reviewed, private article dataset is trusted as HTML.
+        // Only reviewed, imported body_html is trusted here. DOM formatting is not sanitization.
         $body = new HtmlString($bodyHtml);
 
         return compact('body', 'sections', 'sectionCount', 'summary', 'author');
