@@ -399,7 +399,8 @@ html:has(> .homepage) {
 .career-frame,
 .publication-frame,
 .contact-frame,
-body:has(> main > :is(.about-hero, .services-hero, .service-hero, .team-hero, .career-hero, .publication-hero, .article-detail, .contact-hero)) :is(.header-inner, .footer-callout, .footer-grid, .legal-row) {
+main > :is(.page-hero, .page-hero + .section) > .container,
+body:has(> main > :is(.about-hero, .page-hero, .service-hero, .team-hero, .career-hero, .publication-hero, .article-detail, .contact-hero)) :is(.header-inner, .footer-callout, .footer-grid, .legal-row) {
   width: calc(100% - 2 * var(--wide-page-gutter));
   margin-inline: auto;
 }
@@ -3164,6 +3165,7 @@ main:has(.archive-empty) + .site-footer {
 .contact-hours > span {
   display: flex;
   flex-wrap: wrap;
+  align-items: baseline;
   justify-content: space-between;
   gap: 0 1rem;
 }
@@ -3361,9 +3363,12 @@ main:has(.archive-empty) + .site-footer {
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
   }
+}
 
+@media (min-width: 72rem) {
   .contact-office-details > div {
     grid-template-columns: 8.25rem minmax(0, 1fr);
+    align-items: baseline;
   }
 }
 
@@ -3739,11 +3744,11 @@ main:has(.archive-empty) + .site-footer {
     animation-delay: min(var(--reveal-delay, 0ms), 160ms);
   }
 
-  :is(.services-directory, .publication-archive, .article-related) a.editorial-row > * {
+  a.editorial-row > * {
     transition: translate 180ms var(--motion-ease);
   }
 
-  :is(.services-directory, .publication-archive, .article-related) a.editorial-row:is(:hover, :focus-visible) > * {
+  a.editorial-row:is(:hover, :focus-visible) > * {
     translate: .25rem;
   }
 

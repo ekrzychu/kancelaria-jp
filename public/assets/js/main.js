@@ -301,24 +301,22 @@
     const visibleContent = new Set();
     const textBounds = document.createRange();
     const editorialText = 'h1, h2, h3, h4, p, dt, dd, figcaption, td, th, .row-summary, .service-scope li, .article-body :is(li, pre)';
-    if (!homepage) {
-      const protectedContent = document.querySelectorAll(
-        `:is(main, footer) :is(form, input, textarea, select, a, button, [contenteditable], .article-detail summary, .article-table-scroll, .article-body :is(figure, img), ${editorialText})`
-      );
-      const observer = 'IntersectionObserver' in window && new IntersectionObserver(entries => {
-        for (const { target, isIntersecting } of entries) {
-          if (isIntersecting) visibleContent.add(target);
-          else visibleContent.delete(target);
-        }
-        scheduleTone();
-      });
-      for (const element of protectedContent) {
-        if (element === contact) continue;
-        visibleContent.add(element);
-        if (observer) observer.observe(element);
+    const protectedContent = document.querySelectorAll(
+      `:is(main, .home-contact, footer) :is(form, input, textarea, select, a, button, [contenteditable], .article-detail summary, .article-table-scroll, .article-body :is(figure, img), ${editorialText})`
+    );
+    const observer = 'IntersectionObserver' in window && new IntersectionObserver(entries => {
+      for (const { target, isIntersecting } of entries) {
+        if (isIntersecting) visibleContent.add(target);
+        else visibleContent.delete(target);
       }
-      contact.classList.add('is-positioned');
+      scheduleTone();
+    });
+    for (const element of protectedContent) {
+      if (element === contact) continue;
+      visibleContent.add(element);
+      if (observer) observer.observe(element);
     }
+    contact.classList.add('is-positioned');
 
     function applyTone(tone) {
       contact.dataset.controlTone = tone;
@@ -354,15 +352,13 @@
     function updateTone() {
       frame = 0;
       const box = contact.getBoundingClientRect();
-      if (!homepage) {
-        const collision = [...visibleContent].some(element => {
-          if (!overlaps(box, element.getBoundingClientRect())) return false;
-          if (!element.matches(editorialText)) return true;
-          textBounds.selectNodeContents(element);
-          return [...textBounds.getClientRects()].some(rect => overlaps(box, rect));
-        });
-        contact.classList.toggle('is-yielding', collision);
-      }
+      const collision = [...visibleContent].some(element => {
+        if (!overlaps(box, element.getBoundingClientRect())) return false;
+        if (!element.matches(editorialText)) return true;
+        textBounds.selectNodeContents(element);
+        return [...textBounds.getClientRects()].some(rect => overlaps(box, rect));
+      });
+      contact.classList.toggle('is-yielding', collision);
       const sample = (x, y) => homeSurfaceFor(
         document.elementsFromPoint(x, y).find(element => !contact.contains(element))
       );
@@ -448,7 +444,7 @@
       if (!pendingSequence.size) return;
       const inset = revealSequenceInset();
       sequenceObserver = new IntersectionObserver(revealEntries, {
-        rootMargin: `${inset}px 0px -${inset}px`,
+        rootMargin: `${inset}px 0px 0px`,
         threshold: revealThreshold,
       });
       pendingSequence.forEach((_, target) => sequenceObserver.observe(target));
