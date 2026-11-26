@@ -16,6 +16,16 @@ final class PublicUrl
         'zespol', ...self::FRAMEWORK_PREFIXES,
     ];
 
+    public static function isSlug(mixed $slug): bool
+    {
+        return is_string($slug) && strlen($slug) <= 191 && preg_match('/\A[a-z0-9-]+\z/', $slug) === 1;
+    }
+
+    public static function isArticleSlug(mixed $slug): bool
+    {
+        return self::isSlug($slug) && ! in_array($slug, self::RESERVED_SLUGS, true);
+    }
+
     public static function path(Request $request): string
     {
         return rtrim(preg_replace('#/+#', '/', $request->getPathInfo()), '/').'/';

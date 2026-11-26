@@ -8,6 +8,10 @@
 /sessions/
 /test-artifacts/
 /tools/
+/mariadb-data/
+/database-backups/
+/*.sql
+/*.sql.gz
 *.log
 *.phar
 *.sqlite

@@ -9,6 +9,7 @@
         "ext-dom": "*",
         "ext-libxml": "*",
         "ext-mbstring": "*",
+        "ext-pdo_mysql": "*",
         "ext-xml": "*",
         "laravel/framework": "~13.44.1"
     },
