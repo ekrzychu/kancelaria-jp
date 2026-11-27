@@ -305,12 +305,6 @@
       first.bottom > second.top && first.top < second.bottom;
 
     const footer = document.querySelector('.site-footer');
-    const textBounds = document.createRange();
-    const editorialText = 'h1, h2, h3, h4, p, dt, dd, figcaption, td, th, .row-summary, .service-scope li, .article-body :is(li, pre)';
-    const protectedContent = [...document.querySelectorAll(
-      `:is(main, .home-contact) :is(form, input, textarea, select, a, button, [contenteditable], .article-detail summary, .article-table-scroll, .article-body :is(figure, img), ${editorialText})`
-    )].filter(element => element !== contact);
-
     // Use the layout slot so the button's own animation can't move the sampling points.
     const contactBox = () => ({
       left: contact.offsetLeft,
@@ -320,14 +314,6 @@
     });
     const hitAt = (x, y) => document.elementsFromPoint(x, y).find(element => !contact.contains(element));
 
-    function obscuresContent(box, element, rect) {
-      if (!overlaps(box, rect)) return false;
-      const x = (Math.max(box.left, rect.left) + Math.min(box.right, rect.right)) / 2;
-      const y = (Math.max(box.top, rect.top) + Math.min(box.bottom, rect.bottom)) / 2;
-      // Hit-testing respects the sticky viewport and the clipped specialization rail.
-      return element.contains(hitAt(x, y) ?? null);
-    }
-
     contact.classList.add('is-positioned');
 
     function applyTone(tone) {
@@ -336,8 +322,11 @@
       contact.dispatchEvent(new Event('homesurfacechange', { bubbles: true }));
     }
 
-    function renderTone() {
-      const animate = !contact.inert && motion.matches && canAnimateTone;
+    function renderTone(allowAnimation) {
+      if (!toneAnimation && requestedTone === contact.dataset.controlTone) return;
+
+      const animate = allowAnimation && motion.matches && canAnimateTone
+        && !contact.getAnimations().some(animation => animation.transitionProperty === 'opacity');
       if (animate && toneAnimation && face.dataset.controlTone === requestedTone) return;
 
       toneAnimation?.cancel();
@@ -359,6 +348,7 @@
       ], { duration: 230, easing: 'cubic-bezier(.22, .61, .36, 1)', fill: 'both' });
       toneAnimation = animation;
       animation.onfinish = () => {
+        if (toneAnimation !== animation) return;
         applyTone(nextTone);
         face.hidden = true;
         toneAnimation = undefined;
@@ -369,13 +359,14 @@
     function updateTone() {
       frame = 0;
       const box = contactBox();
-      contact.inert = (footer && overlaps(box, footer.getBoundingClientRect())) || protectedContent.some(element => {
-        const bounds = element.getBoundingClientRect();
-        if (!overlaps(box, bounds)) return false;
-        if (!element.matches(editorialText)) return obscuresContent(box, element, bounds);
-        textBounds.selectNodeContents(element);
-        return [...textBounds.getClientRects()].some(rect => obscuresContent(box, element, rect));
-      });
+      const wasHidden = contact.inert;
+      // Short pages can show part of the footer before the user starts scrolling.
+      contact.toggleAttribute('inert', window.scrollY > 0 && footer.getBoundingClientRect().top < box.bottom);
+      if (contact.inert) {
+        if (toneAnimation) renderTone(false);
+        return;
+      }
+
       const sample = (x, y) => homeSurfaceFor(hitAt(x, y));
       const center = sample((box.left + box.right) / 2, (box.top + box.bottom) / 2);
 
@@ -386,7 +377,7 @@
       ) {
         requestedTone = center;
       }
-      renderTone();
+      renderTone(!wasHidden);
     }
 
     function scheduleTone() {
@@ -399,7 +390,7 @@
     motion.addEventListener('change', scheduleTone);
 
     document.addEventListener('focusin', ({ target }) => {
-      if (target === contact || !target.matches(':is(a, button):focus-visible') || !target.closest('main, .home-contact, footer')) return;
+      if (target === contact || !target.matches(':is(a, button):focus-visible') || !target.closest('main, footer')) return;
 
       if (!contact.inert && !target.closest('[data-pinned]') && overlaps(contactBox(), target.getBoundingClientRect())) {
         target.scrollIntoView({ behavior: 'instant', block: 'center', inline: 'nearest' });

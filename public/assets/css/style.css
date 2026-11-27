@@ -392,7 +392,8 @@ html:has(> .homepage) {
 }
 
 .home-frame,
-.homepage :is(.header-inner, .footer-callout, .footer-grid, .legal-row),
+.homepage .header-inner,
+.site-footer > .container,
 .about-frame,
 .services-frame,
 .team-frame,
@@ -400,18 +401,15 @@ html:has(> .homepage) {
 .publication-frame,
 .contact-frame,
 main > :is(.page-hero, .page-hero + .section) > .container,
-body:has(> main > :is(.about-hero, .page-hero, .service-hero, .team-hero, .career-hero, .publication-hero, .article-detail, .contact-hero)) :is(.header-inner, .footer-callout, .footer-grid, .legal-row) {
+body:has(> main > :is(.about-hero, .page-hero, .service-hero, .team-hero, .career-hero, .publication-hero, .article-detail, .contact-hero)) .header-inner {
   width: calc(100% - 2 * var(--wide-page-gutter));
   margin-inline: auto;
 }
 
-.homepage :is(.site-header, .home-contact) {
-  background: var(--burgundy);
-  color: var(--light-text);
-}
-
 .homepage .site-header {
   --header-surface: var(--burgundy);
+  background: var(--burgundy);
+  color: var(--light-text);
   border-block-end: 0;
 }
 
@@ -419,7 +417,7 @@ body:has(> main > :is(.about-hero, .page-hero, .service-hero, .team-hero, .caree
   background: var(--taupe);
 }
 
-.homepage :is(.site-header, .home-hero, .home-publications, .home-contact) :focus-visible {
+.homepage :is(.site-header, .home-hero, .home-publications) :focus-visible {
   outline-color: var(--light-text);
 }
 
@@ -651,17 +649,6 @@ body:not(.homepage) .site-header.is-compact .header-bar {
   line-height: 1.4;
 }
 
-.home-contact-action {
-  border-color: var(--light-text);
-  background: var(--light-text);
-  color: var(--burgundy);
-}
-
-.home-contact-action:is(:hover, :focus-visible, :active) {
-  border-color: var(--home-cream);
-  background: var(--home-cream);
-}
-
 .home-hero-action {
   display: inline-flex;
   align-items: center;
@@ -718,8 +705,7 @@ body:not(.homepage) .site-header.is-compact .header-bar {
 .home-profile-layout,
 .home-office-layout,
 .home-clients-layout,
-.home-publications-layout,
-.home-contact-layout {
+.home-publications-layout {
   display: grid;
   column-gap: clamp(2.3rem, 5.2vw, 8rem);
 }
@@ -1075,35 +1061,6 @@ body:not(.homepage) .site-header.is-compact .header-bar {
   }
 }
 
-.home-contact {
-  padding-block: clamp(1.75rem, 2.7vw, 3.5rem);
-}
-
-.home-contact-layout {
-  grid-template-columns: minmax(0, 1.25fr) minmax(0, .75fr);
-  align-items: center;
-  row-gap: .9rem;
-}
-
-.home-contact h2 {
-  max-width: 22ch;
-  color: var(--light-text);
-  font-size: clamp(1.9rem, 3.35vw, 4.5rem);
-  line-height: 1.05;
-}
-
-.home-contact-detail p {
-  max-width: 34ch;
-  margin: 0 0 .65rem;
-  color: #e7dacf;
-  font-size: clamp(1rem, 1.16vw, 1.125rem);
-}
-
-.home-contact .home-contact-action {
-  min-height: 2.75rem;
-  padding-block: .55rem;
-}
-
 :is(.home-contact-float, .home-contact-face, .home-cursor) {
   --control-fill: var(--taupe);
   --control-ink: var(--burgundy);
@@ -1237,8 +1194,7 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
 
   .home-profile-layout,
   .home-team,
-  .home-office-layout,
-  .home-contact-layout {
+  .home-office-layout {
     grid-template-columns: minmax(0, 1fr);
     row-gap: 1rem;
   }
@@ -1254,18 +1210,6 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
   .home-office-copy {
     margin: -1.25rem 0 0 .85rem;
     padding: 1.25rem 1rem 1rem;
-  }
-
-  .home-contact-layout {
-    row-gap: .85rem;
-  }
-
-  .home-contact h2 {
-    max-width: min(22ch, calc(100% - var(--home-contact-width)));
-  }
-
-  .home-contact-detail p {
-    max-width: 28ch;
   }
 
   .home-contact-float {

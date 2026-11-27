@@ -142,20 +142,55 @@ test('browser regression against the Laravel application', async t => {
     await browser.viewport(1440, 900);
   });
 
-  await t.test('floating Contact yields through homepage transitions and returns after the shared footer', async () => {
-    const footerStructure = () => evaluate(() => [...document.querySelector('.site-footer').children]
-      .map(el => el.className));
-    await visit('/o-kancelarii/');
-    const shared = await footerStructure();
+  const contactState = () => evaluate(() => {
+    const button = document.querySelector('.home-contact-float');
+    const rect = button.getBoundingClientRect();
+    const { opacity, pointerEvents, visibility } = getComputedStyle(button);
+    return {
+      inert: button.inert, opacity: Number(opacity), pointerEvents, visibility,
+      clickable: button.contains(document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2)),
+      fading: button.getAnimations().some(animation => animation.transitionProperty === 'opacity'),
+    };
+  });
+  const nextPaint = () => evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const scrollToFooter = async () => scroll(await evaluate(() => document.documentElement.scrollHeight));
+
+  await t.test('floating Contact stays usable over internal page content and on short pages', async () => {
+    for (const [width, height, mobile] of [[1440, 900, false], [390, 844, true]]) {
+      await browser.viewport(width, height, mobile);
+      await visit('/dokumenty/');
+      assert((await contactState()).clickable, 'a footer visible at the top must leave Kontakt available');
+      await scrollToFooter();
+      await until(async () => (await contactState()).inert, 'footer hides Kontakt on a short page');
+      await scroll(0);
+      await until(async () => (await contactState()).clickable, 'Kontakt returns on a short page');
+
+      await visit('/specjalizacje/');
+      await scroll(await evaluate(() => {
+        const row = document.querySelector('.services-directory .editorial-row').getBoundingClientRect();
+        const button = document.querySelector('.home-contact-float').getBoundingClientRect();
+        return row.y + scrollY + row.height / 2 - button.y - button.height / 2;
+      }));
+      await nextPaint();
+      assert((await contactState()).clickable, 'specialization links must not hide Kontakt');
+      const point = await evaluate(() => {
+        const { x, y, width, height } = document.querySelector('.home-contact-float').getBoundingClientRect();
+        return { x: x + width / 2, y: y + height / 2 };
+      });
+      for (const type of ['mousePressed', 'mouseReleased']) {
+        await browser.call('Input.dispatchMouseEvent', { type, ...point, button: 'left', clickCount: 1 });
+      }
+      await until(() => evaluate(() => location.pathname === '/kontakt/' && !!document.querySelector('.contact-form')), 'Kontakt opens the contact page');
+      await evaluate(() => document.querySelector('.home-contact-float').focus());
+      await browser.key('Enter', 13);
+      await until(() => evaluate(() => location.hash === '#formularz'), 'keyboard activation opens the form');
+    }
+  });
+
+  await t.test('floating Contact stays visible through rapid homepage transitions and fades at the footer', async () => {
     for (const [width, height, mobile] of [[1440, 900, false], [390, 844, true]]) {
       await browser.viewport(width, height, mobile);
       await visit('/');
-      assert.deepEqual(await footerStructure(), shared);
-      const state = () => evaluate(() => {
-        const button = document.querySelector('.home-contact-float');
-        const { opacity, pointerEvents, visibility } = getComputedStyle(button);
-        return { inert: button.inert, opacity: Number(opacity), pointerEvents, visibility };
-      });
       const boundaries = await evaluate(() => {
         const practices = document.querySelector('#specjalizacje').getBoundingClientRect();
         return [practices.top + scrollY, practices.bottom + scrollY];
@@ -165,31 +200,78 @@ test('browser regression against the Laravel application', async t => {
           await scroll(edge - direction * 140);
           await browser.call('Input.dispatchMouseEvent', { type: 'mouseWheel', x: 120, y: 200, deltaX: 0, deltaY: 340 * direction });
           await until(() => evaluate(({ edge, direction }) => direction * (scrollY - edge) > 0, { edge, direction }), 'cross specialization boundary');
+          await nextPaint();
+          assert((await contactState()).clickable, 'Kontakt stays usable across the specialization boundary');
         }
       }
-      await scroll(await evaluate(() => document.documentElement.scrollHeight));
-      await until(async () => (await state()).inert, 'footer makes Kontakt inert');
-      assert.equal((await state()).pointerEvents, 'none');
+      assert(await evaluate(async ([start, end]) => {
+        const button = document.querySelector('.home-contact-float');
+        for (const y of [start + 200, end + 100, start - 100, end - 120, start + 180]) {
+          scrollTo({ top: y, behavior: 'instant' });
+          await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+          if (button.inert || button.querySelector('.home-contact-face').getAnimations().length > 1) return false;
+        }
+        return true;
+      }, boundaries), 'rapid reversals keep Kontakt visible with only one colour wipe');
+      await browser.viewport(width, height - 44, mobile);
+      await nextPaint();
+      assert((await contactState()).clickable, 'Kontakt remains usable after resizing in Specjalizacje');
+
+      await scrollToFooter();
+      await until(async () => {
+        const state = await contactState();
+        return state.inert && state.fading;
+      }, 'footer starts a Kontakt exit animation');
+      assert.equal((await contactState()).pointerEvents, 'none');
       assert(await evaluate(() => {
         const button = document.querySelector('.home-contact-float');
         button.focus();
         return document.activeElement !== button;
       }));
-      await until(async () => (await state()).visibility === 'hidden', 'Kontakt exit completes');
-      if (process.env.HOMEPAGE_SCREENSHOTS) {
-        await browser.screenshot(process.env.HOMEPAGE_SCREENSHOTS, mobile ? 'footer-mobile' : 'footer-desktop');
-      }
+      await until(async () => (await contactState()).visibility === 'hidden', 'Kontakt exit completes');
 
       await scroll(0);
-      await until(async () => !(await state()).inert && (await state()).opacity === 1, 'Kontakt returns on reverse scroll');
-      await browser.viewport(width, height - 44, mobile);
-      await until(async () => !(await state()).inert && (await state()).opacity === 1, 'Kontakt remains visible after resize');
+      await until(async () => {
+        const state = await contactState();
+        return !state.inert && state.fading;
+      }, 'reverse scroll starts a Kontakt entrance animation');
+      await until(async () => (await contactState()).opacity === 1, 'Kontakt entrance completes');
       await reduced('reduce');
-      await scroll(await evaluate(() => document.documentElement.scrollHeight));
-      await until(async () => (await state()).inert, 'reduced-motion footer');
-      assert.equal((await state()).opacity, 0);
+      await scrollToFooter();
+      await until(async () => (await contactState()).inert, 'reduced-motion footer');
+      assert.equal((await contactState()).opacity, 0);
+      assert.equal((await contactState()).fading, false);
       await reduced('no-preference');
     }
+  });
+
+  await t.test('homepage and internal footers share their content, geometry and typography', async () => {
+    const footer = () => evaluate(() => {
+      const root = document.querySelector('.site-footer');
+      const origin = root.getBoundingClientRect();
+      return {
+        direct: root.previousElementSibling === document.querySelector('#main'),
+        markup: root.innerHTML,
+        geometry: [root, ...root.querySelectorAll('*')].map(el => {
+          const { x, y, width, height } = el.getBoundingClientRect();
+          const { fontFamily, fontSize, fontWeight, lineHeight } = getComputedStyle(el);
+          return [x - origin.x, y - origin.y, width, height, fontFamily, fontSize, fontWeight, lineHeight];
+        }),
+      };
+    });
+    await reduced('reduce');
+    for (const [width, height, mobile] of [[1440, 900, false], [390, 844, true]]) {
+      await browser.viewport(width, height, mobile);
+      await visit('/o-kancelarii/');
+      const internal = await footer();
+      await visit('/');
+      const homepage = await footer();
+      assert(homepage.direct, 'the shared footer immediately follows the main content');
+      assert.deepEqual(homepage, internal);
+      assert(await evaluate(() => document.querySelector('.site-footer').classList.contains('site-footer-dark')
+        && document.querySelector('.footer-callout h2').textContent.trim() === 'Porozmawiajmy o sprawie.'));
+    }
+    await reduced('no-preference');
     await browser.viewport(1440, 900);
   });
 

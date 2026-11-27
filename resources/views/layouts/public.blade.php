@@ -25,7 +25,6 @@
   @include('partials.floating-contact')
   @yield('content')
 </main>
-@yield('before-footer')
 @include('partials.footer')
 <script src="/assets/js/main.js?v={{ filemtime(public_path('assets/js/main.js')) }}"></script>
 </body>
