@@ -185,12 +185,16 @@ test('administrators and employees manage accounts and publications in the brows
   await until(() => evaluate(() => !!document.querySelector('iframe.panel-preview')?.contentDocument?.querySelector('.article-body')), 'embedded public article');
   await evaluate(() => [...document.querySelectorAll('.panel-preview-controls button')].find(button => button.textContent.includes('Telefon')).click());
   assert(await evaluate(() => document.querySelector('iframe.panel-preview').classList.contains('panel-preview-mobile')));
+  await until(() => evaluate(() => getComputedStyle(document.querySelector('.panel-preview-controls button[aria-pressed="true"]')).color === 'rgb(52, 20, 38)'), 'selected preview label contrast');
   const framing = await evaluate(async path => {
     const response = await fetch(path + '?frame=1');
     return ['x-frame-options', 'content-security-policy', 'cache-control'].map(header => response.headers.get(header));
   }, previewPath);
   assert.deepEqual(framing, ['SAMEORIGIN', "frame-ancestors 'self'", 'no-store, private']);
-  if (screenshotDir) await browser.screenshot(screenshotDir, 'desktop-embedded-phone-preview');
+  if (screenshotDir) {
+    await until(() => evaluate(() => getComputedStyle(document.querySelector('.fi-modal-window:has(.panel-preview)')).opacity === '1'), 'settled preview');
+    await browser.screenshot(screenshotDir, 'desktop-embedded-phone-preview');
+  }
   await visit('/artykuly');
   assert.deepEqual((await rowActions()).filter(Boolean), ['Edytuj', 'Podgląd', 'Opublikuj', 'Więcej']);
   if (screenshotDir) await browser.screenshot(screenshotDir, 'desktop-publication-table');

@@ -255,7 +255,8 @@
 }
 
 .panel-preview-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-block-end: 1rem; }
-.panel-preview-controls [aria-pressed="true"] { background: #eadce1; }
+.panel-preview-controls button { transition: none; }
+.panel-preview-controls [aria-pressed="true"] { background: #eadce1; color: #341426; }
 .fi-ta-row.panel-message-unread { background: #f6edf1; }
 .panel-message-unread .fi-ta-text { font-weight: 650; }
 .panel-message-archived .fi-ta-text { color: #64505a; }
