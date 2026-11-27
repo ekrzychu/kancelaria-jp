@@ -89,6 +89,7 @@ export async function startSite({ importContent = true, serve = true, cached = f
       APP_KEY: 'base64:' + randomBytes(32).toString('base64'),
       APP_MAINTENANCE_DRIVER: 'file',
       LARAVEL_STORAGE_PATH: storage,
+      MEDIA_STORAGE_ROOT: join(storage, 'app', 'media'),
       VIEW_COMPILED_PATH: join(storage, 'framework', 'views'),
       SITE_CONTENT_PATH: content,
       CACHE_STORE: 'array',
@@ -102,6 +103,9 @@ export async function startSite({ importContent = true, serve = true, cached = f
     });
     const panelChecks = (args, input) => execFileSync(php, [join(root, 'tests', 'support', 'panel-checks.php'), dir, ...args], {
       cwd: dir, env: runtimeEnv, input, encoding: 'utf8', windowsHide: true,
+    });
+    const mediaChecks = operation => execFileSync(php, [join(root, 'tests', 'support', 'media-checks.php'), dir, operation], {
+      cwd: dir, env: runtimeEnv, encoding: 'utf8', windowsHide: true,
     });
     const concurrentPanelCheck = args => promisify(execFile)(
       php, [join(root, 'tests', 'support', 'panel-checks.php'), dir, ...args],
@@ -145,7 +149,7 @@ export async function startSite({ importContent = true, serve = true, cached = f
       name, JSON.parse(await readFile(join(content, name + '.json'), 'utf8')),
     ]));
     return { dir, origin, adminOrigin: runtimeEnv.ADMIN_URL, data: Object.fromEntries(entries), database, artisan,
-      panelChecks, concurrentPanelCheck, stop, log: () => log };
+      panelChecks, mediaChecks, concurrentPanelCheck, stop, log: () => log };
   } catch (error) {
     await stop();
     throw error;

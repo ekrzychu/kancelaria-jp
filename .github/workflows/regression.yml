@@ -39,7 +39,8 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-          extensions: curl, dom, intl, mbstring, pdo_mysql, xml, zip
+          extensions: curl, dom, gd, intl, mbstring, pdo_mysql, xml, zip
+          ini-values: upload_max_filesize=10M, post_max_size=12M, memory_limit=384M
           tools: composer:2.11.3
           coverage: none
       - uses: actions/setup-node@v4
@@ -48,6 +49,7 @@ jobs:
       - name: Install locked Laravel dependencies
         run: |
           export APP_ENV=testing
+          php -r 'exit((gd_info()["WebP Support"] ?? false) ? 0 : 1);'
           composer install --no-interaction --prefer-dist --no-progress
           composer check-platform-reqs
           composer audit --locked
@@ -80,3 +82,5 @@ jobs:
         run: node --test tests/panel.test.mjs
       - name: Specialization, team and recruitment administration
         run: node --test tests/content-admin.test.mjs
+      - name: Image processing, upload authorization and media lifecycle
+        run: node --test tests/media.test.mjs

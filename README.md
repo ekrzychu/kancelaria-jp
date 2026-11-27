@@ -15,7 +15,7 @@ Phase 2 preserves the approved Phase 1 baseline `cca68503e4666e7c268e448c3c2d9d4
 
 ## Requirements
 
-Use PHP 8.4 with `pdo_mysql` and the standard Laravel extensions, including cURL, DOM, libxml, mbstring, OpenSSL and XML. Use Composer 2 and MariaDB 11.4. Phase 2 was verified against PHP 8.4.28 with mysqlnd 8.4.28, Composer 2.11.3, Laravel 13.44.1 and MariaDB 11.4.14. The `mariadb` connection uses native PDO parameter binding, InnoDB, strict SQL, `utf8mb4_unicode_ci` and a UTC session timezone.
+Use PHP 8.4 with `pdo_mysql` and the standard Laravel extensions, including cURL, DOM, GD with JPEG, PNG and WebP support, libxml, mbstring, OpenSSL and XML. Use Composer 2 and MariaDB 11.4. Phase 2 was verified against PHP 8.4.28 with mysqlnd 8.4.28, Composer 2.11.3, Laravel 13.44.1 and MariaDB 11.4.14. The `mariadb` connection uses native PDO parameter binding, InnoDB, strict SQL, `utf8mb4_unicode_ci` and a UTC session timezone.
 
 ## Local MariaDB
 
@@ -144,7 +144,7 @@ Laravel serves the public site and the Filament panel from the same application 
 
 Add the local settings to the ignored .env and bind the development server to 127.0.0.1 as described above. Chrome resolves panel.localhost on loopback without a hosts-file change. Use the public site at http://127.0.0.1:8743 and the panel at http://panel.localhost:8743. For staging, set separate matching host and origin pairs. HTTPS origins are required outside local and testing environments. Public canonical metadata continues to use the editorial origin in site.json.
 
-Public routes are bound to PUBLIC_HOST. The panel uses ADMIN_HOST at its root and /login for authentication. The hostname boundary rejects other hosts before public redirects and session middleware. Forwarded host, scheme and IP headers are untrusted. The administrative Livewire route is domain-bound. The hostname middleware also covers the package's routes, including the default Livewire endpoint. Temporary uploads, generic import or export downloads and dynamic storage endpoints are unavailable. Private responses use no-store and noindex headers.
+Public routes are bound to PUBLIC_HOST. The panel uses ADMIN_HOST at its root and /login for authentication. The hostname boundary rejects other hosts before public redirects and session middleware. Forwarded host, scheme and IP headers are untrusted. The administrative Livewire route is domain-bound. The hostname middleware also covers the package's routes, including the default Livewire endpoint. Generic Livewire uploads, import or export downloads and dynamic storage endpoints are blocked. Purpose-specific image routes are documented below. Private responses use no-store and noindex headers.
 
 The database stores encrypted session payloads. The kjp_panel_session cookie is host-only, HttpOnly and SameSite=Lax, with Secure over HTTPS. Public pages run without session middleware. Laravel CSRF protection applies to the panel. When a write request supplies an Origin header it must match ADMIN_URL exactly. Login is rate-limited by client IP in a server-side file cache shared across sessions.
 
@@ -169,21 +169,43 @@ Artykuły uses the existing Article model. New records begin as drafts. Publish 
 
 Podgląd renders the public article template on the administrative hostname behind the article policy. Its navigation links return to the configured public origin. Symfony HTML Sanitizer applies an explicit allowlist at the editorial write boundary and on both public and private reads. The allowlist keeps legal editorial formatting, safe link schemes, figures, image attributes, tables and section IDs. It removes executable URLs, script, inline event attributes and embedded documents.
 
-The importer retains the original HTML. In the editor, structures that cannot round-trip through Tiptap, such as figures, captioned tables and existing explicit anchors, appear between editable segments. On save the protected markup is reconstructed from the server-side record. Media uploading is deferred.
+The importer retains the original HTML. In the editor, structures that cannot round-trip through Tiptap, such as figures, captioned tables and existing explicit anchors, appear between editable segments. On save the protected markup is reconstructed from the server-side record. Manage new inline images through the image controls described below.
 
 ### Specialization, team and recruitment administration
 
 Each resource uses its existing MariaDB content table and its own section permission. The same permissions apply to navigation, direct routes and Livewire actions.
 
 - **Specjalizacje** starts new records inactive. Activate or deactivate a record from its row. The address is generated from the title on creation and stays fixed after saving. The detailed description and service scope are ordered, plain-text lists. Leave the homepage description empty to use the short description. Restoring a record leaves it inactive.
-- **Zespół** requires an explicit public group. Saving a profile makes it public. Wspólnik na stronie głównej nominates a profile for one of two homepage slots, selected by display order. Existing portrait associations can be removed. To offer a portrait for selection, list its approved filename and label in config/site.php under team_portraits. The file must already exist in public/assets/img. The editor never uploads or deletes physical files. Restoring a profile makes it public again.
+- **Zespół** requires an explicit public group. Saving a profile makes it public. Wspólnik na stronie głównej nominates a profile for one of two homepage slots, selected by display order. Existing portrait associations can be removed. To offer a portrait for selection, list its approved filename and label in config/site.php under team_portraits. The file must already exist in public/assets/img. The team editor also accepts managed portrait uploads. Restoring a profile makes it public again.
 - **Kariera** saves new offers as drafts. Opublikuj and Wznów rekrutację validate and save pending editor changes before making the offer public. Zakończ rekrutację removes it from the public list. New links accept HTTP(S) only. Restored open offers are closed until explicitly reopened.
 
 Use Przesuń wyżej or Przesuń niżej under Więcej to move a record one position at a time, including across page boundaries. For team members, moves stay within the same group, and the team group filter remains available. Clear search, status, category and trash filters to move records. Więcej also contains Przenieś do kosza and Przywróć. Content writes are serialized per schema and reordering runs in a transaction.
 
+
+### Article images and team portraits
+
+Use Zdjęcia w artykule to upload one or more images and edit their alternative text, caption and placement. Placement refers to the saved article blocks. Save the text first to make new blocks available in the placement list. Images assigned to the same place follow the list order. Removing a block removes its reference after saving. Existing reviewed figures remain in their original markup.
+
+Use Prześlij portret on a team profile to preview a replacement. Saving an uploaded portrait replaces the former association. Clear the uploaded portrait to remove it or to select an approved existing portrait. A profile can be saved without an image.
+
+Both editors accept JPEG, PNG and WebP up to 10 MB, 24 megapixels and 12,000 pixels on either edge. PHP GD checks and decodes the input, applies EXIF orientation and writes WebP at quality 85. Widths are capped at 1920 px for articles and 1200 px for portraits. Smaller images retain their size. The output preserves aspect ratio and transparency, and re-encoding removes metadata. Animated images and other formats are rejected.
+
+The upload and private preview routes run only on the administrative hostname, with an active account, current session and the relevant section permission. Uploads require CSRF protection. Temporary images belong to their uploader and account version until attached, and image IDs cannot be reused across records or purposes. Public delivery checks the saved reference and current article or profile visibility, including soft deletion. Image responses use no-store. Previously downloaded copies remain outside the application's control.
+
+Files are stored outside public/, in storage/app/media by default. Set MEDIA_STORAGE_ROOT to an absolute, writable directory that survives deployments. MariaDB stores the IDs, dimensions, owner and purpose. Keep the database and media files together in backups and restore both from the same point in time. Existing Git-managed assets remain separate.
+
+Unattached uploads expire after 24 hours. Use the command without flags to count expired uploads, and use --apply to remove them. A periodic PHP CLI cron job is sufficient. Bound files are retained after replacement, removal and soft deletion to avoid losing recoverable data. The cleanup command never removes bound files. Any future permanent cleanup must check database references, including soft-deleted records, and verify backups.
+
+~~~sh
+php artisan media:clean-temporary
+php artisan media:clean-temporary --apply
+~~~
+
+Enable PHP GD with JPEG, PNG and WebP support in both the web runtime and CLI. Configure upload_max_filesize to at least 10M, post_max_size to at least 12M, memory_limit to at least 384M and allow PHP to write to its temporary upload directory and the persistent media directory. Use php --ini and php -i to verify the loaded configuration. On the current portable Windows workstation, the loopback server uses an ignored storage/app/phase5-runtime/media.ini override through PHP_INI_SCAN_DIR. Set the same scan directory for local Composer or Artisan commands. Confirm these settings and the storage path on dhosting before deployment. This phase verifies the local and CI environments.
+
 ### Testing and hosting
 
-Run node tests/run.mjs with the existing isolated MariaDB test account. The complete suite includes tests/panel.test.mjs and tests/content-admin.test.mjs. Set PANEL_SCREENSHOTS or CONTENT_ADMIN_SCREENSHOTS to an ignored local directory for administrative screenshots. Run composer check-platform-reqs and composer audit --locked. PHP Intl and ZIP are also required by the panel dependencies.
+Run node tests/run.mjs with the existing isolated MariaDB test account. The complete suite includes tests/panel.test.mjs, tests/content-admin.test.mjs and tests/media.test.mjs. Set PANEL_SCREENSHOTS, CONTENT_ADMIN_SCREENSHOTS or MEDIA_SCREENSHOTS to an ignored local directory for administrative screenshots. Run composer check-platform-reqs and composer audit --locked. PHP Intl and ZIP are also required by the panel dependencies.
 
 Point both DNS names at the hosting service and obtain HTTPS certificates for both. Configure both names to serve the same Laravel public/ directory with the same application and database. Set the exact configured origins, then run php artisan config:cache and php artisan route:cache. Confirm with dhosting that both domains can share a document root, that PHP observes the original Host and HTTPS state, and that unapproved technical or origin hostnames are rejected. Production hostname isolation must be verified on that hosting environment before release. [dhosting hosting capabilities](https://dhosting.pl/elastyczny-hosting)
 
