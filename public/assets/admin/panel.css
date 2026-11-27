@@ -117,8 +117,7 @@
     padding-inline: clamp(1rem, 3.6vw, 3.75rem);
 }
 
-.fi-main.fi-width-full { max-width: 115rem; }
-.fi-main.fi-width-full:has(.fi-ta-ctn) { max-width: 92rem; }
+.fi-main:has(> .fi-resource-list-records-page) { max-width: none; }
 .fi-header-heading, .fi-simple-header-heading {
     color: var(--panel-burgundy);
     font-family: var(--panel-serif);

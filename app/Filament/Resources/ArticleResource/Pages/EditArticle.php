@@ -23,7 +23,7 @@ final class EditArticle extends EditRecord
 
     protected static ?string $title = 'Edytuj artykuł';
 
-    protected Width|string|null $maxContentWidth = Width::Full;
+    protected Width|string|null $maxContentWidth = Width::ScreenTwoExtraLarge;
 
     #[Locked]
     public string $originalBodyHash;

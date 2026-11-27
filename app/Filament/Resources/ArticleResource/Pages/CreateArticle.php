@@ -28,7 +28,7 @@ final class CreateArticle extends CreateRecord
 
     protected static bool $canCreateAnother = false;
 
-    protected Width|string|null $maxContentWidth = Width::Full;
+    protected Width|string|null $maxContentWidth = Width::ScreenTwoExtraLarge;
 
     protected function getRedirectUrl(): string
     {
