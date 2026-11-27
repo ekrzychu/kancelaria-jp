@@ -23,6 +23,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
 use Illuminate\Support\HtmlString;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -57,8 +58,8 @@ final class TeamMemberResource extends ManagedContentResource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            TextInput::make('name')->label('Imię i nazwisko')->required()->maxLength(255),
-            TextInput::make('role')->label('Stanowisko')->required()->maxLength(255),
+            TextInput::make('name')->label('Imię i nazwisko')->required()->string()->maxLength(255),
+            TextInput::make('role')->label('Stanowisko')->required()->string()->maxLength(255),
             Select::make('team_group')->label('Grupa')->options(self::groups())->required(),
             Select::make('portrait')->label('Zdjęcie')->options(fn (?TeamMember $record): array => self::portraits($record))
                 ->placeholder('Bez zdjęcia')->helperText('Wybierz zatwierdzony portret lub pozostaw pole puste.'),
@@ -68,6 +69,7 @@ final class TeamMemberResource extends ManagedContentResource
             ImageUpload::make('portrait_media_id')->label('Prześlij portret')->purpose(MediaPurpose::Portrait)
                 ->helperText('Przesłany portret zastępuje dotychczasowe zdjęcie po zapisaniu profilu.'),
             Toggle::make('homepage_partner')->label('Wspólnik na stronie głównej')->default(false)
+                ->rules(['required', 'boolean'])
                 ->helperText('Strona główna pokazuje maksymalnie dwa wyróżnione profile według kolejności.'),
         ]);
     }
@@ -75,12 +77,8 @@ final class TeamMemberResource extends ManagedContentResource
     public static function contentData(array $data, ?Model $record = null): array
     {
         return static::validateContent($data, [
-            'name' => 'required|string|max:255',
-            'role' => 'required|string|max:255',
-            'team_group' => ['required', Rule::enum(TeamGroup::class)],
             'portrait' => ['nullable', 'string', Rule::in(array_keys(self::portraits($record)))],
-            'homepage_partner' => 'required|boolean',
-        ]);
+        ]) + Arr::only($data, ['name', 'role', 'team_group', 'homepage_partner']);
     }
 
     public static function savePortrait(TeamMember $member, array $data): void

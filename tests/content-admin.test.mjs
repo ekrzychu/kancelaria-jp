@@ -130,6 +130,9 @@ test('section employees manage specializations, public profiles and recruitment 
   const teamData = { name, role: 'Radca prawny', team_group: 'support', homepage_partner: true };
   await wire('CreateTeamMember', 'create', { ...teamData, portrait: '../office-reception-800.webp' });
   assert.equal(profile(), undefined);
+  await wire('CreateTeamMember', 'create', { ...teamData, portrait: null, team_group: 'unknown' });
+  assert.equal(profile(), undefined);
+  assert(await evaluate(() => document.querySelectorAll('.fi-fo-field-wrp-error-message').length > 0));
   await wire('CreateTeamMember', 'create', { ...teamData, portrait: null });
   assert.equal(profile().team_group, 'support');
   assert.equal(profile().portrait, null);
