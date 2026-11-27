@@ -5,23 +5,24 @@ namespace App\Filament\Resources;
 use App\Actions\ManageContent;
 use App\Filament\Resources\SpecializationResource\Pages;
 use App\Models\Specialization;
+use App\Support\PublicUrl;
 use BackedEnum;
+use UnitEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Text;
-use Filament\Schemas\Components\Utilities\Get;
-use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 final class SpecializationResource extends ManagedContentResource
@@ -31,6 +32,7 @@ final class SpecializationResource extends ManagedContentResource
     protected static ?string $navigationLabel = 'Specjalizacje';
     protected static ?string $modelLabel = 'specjalizacja';
     protected static ?string $pluralModelLabel = 'specjalizacje';
+    protected static string|UnitEnum|null $navigationGroup = 'Treść';
     protected static ?int $navigationSort = 2;
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedSquares2x2;
     protected static ?string $recordTitleAttribute = 'title';
@@ -40,16 +42,14 @@ final class SpecializationResource extends ManagedContentResource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            TextInput::make('title')->label('Nazwa specjalizacji')->required()->string()->maxLength(255)
-                ->live(onBlur: true)->afterStateUpdated(function (?string $state, Get $get, Set $set, ?Specialization $record): void {
-                    if ($record === null && blank($get('slug'))) {
-                        $set('slug', Str::limit(Str::slug($state ?? ''), 191, ''));
-                    }
-                }),
-            TextInput::make('slug')->label('Adres specjalizacji')->required()->string()->maxLength(191)
-                ->disabledOn('edit')->helperText('Adres pozostaje stały po zapisaniu.'),
+            TextInput::make('title')->label('Nazwa specjalizacji')->required()->string()->maxLength(255),
+            TextInput::make('slug')->label('Adres specjalizacji')->rules(['nullable', 'string'])->maxLength(191)
+                ->visible(fn (): bool => auth()->user()->isActiveAdministrator())->disabledOn('edit')
+                ->helperText('Puste pole oznacza adres z nazwy. Zapisany adres pozostaje stały.'),
             TextInput::make('category')->label('Kategoria')->required()->string()->maxLength(255),
             Text::make(fn (?Specialization $record): string => $record?->active ? 'Status: Aktywna' : 'Status: Nieaktywna'),
+            Toggle::make('homepage_featured')->label('Na stronie głównej')->default(false)->rule('boolean')
+                ->helperText('Strona główna pokazuje do ośmiu wybranych aktywnych specjalizacji według kolejności.'),
             Textarea::make('summary')->label('Krótki opis')->required()->string()->maxLength(16000)->columnSpanFull(),
             Textarea::make('home_summary')->label('Opis na stronie głównej')->rules(['nullable', 'string'])->maxLength(16000)->columnSpanFull()
                 ->helperText('Gdy pole jest puste, na stronie głównej pojawi się krótki opis.'),
@@ -66,11 +66,15 @@ final class SpecializationResource extends ManagedContentResource
     {
         // Check uniqueness while holding the write lock and require ordered lists after dehydration.
         $data = static::validateContent($data, [
-            ...($record ? [] : ['slug' => ['regex:/\A[a-z0-9-]+\z/', Rule::unique('specializations', 'slug')]]),
+            ...(! $record && auth()->user()->isActiveAdministrator()
+                ? ['slug' => ['nullable', 'regex:/\A[a-z0-9-]+\z/', Rule::unique('specializations', 'slug')]] : []),
             'body' => 'list',
             'scope' => 'list',
-        ]) + Arr::only($data, ['title', 'category', 'summary', 'home_summary']);
+        ]) + Arr::only($data, ['title', 'category', 'summary', 'home_summary', 'homepage_featured']);
         $data['home_summary'] = filled($data['home_summary'] ?? null) ? $data['home_summary'] : null;
+        if (! $record && blank($data['slug'] ?? null)) {
+            $data['slug'] = PublicUrl::availableSlug($data['title'], Specialization::class);
+        }
 
         return $record ? $data : $data + ['active' => false];
     }
@@ -84,6 +88,7 @@ final class SpecializationResource extends ManagedContentResource
                 ->formatStateUsing(fn (bool $state): string => $state ? 'Aktywna' : 'Nieaktywna')
                 ->color(fn (bool $state): string => $state ? 'success' : 'gray'),
             TextColumn::make('display_order')->label('Kolejność'),
+            IconColumn::make('homepage_featured')->label('Na stronie głównej')->boolean(),
         ]), [
             SelectFilter::make('category')->label('Kategoria')->options(fn (): array => Specialization::query()
                 ->distinct()->orderBy('category')->pluck('category', 'category')->all()),

@@ -21,7 +21,7 @@ final class PublicPages
 
     public function home(): Response
     {
-        $services = $this->content->specializations();
+        $services = $this->content->specializations(homepage: true);
         $partners = $this->content->homepagePartners();
         $publications = $this->publications->home($this->content->publishedArticles());
 

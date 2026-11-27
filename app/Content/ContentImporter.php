@@ -22,7 +22,7 @@ final class ContentImporter
         foreach ($source['services'] as $index => $service) {
             $specializations[] = Arr::only((array) $service, [
                 'slug', 'title', 'category', 'summary', 'home_summary', 'body', 'scope',
-            ]) + ['active' => true, 'display_order' => $index + 1];
+            ]) + ['active' => true, 'homepage_featured' => $index < 8, 'display_order' => $index + 1];
         }
 
         $team = [];

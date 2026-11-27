@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Validation\ValidationException;
 
-#[Fillable(['slug', 'title', 'category', 'summary', 'home_summary', 'body', 'scope', 'active', 'display_order'])]
+#[Fillable(['slug', 'title', 'category', 'summary', 'home_summary', 'body', 'scope', 'active', 'homepage_featured', 'display_order'])]
 final class Specialization extends Model
 {
     use SoftDeletes;
@@ -20,6 +20,7 @@ final class Specialization extends Model
             'body' => 'array',
             'scope' => 'array',
             'active' => 'boolean',
+            'homepage_featured' => 'boolean',
             'display_order' => 'integer',
         ];
     }

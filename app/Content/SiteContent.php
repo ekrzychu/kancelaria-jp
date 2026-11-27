@@ -25,9 +25,10 @@ final class SiteContent
         return $this->site;
     }
 
-    public function specializations(): array
+    public function specializations(bool $homepage = false): array
     {
-        return Specialization::visible()->get()->map->only([
+        return Specialization::visible()->when($homepage, fn ($query) => $query->where('homepage_featured', true)->limit(8))
+            ->get()->map->only([
             'slug', 'title', 'category', 'summary', 'home_summary', 'body', 'scope',
         ])->all();
     }

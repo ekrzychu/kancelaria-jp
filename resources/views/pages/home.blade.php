@@ -62,7 +62,7 @@ $experienceYears = 6;
         </div>
         <div class="home-practices-rail" data-reveal>
           <ul class="home-practice-list" role="list">
-            @foreach (array_slice($services, 0, 8) as $service)
+            @foreach ($services as $service)
               @php
 $summary = $service['home_summary'] ?? $service['summary'];
               $summary = preg_replace('/(?<!\p{L})([aiouwz]) (?=\p{L})/iu', '$1' . "\u{00A0}", $summary) ?? $summary;
