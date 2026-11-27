@@ -2,11 +2,16 @@
 
 declare(strict_types=1);
 
+use App\Actions\ManageContent;
 use App\Content\ArticleStatus;
+use App\Content\ContentImporter;
 use App\Models\Article;
 use App\Models\JobOffer;
 use App\Models\Specialization;
+use App\Models\User;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -64,3 +69,30 @@ try {
 }
 
 echo "Model constraints, slug stability and soft deletion passed.\n";
+
+$observer = DB::build(['name' => 'content-lock-observer'] + $conn->getConfig());
+$lock = 'kjp-content-'.substr(hash('sha256', $conn->getDatabaseName()), 0, 40);
+check((int) $observer->selectOne('SELECT GET_LOCK(?, 0) AS acquired', [$lock])->acquired === 1, 'Test could not acquire the content lock.');
+try {
+    check(Artisan::call('site:import-content') === 1 && str_contains(Artisan::output(), 'Another import is running.'),
+        'Importer did not report a busy CMS lock.');
+    Auth::setUser((new User)->forceFill(['is_active' => true, 'is_admin' => true]));
+    try {
+        app(ManageContent::class)->create(Specialization::class, fn () => throw new RuntimeException('CMS write ran while content was locked.'));
+        throw new RuntimeException('CMS did not report a busy import lock.');
+    } catch (ValidationException $exception) {
+        check(isset($exception->errors()['data']), 'Busy CMS lock lost its form diagnostic.');
+    }
+} finally {
+    $observer->selectOne('SELECT RELEASE_LOCK(?)', [$lock]);
+}
+
+try {
+    app(ContentImporter::class)->import([Article::class => []]);
+    throw new RuntimeException('Expected import refusal for populated content.');
+} catch (RuntimeException $exception) {
+    check(str_contains($exception->getMessage(), 'already populated'), 'Unexpected import failure.');
+}
+check((int) $observer->selectOne('SELECT IS_FREE_LOCK(?) AS available', [$lock])->available === 1,
+    'Failed import retained the content lock.');
+echo "Shared content lock contention and release passed.\n";

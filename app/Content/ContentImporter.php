@@ -54,28 +54,18 @@ final class ContentImporter
             throw new RuntimeException('The content importer requires the MariaDB connection.');
         }
 
-        $lock = 'kjp-content-'.substr(hash('sha256', $connection->getDatabaseName()), 0, 40);
-        $acquired = $connection->selectOne('SELECT GET_LOCK(?, 5) AS acquired', [$lock], false);
-        if ((int) $acquired->acquired !== 1) {
-            throw new RuntimeException('Another import is running. Try again after it finishes.');
-        }
-
-        try {
-            $connection->transaction(static function () use ($records): void {
-                foreach (array_keys($records) as $model) {
-                    if ($model::withTrashed()->exists()) {
-                        throw new RuntimeException('Content tables are already populated, including soft-deleted records. Import refused.');
-                    }
+        ContentWriteLock::transaction($connection, static function () use ($records): void {
+            foreach (array_keys($records) as $model) {
+                if ($model::withTrashed()->exists()) {
+                    throw new RuntimeException('Content tables are already populated, including soft-deleted records. Import refused.');
                 }
+            }
 
-                foreach ($records as $model => $rows) {
-                    foreach ($rows as $row) {
-                        $model::create($row);
-                    }
+            foreach ($records as $model => $rows) {
+                foreach ($rows as $row) {
+                    $model::create($row);
                 }
-            });
-        } finally {
-            $connection->selectOne('SELECT RELEASE_LOCK(?)', [$lock], false);
-        }
+            }
+        }, static fn () => new RuntimeException('Another import is running. Try again after it finishes.'));
     }
 }

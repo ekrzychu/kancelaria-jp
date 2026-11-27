@@ -102,7 +102,7 @@ test('MariaDB migrations, dry run, rollback, exact import, and repeat refusal', 
     portrait: null, ...entry, team_group: approvedGroups[index], homepage_partner: index < 2, display_order: index + 1,
   })));
 
-  assert.match(modelChecks(), /Model constraints, slug stability and soft deletion passed/);
+  assert.match(modelChecks(), /Model constraints, slug stability and soft deletion passed[\s\S]*Shared content lock contention and release passed/);
   const edit = 'Zachowaj poprawiony tytuł';
   database.query([
     { sql: 'UPDATE articles SET title=? WHERE slug=?', params: [edit, articles[0].slug] },

@@ -2,6 +2,7 @@
 
 namespace App\Actions;
 
+use App\Content\ContentWriteLock;
 use App\Models\TeamMember;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
@@ -79,18 +80,7 @@ final class ManageContent
 
     private function write(Closure $operation): mixed
     {
-        $connection = DB::connection();
-        // Share the schema lock used by the reviewed content importer.
-        $lock = 'kjp-content-'.substr(hash('sha256', $connection->getDatabaseName()), 0, 40);
-        $result = $connection->selectOne('SELECT GET_LOCK(?, 5) AS acquired', [$lock], false);
-        if ((int) $result->acquired !== 1) {
-            throw ValidationException::withMessages(['data' => 'Trwa zapis treści. Spróbuj ponownie za chwilę.']);
-        }
-
-        try {
-            return $connection->transaction($operation);
-        } finally {
-            $connection->selectOne('SELECT RELEASE_LOCK(?)', [$lock], false);
-        }
+        return ContentWriteLock::transaction(DB::connection(), $operation,
+            fn () => ValidationException::withMessages(['data' => 'Trwa zapis treści. Spróbuj ponownie za chwilę.']));
     }
 }
