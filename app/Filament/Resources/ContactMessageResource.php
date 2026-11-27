@@ -4,14 +4,11 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ContactMessageResource\Pages;
 use App\Models\ContactMessage;
-use BackedEnum;
-use UnitEnum;
 use Filament\Actions\ViewAction;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -24,9 +21,7 @@ final class ContactMessageResource extends Resource
     protected static ?string $navigationLabel = 'Wiadomości';
     protected static ?string $modelLabel = 'wiadomość';
     protected static ?string $pluralModelLabel = 'wiadomości';
-    protected static string|UnitEnum|null $navigationGroup = 'Kontakt';
     protected static ?int $navigationSort = 5;
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedEnvelope;
 
     private const array STATUSES = ['unread' => 'Nieprzeczytana', 'read' => 'Przeczytana', 'archived' => 'Zarchiwizowana'];
     private const array DELIVERY = [
@@ -37,20 +32,20 @@ final class ContactMessageResource extends Resource
     public static function table(Table $table): Table
     {
         return $table->recordClasses(fn (ContactMessage $record): ?string => 'panel-message-'.$record->status)->columns([
-            TextColumn::make('created_at')->label('Data zgłoszenia')->dateTime('d.m.Y, H:i', timezone: 'Europe/Warsaw')->sortable(),
-            TextColumn::make('name')->label('Nadawca')->searchable()->wrap(),
+            TextColumn::make('name')->extraAttributes(['class' => 'panel-record-title'])->label('Nadawca')->searchable()->wrap(),
             TextColumn::make('email')->label('Adres e-mail')->searchable()->wrap(),
-            TextColumn::make('status')->label('Status')
+            TextColumn::make('created_at')->label('Data zgłoszenia')->dateTime('d.m.Y, H:i', timezone: 'Europe/Warsaw')->sortable(),
+            TextColumn::make('status')->label('Status')->extraAttributes(['class' => 'panel-table-status'])
                 ->formatStateUsing(fn (string $state): string => self::STATUSES[$state]),
-            TextColumn::make('delivery_status')->label('Wysyłka e-mail')
+            TextColumn::make('delivery_status')->label('Wysyłka e-mail')->extraAttributes(['class' => 'panel-table-status'])
                 ->formatStateUsing(fn (string $state): string => self::DELIVERY[$state])
                 ->color(fn (string $state): string => match ($state) {
                     'sent' => 'success', 'failed', 'uncertain' => 'danger', default => 'gray',
                 }),
-        ])->defaultSort('created_at', 'desc')->filters([
+        ])->stackedOnMobile()->defaultSort('created_at', 'desc')->filters([
             SelectFilter::make('status')->label('Status')->options(self::STATUSES),
             SelectFilter::make('delivery_status')->label('Wysyłka e-mail')->options(self::DELIVERY),
-        ])->recordActions([ViewAction::make()->label('Otwórz')])->emptyStateHeading('Brak wiadomości');
+        ])->recordActions([ViewAction::make()->label('Otwórz')->icon(null)])->emptyStateHeading('Brak wiadomości');
     }
 
     public static function infolist(Schema $schema): Schema

@@ -6,8 +6,8 @@ use App\Actions\ManageAccount;
 use App\Enums\ContentSection;
 use App\Filament\Resources\UserResource\Pages;
 use App\Models\User;
-use BackedEnum;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Select;
@@ -39,8 +39,6 @@ class UserResource extends Resource
 
     protected static string | UnitEnum | null $navigationGroup = 'Administracja';
 
-    protected static string | BackedEnum | null $navigationIcon = Heroicon::OutlinedIdentification;
-
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
@@ -70,11 +68,11 @@ class UserResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('name')->label('Imię i nazwisko')->searchable()->wrap()->weight('medium'),
+                TextColumn::make('name')->extraAttributes(['class' => 'panel-record-title'])->label('Imię i nazwisko')->searchable()->wrap()->weight('medium'),
                 TextColumn::make('email')->label('Adres e-mail')->searchable()->wrap(),
                 TextColumn::make('is_admin')->label('Typ konta')
                     ->formatStateUsing(fn (bool $state): string => $state ? 'Administrator' : 'Pracownik'),
-                TextColumn::make('is_active')->label('Status konta')->badge()
+                TextColumn::make('is_active')->label('Status konta')->extraAttributes(['class' => 'panel-table-status'])
                     ->formatStateUsing(fn (bool $state): string => $state ? 'Aktywne' : 'Nieaktywne')
                     ->color(fn (bool $state): string => $state ? 'success' : 'gray'),
                 TextColumn::make('last_login_at')->label('Ostatnie logowanie')->dateTime('d.m.Y, H:i', timezone: 'Europe/Warsaw')
@@ -84,8 +82,8 @@ class UserResource extends Resource
             ->defaultSort('name')
             ->recordActions([
                 EditAction::make()->label('Edytuj')->icon(null),
-                self::statusAction(false),
-                self::statusAction(true),
+                ActionGroup::make([self::statusAction(false), self::statusAction(true)])
+                    ->label('Więcej działań')->icon(Heroicon::EllipsisHorizontal)->color('gray'),
             ]);
     }
 

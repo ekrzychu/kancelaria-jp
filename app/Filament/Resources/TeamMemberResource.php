@@ -9,14 +9,11 @@ use App\Media\MediaPurpose;
 use App\Media\MediaReferences;
 use App\Models\MediaImage;
 use App\Models\TeamMember;
-use BackedEnum;
-use UnitEnum;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Text;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -36,9 +33,7 @@ final class TeamMemberResource extends ManagedContentResource
     protected static ?string $navigationLabel = 'Zespół';
     protected static ?string $modelLabel = 'profil zespołu';
     protected static ?string $pluralModelLabel = 'profile zespołu';
-    protected static string|UnitEnum|null $navigationGroup = 'Treść';
     protected static ?int $navigationSort = 3;
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserGroup;
     protected static ?string $recordTitleAttribute = 'name';
 
     private static function groups(): array
@@ -115,9 +110,9 @@ final class TeamMemberResource extends ManagedContentResource
     public static function table(Table $table): Table
     {
         return static::directoryTable($table->columns([
-            ImageColumn::make('portrait')->label('Zdjęcie')->circular()
+            ImageColumn::make('portrait')->label('Zdjęcie')->circular()->size(28)
                 ->getStateUsing(self::portraitUrl(...)),
-            TextColumn::make('name')->label('Imię i nazwisko')->searchable()->wrap(),
+            TextColumn::make('name')->extraAttributes(['class' => 'panel-record-title'])->label('Imię i nazwisko')->searchable()->wrap(),
             TextColumn::make('role')->label('Stanowisko')->searchable()->wrap(),
             TextColumn::make('team_group')->label('Grupa')->formatStateUsing(fn (TeamGroup $state): string => $state->heading()),
             IconColumn::make('homepage_partner')->label('Wspólnik na stronie głównej')->boolean(),

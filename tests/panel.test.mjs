@@ -178,7 +178,7 @@ test('administrators and employees manage accounts and publications in the brows
     const row = [...document.querySelectorAll('tbody tr')].find(row => row.textContent.includes(title));
     return [...(row?.querySelectorAll('td:last-child :is(a, button)') ?? [])]
       .filter(action => action.getClientRects().length)
-      .map(action => action.textContent.trim());
+      .map(action => action.textContent.trim() || action.getAttribute('aria-label'));
   }, title);
   await visit(editPath);
   await wire('.edit-article', 'mountAction', {}, ['previewSaved']);
@@ -196,7 +196,13 @@ test('administrators and employees manage accounts and publications in the brows
     await browser.screenshot(screenshotDir, 'desktop-embedded-phone-preview');
   }
   await visit('/artykuly');
-  assert.deepEqual((await rowActions()).filter(Boolean), ['Edytuj', 'Podgląd', 'Opublikuj', 'Więcej']);
+  assert.deepEqual((await rowActions()).filter(Boolean), ['Edytuj', 'Opublikuj', 'Więcej działań']);
+  await evaluate(title => [...document.querySelectorAll('tbody tr')].find(row => row.textContent.includes(title))
+    .querySelector('button[aria-label="Więcej działań"]').focus(), title);
+  await browser.key('Enter', 13);
+  await until(() => evaluate(path => [...document.querySelectorAll('a[href]')].some(link =>
+    link.pathname === path && link.textContent.trim() === 'Podgląd' && link.getClientRects().length), previewPath), 'preview in row overflow');
+  await browser.key('Escape', 27);
   if (screenshotDir) await browser.screenshot(screenshotDir, 'desktop-publication-table');
   await tableAction('.list-articles', 'publish', id);
   assert.equal(article().status, 'published');

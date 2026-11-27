@@ -6,15 +6,12 @@ use App\Actions\ManageContent;
 use App\Content\JobStatus;
 use App\Filament\Resources\JobOfferResource\Pages;
 use App\Models\JobOffer;
-use BackedEnum;
-use UnitEnum;
 use Closure;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Text;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -27,9 +24,7 @@ final class JobOfferResource extends ManagedContentResource
     protected static ?string $navigationLabel = 'Kariera';
     protected static ?string $modelLabel = 'oferta pracy';
     protected static ?string $pluralModelLabel = 'oferty pracy';
-    protected static string|UnitEnum|null $navigationGroup = 'Treść';
     protected static ?int $navigationSort = 4;
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBriefcase;
     protected static ?string $recordTitleAttribute = 'title';
 
     protected const array FILTERS_BLOCKING_MOVES = ['status'];
@@ -68,14 +63,14 @@ final class JobOfferResource extends ManagedContentResource
     public static function table(Table $table): Table
     {
         return static::directoryTable($table->columns([
-            TextColumn::make('title')->label('Nazwa stanowiska')->searchable()->wrap()->placeholder('—'),
-            TextColumn::make('status')->label('Status')->badge()->formatStateUsing(fn (JobStatus $state): string => self::STATUSES[$state->value])
+            TextColumn::make('title')->extraAttributes(['class' => 'panel-record-title'])->label('Nazwa stanowiska')->searchable()->wrap()->placeholder('—'),
+            TextColumn::make('status')->label('Status')->extraAttributes(['class' => 'panel-table-status'])->formatStateUsing(fn (JobStatus $state): string => self::STATUSES[$state->value])
                 ->color(fn (JobStatus $state): string => $state === JobStatus::Open ? 'success' : 'gray'),
             TextColumn::make('display_order')->label('Kolejność'),
             TextColumn::make('updated_at')->label('Data ostatniej modyfikacji')->dateTime('d.m.Y, H:i', timezone: 'Europe/Warsaw'),
         ]), [
             SelectFilter::make('status')->label('Status')->options(self::STATUSES),
-        ], self::publicationActions());
+        ], array_map(fn (Action $action): Action => $action->link(), self::publicationActions()));
     }
 
     public static function publicationActions(?Closure $form = null): array

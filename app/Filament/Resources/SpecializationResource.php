@@ -6,8 +6,6 @@ use App\Actions\ManageContent;
 use App\Filament\Resources\SpecializationResource\Pages;
 use App\Models\Specialization;
 use App\Support\PublicUrl;
-use BackedEnum;
-use UnitEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Textarea;
@@ -15,7 +13,6 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Text;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -32,9 +29,7 @@ final class SpecializationResource extends ManagedContentResource
     protected static ?string $navigationLabel = 'Specjalizacje';
     protected static ?string $modelLabel = 'specjalizacja';
     protected static ?string $pluralModelLabel = 'specjalizacje';
-    protected static string|UnitEnum|null $navigationGroup = 'Treść';
     protected static ?int $navigationSort = 2;
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedSquares2x2;
     protected static ?string $recordTitleAttribute = 'title';
 
     protected const array FILTERS_BLOCKING_MOVES = ['category', 'active'];
@@ -82,9 +77,9 @@ final class SpecializationResource extends ManagedContentResource
     public static function table(Table $table): Table
     {
         return static::directoryTable($table->columns([
-            TextColumn::make('title')->label('Nazwa specjalizacji')->searchable()->wrap(),
+            TextColumn::make('title')->extraAttributes(['class' => 'panel-record-title'])->label('Nazwa specjalizacji')->searchable()->wrap(),
             TextColumn::make('category')->label('Kategoria')->searchable()->wrap(),
-            TextColumn::make('active')->label('Status')->badge()
+            TextColumn::make('active')->label('Status')->extraAttributes(['class' => 'panel-table-status'])
                 ->formatStateUsing(fn (bool $state): string => $state ? 'Aktywna' : 'Nieaktywna')
                 ->color(fn (bool $state): string => $state ? 'success' : 'gray'),
             TextColumn::make('display_order')->label('Kolejność'),
@@ -99,7 +94,7 @@ final class SpecializationResource extends ManagedContentResource
     private static function stateAction(bool $active): Action
     {
         return Action::make($active ? 'activate' : 'deactivate')
-            ->label($active ? 'Aktywuj' : 'Dezaktywuj')->button()->color($active ? 'primary' : 'gray')
+            ->label($active ? 'Aktywuj' : 'Dezaktywuj')->link()->color($active ? 'primary' : 'gray')
             ->authorize('update')->visible(fn (Specialization $record): bool => ! $record->trashed() && $record->active !== $active)
             ->requiresConfirmation()
             ->modalDescription($active ? 'Specjalizacja pojawi się na stronie publicznej.' : 'Specjalizacja zniknie ze strony publicznej.')

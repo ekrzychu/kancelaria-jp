@@ -10,6 +10,7 @@ use Filament\Actions\EditAction;
 use Filament\Actions\RestoreAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
@@ -55,7 +56,7 @@ abstract class ManagedContentResource extends Resource
                                 $current->restore();
                             })->trashed();
                         }),
-                ])->label('Więcej')->button()->color('gray'),
+                ])->label('Więcej działań')->icon(Heroicon::EllipsisHorizontal)->color('gray'),
             ]);
     }
 

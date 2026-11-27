@@ -12,8 +12,6 @@ use App\Media\MediaPurpose;
 use App\Media\MediaReferences;
 use App\Models\Article;
 use App\Support\PublicUrl;
-use BackedEnum;
-use UnitEnum;
 use Closure;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
@@ -50,9 +48,7 @@ final class ArticleResource extends Resource
     protected static ?string $navigationLabel = 'Artykuły';
     protected static ?string $modelLabel = 'artykuł';
     protected static ?string $pluralModelLabel = 'artykuły';
-    protected static string|UnitEnum|null $navigationGroup = 'Treść';
     protected static ?int $navigationSort = 1;
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
     protected static ?string $recordTitleAttribute = 'title';
 
     private const STATUSES = [
@@ -127,10 +123,10 @@ final class ArticleResource extends Resource
         return $table
             ->modifyQueryUsing(fn (Builder $query): Builder => $query->withoutGlobalScope(SoftDeletingScope::class))
             ->columns([
-                TextColumn::make('title')->label('Tytuł')->searchable()->wrap(),
+                TextColumn::make('title')->extraAttributes(['class' => 'panel-record-title panel-article-title'])->label('Tytuł')->searchable()->wrap(),
                 TextColumn::make('category')->label('Kategoria')->placeholder('—'),
                 TextColumn::make('author')->label('Autor')->searchable()->placeholder('—'),
-                TextColumn::make('status')->label('Status')->badge()
+                TextColumn::make('status')->label('Status')->extraAttributes(['class' => 'panel-table-status'])
                     ->formatStateUsing(fn (ArticleStatus $state): string => self::STATUSES[$state->value])
                     ->color(fn (ArticleStatus $state): string => $state === ArticleStatus::Published ? 'success' : 'gray'),
                 TextColumn::make('date')->label('Data publikacji')->date('d.m.Y', timezone: 'UTC')
@@ -144,10 +140,10 @@ final class ArticleResource extends Resource
             ])
             ->recordActions([
                 EditAction::make()->label('Edytuj')->icon(null)->hidden(fn (Article $record): bool => $record->trashed()),
-                self::previewAction()->hidden(fn (Article $record): bool => $record->trashed()),
-                self::publicationAction(ArticleStatus::Published),
-                self::publicationAction(ArticleStatus::Unpublished),
+                self::publicationAction(ArticleStatus::Published)->link(),
+                self::publicationAction(ArticleStatus::Unpublished)->link(),
                 ActionGroup::make([
+                    self::previewAction()->hidden(fn (Article $record): bool => $record->trashed()),
                     DeleteAction::make()->label('Przenieś do kosza')
                         ->modalDescription('Artykuł zniknie ze strony publicznej i będzie można go przywrócić.'),
                     RestoreAction::make()->label('Przywróć')
@@ -163,7 +159,7 @@ final class ArticleResource extends Resource
                                 return $current->restore();
                             });
                         }),
-                ])->label('Więcej')->button()->color('gray'),
+                ])->label('Więcej działań')->icon(Heroicon::EllipsisHorizontal)->color('gray'),
             ]);
     }
 

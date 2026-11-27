@@ -75,12 +75,8 @@ final class AdminPanelProvider extends PanelProvider
             ->darkMode(false)
             ->globalSearch(false)
             ->breadcrumbs(false)
-            ->sidebarWidth('16rem')
-            ->navigationGroups([
-                NavigationGroup::make('Treść')->collapsible(false),
-                NavigationGroup::make('Kontakt')->collapsible(false),
-                NavigationGroup::make('Administracja')->collapsible(false),
-            ])
+            ->sidebarWidth('13.5rem')
+            ->navigationGroups([NavigationGroup::make('Administracja')->collapsible(false)])
             ->maxContentWidth(Width::Full)
             ->renderHook(PanelsRenderHook::STYLES_AFTER, fn () => view('filament.panel-style'))
             ->resources([ArticleResource::class, SpecializationResource::class, TeamMemberResource::class, JobOfferResource::class, ContactMessageResource::class, UserResource::class])
