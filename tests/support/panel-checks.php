@@ -6,7 +6,11 @@ use App\Actions\ManageAccount;
 use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Mail\Events\MessageSending;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\RateLimiter;
 
@@ -47,6 +51,31 @@ if ($operation === 'provision') {
     }
 } elseif ($operation === 'login-attempts') {
     echo RateLimiter::attempts('livewire-rate-limiter:'.sha1(\App\Filament\Pages\Login::class.'|authenticate|127.0.0.1'));
+} elseif ($operation === 'contact-delivery') {
+    $attempts = [];
+    Event::listen(MessageSending::class, function (MessageSending $event) use (&$attempts, $argv): void {
+        $mail = $event->message;
+        $attempts[] = [
+            'to' => array_map(fn ($address) => $address->getAddress(), $mail->getTo()),
+            'from' => array_map(fn ($address) => $address->getAddress(), $mail->getFrom()),
+            'reply_to' => array_map(fn ($address) => $address->getAddress(), $mail->getReplyTo()),
+            'cc' => $mail->getCc(),
+            'bcc' => $mail->getBcc(),
+            'body' => $mail->getTextBody(),
+            'html' => $mail->getHtmlBody(),
+            'message_id' => $mail->getHeaders()->get('Message-ID')->getId(),
+        ];
+        if (($argv[3] ?? '') === 'fail') {
+            throw new RuntimeException('Synthetic confidential transport failure');
+        }
+    });
+    $exit = Artisan::call('contact:deliver');
+    echo json_encode([
+        'exit' => $exit,
+        'output' => Artisan::output(),
+        'attempts' => $attempts,
+        'delivered' => Mail::mailer('array')->getSymfonyTransport()->messages()->count(),
+    ], JSON_THROW_ON_ERROR);
 } elseif ($operation === 'deactivate') {
     [, , , $operator, $target, $start] = $argv;
     Auth::setUser(User::findOrFail($operator));

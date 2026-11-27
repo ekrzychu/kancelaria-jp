@@ -10,4 +10,5 @@ for (const [tool, args] of [
   [process.execPath, ['--test', 'tests/panel.test.mjs']],
   [process.execPath, ['--test', 'tests/content-admin.test.mjs']],
   [process.execPath, ['--test', 'tests/media.test.mjs']],
+  [process.execPath, ['--test', 'tests/contact.test.mjs']],
 ]) execFileSync(tool, args, { stdio: 'inherit', env: process.env });

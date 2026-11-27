@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Content\PublicationContent;
 use App\Content\SiteContent;
 use App\Models\Article;
+use App\Models\ContactMessage;
 use App\Support\PublicUrl;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Symfony\Component\HttpFoundation\Response;
 
 final class PublicPages
@@ -99,7 +101,7 @@ final class PublicPages
         ] : []));
     }
 
-    public function contact(): Response
+    public function contact(int $status = 200, array $form = []): Response
     {
         $site = $this->content->site();
         $hours = $site['hours'];
@@ -110,7 +112,54 @@ final class PublicPages
         $directions = 'https://www.google.com/maps/dir/?api=1&destination='
             . rawurlencode(implode(', ', $site['address']) . ', Polska');
 
-        return $this->page('contact', 'Kontakt', compact('hours', 'weekdays', 'hasUniformWeek', 'directions'));
+        $response = $this->page('contact', 'Kontakt', $form + compact('hours', 'weekdays', 'hasUniformWeek', 'directions'), $status);
+        $response->headers->set('Cache-Control', 'private, no-store');
+
+        return $response;
+    }
+
+    public function submitContact(): Response
+    {
+        $website = $this->request->post('website');
+        if ($website !== null && $website !== '') {
+            return $this->contact(422, ['formError' => 'Nie udało się przyjąć wiadomości. Spróbuj ponownie.']);
+        }
+
+        $limits = ['name' => 120, 'email' => 180, 'phone' => 40, 'message' => 4000];
+        $input = array_intersect_key($this->request->post(), $limits);
+        $text = static function (string $attribute, mixed $value, \Closure $fail): void {
+            if (is_string($value) && (! mb_check_encoding($value, 'UTF-8') || str_contains($value, "\0"))) {
+                $fail('Pole zawiera niedozwolone znaki.');
+            }
+        };
+        $validator = Validator::make($input, [
+            'name' => ['bail', 'required', 'string', $text, 'max:120'],
+            'email' => ['bail', 'required', 'string', 'max:180', 'regex:/\A[\x21-\x7e]+\z/', 'email:strict'],
+            'phone' => ['bail', 'nullable', 'string', $text, 'max:40'],
+            'message' => ['bail', 'required', 'string', $text, 'max:4000'],
+        ], [
+            'required' => 'Uzupełnij pole „:attribute”.',
+            'string' => 'Wpisz tekst w polu „:attribute”.',
+            'max' => 'Pole „:attribute” może zawierać najwyżej :max znaków.',
+            'email' => 'Podaj poprawny adres e-mail.',
+            'email.regex' => 'Podaj poprawny adres e-mail.',
+        ], ['name' => 'Imię i nazwisko', 'email' => 'Adres e-mail', 'phone' => 'Telefon', 'message' => 'Opis sprawy']);
+
+        if ($validator->fails()) {
+            $values = [];
+            foreach ($input as $field => $value) {
+                if (is_string($value) && mb_check_encoding($value, 'UTF-8') && ! str_contains($value, "\0")) {
+                    $values[$field] = mb_substr($value, 0, $limits[$field]);
+                }
+            }
+
+            return $this->contact(422, ['formErrors' => $validator->errors(), 'formValues' => $values]);
+        }
+
+        ContactMessage::create($validator->validated() + ['next_attempt_at' => now()]);
+
+        return redirect('/kontakt/#formularz', 303, ['Cache-Control' => 'private, no-store'])
+            ->with('contact_received', true);
     }
 
     public function documents(): Response

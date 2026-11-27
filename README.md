@@ -123,9 +123,9 @@ $env:TEST_DB_PASSWORD = $credentials.test
 node tests/run.mjs
 ```
 
-Each run creates random `kancelaria_jp_test_<hex>` schemas using the isolated account, runs migrations and imports fixtures as needed, then drops only schemas it created. The harness rejects missing test credentials, port 3306 and servers outside the MariaDB 11.4 and 12.3 series. It uses disposable files and an explicit test connection. GitHub Actions uses PHP 8.4, pins its own MariaDB 11.4.13 service image and generates a masked ephemeral test password. Tests cover real MariaDB operations, route/config caching, public visibility, search, filtering, browser interactions and disabled contact submissions.
+Each run creates random `kancelaria_jp_test_<hex>` schemas using the isolated account, runs migrations and imports fixtures as needed, then drops only schemas it created. The harness rejects missing test credentials, port 3306 and servers outside the MariaDB 11.4 and 12.3 series. It uses disposable files and an explicit test connection. GitHub Actions uses PHP 8.4, pins its own MariaDB 11.4.13 service image and generates a masked ephemeral test password. Tests cover MariaDB operations, route/config caching, public visibility, browser interactions, contact submissions and simulated email delivery.
 
-Run `php tests/content.php`, `node --test tests/database.test.mjs`, `node --test tests/http.test.mjs`, and `node --test tests/browser.test.mjs` individually when needed.
+Run `php tests/content.php`, `node --test tests/database.test.mjs`, `node --test tests/http.test.mjs`, `node --test tests/browser.test.mjs` or `node --test tests/contact.test.mjs` individually when needed.
 
 Use `node tests/snapshots.mjs test-artifacts/phase2-mariadb --details --stable` for visual comparisons. Export `cca68503e4666e7c268e448c3c2d9d4821844e5c` to a temporary directory with `git archive`, install its locked dependencies there, and run the same capture command with a separate output directory. The 33 views use 1440×900 and 390×844. The six homepage stages use regular motion and the internal layouts use reduced motion for stable comparison.
 
@@ -135,7 +135,7 @@ Serve only Laravel's `public/` directory. Verify dhosting's PHP CLI and web runt
 
 Back up the persistent MariaDB schema before deployments that run migrations. Include the database in restore rehearsals because Git contains the original import, while live edits exist in MariaDB. Future deployments run forward migrations and use the existing content. Reserve `site:import-content` for first-time provisioning of empty schemas and avoid reset or reimport operations on a live schema.
 
-Kontakt retains its disabled form, telephone and email links. Direct POSTs return HTTP 405. Enquiry storage, email delivery, production recovery, mandatory MFA and deployment are deferred.
+Production account recovery, mandatory MFA and deployment remain deferred. See Contact submissions and Wiadomości below for the contact release requirements.
 
 
 ## Administration
@@ -154,7 +154,7 @@ Add the local settings to the ignored .env and bind the development server to 12
 
 Public routes are bound to PUBLIC_HOST. The panel uses ADMIN_HOST at its root and /login for authentication. The hostname boundary rejects other hosts before public redirects and session middleware. Forwarded host, scheme and IP headers are untrusted. The administrative Livewire route is domain-bound. The hostname middleware also covers the package's routes, including the default Livewire endpoint. Generic Livewire uploads, import or export downloads and dynamic storage endpoints are blocked. Purpose-specific image routes are documented below. Private responses use no-store and noindex headers.
 
-The database stores encrypted session payloads. The kjp_panel_session cookie is host-only, HttpOnly and SameSite=Lax, with Secure over HTTPS. Public pages run without session middleware. Laravel CSRF protection applies to the panel. When a write request supplies an Origin header it must match ADMIN_URL exactly. Login is rate-limited by client IP in a server-side file cache shared across sessions.
+The database stores encrypted session payloads. The kjp_panel_session cookie is host-only, HttpOnly and SameSite=Lax, with Secure over HTTPS. Public pages run without session middleware except Kontakt, which uses a session for CSRF and confirmation. Laravel CSRF protection also applies to the panel. When a panel write request supplies an Origin header it must match ADMIN_URL exactly. Login is rate-limited by client IP in a server-side file cache shared across sessions.
 
 ### Account setup and management
 
@@ -165,7 +165,7 @@ php artisan migrate
 php artisan panel:provision-administrator
 ~~~
 
-The provisioning command prompts for an email and a hidden password with confirmation. The operator needs terminal access to the configured application and database. Administrators use Użytkownicy to create and edit accounts, change roles and deactivate or reactivate users. User records are independent of public team profiles. Employees start with no grants and can receive any combination of Artykuły, Specjalizacje, Zespół, Kariera and Wiadomości. Their first permitted section opens at login. Accounts without section grants land on Mój profil. Wiadomości remains a permission-checked placeholder.
+The provisioning command prompts for an email and a hidden password with confirmation. The operator needs terminal access to the configured application and database. Administrators use Użytkownicy to create and edit accounts, change roles and deactivate or reactivate users. User records are independent of public team profiles. Employees start with no grants and can receive any combination of Artykuły, Specjalizacje, Zespół, Kariera and Wiadomości. Their first permitted section opens at login. Accounts without section grants land on Mój profil.
 
 An InnoDB row lock serializes account privilege changes and preserves at least one active administrator. Deactivation preserves records, and changes to privileges, email or active status invalidate existing sessions. Mój profil keeps email read-only and verifies the current password before changing the displayed name or password. A password change rotates the current session and invalidates other sessions. Database timestamps are UTC. Login times display in Europe/Warsaw.
 
@@ -211,9 +211,21 @@ php artisan media:clean-temporary --apply
 
 Enable PHP GD with JPEG, PNG and WebP support in both the web runtime and CLI. Configure upload_max_filesize to at least 10M, post_max_size to at least 12M, memory_limit to at least 384M and allow PHP to write to its temporary upload directory and the persistent media directory. Use php --ini and php -i to verify the loaded configuration. On the current portable Windows workstation, the loopback server uses an ignored storage/app/phase5-runtime/media.ini override through PHP_INI_SCAN_DIR. Set the same scan directory for local Composer or Artisan commands. Confirm these settings and the storage path on dhosting before deployment. This phase verifies the local and CI environments.
 
+### Contact submissions and Wiadomości
+
+Kontakt validates and stores the visitor's name, email, optional phone and message in MariaDB. The confirmation means the submission was saved. Laravel checks CSRF, rejects a filled honeypot, and allows five submission attempts per minute per client IP. Keep Kontakt outside any shared page cache and make sure PHP sees the client IP on the deployed host.
+
+Administrators and active employees with the Wiadomości grant can search by sender name or email and open the private details. Opening an unread message marks it as read. Staff can mark it unread, archive it, or queue an eligible delivery retry. The panel does not offer edits, deletion or export.
+
+Run the forward migration before serving the new form. In the production environment set `APP_ENV=production`, `APP_DEBUG=false`, `MAIL_MAILER=smtp`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_SCHEME`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME` and `CONTACT_MAIL_TO=kontakt@kancelaria-jp.pl`. Use the dedicated dhosting mailbox as the authenticated sender. Use `smtps` with port 465 for implicit TLS or `smtp` with port 587 for required STARTTLS, according to the mailbox settings. The application addresses the message directly to the OVH mailbox and sets Reply-To to the visitor. Confirm with the providers that dhosting routes this recipient to OVH, the sender's SPF/DKIM/DMARC are correct, and the existing OVH MX stays in place. Verify receipt and Outlook Reply behavior during an authorized release test. Local and CI runs use the in-memory array transport. [dhosting SMTP settings](https://dhosting.pl/pomoc/baza-wiedzy/porty-poczty-i-szyfrowanie-smtp-587-i-465-imap-993-oraz-pop3-995/) · [Laravel mail configuration](https://laravel.com/docs/13.x/mail)
+
+Rebuild Laravel's config and route caches after setting the environment. Schedule `php artisan contact:deliver` every minute using the deployment PHP CLI and application directory. Each run processes up to 20 due messages. The initial attempt and up to two automatic retries use the same Message-ID and wait five and ten minutes after failures. The panel can queue another attempt after the automatic retries stop. Wysłana means the configured transport accepted the email. Interrupted attempts become Wymaga sprawdzenia after 30 minutes and wait for a manual decision. Check the recipient mailbox before retrying an uncertain result, since SMTP may have accepted the message before the connection or process failed. Monitor cron execution and failed or uncertain deliveries in the panel.
+
+Keep submissions, mail copies, backups and SMTP credentials restricted to authorized staff and operators. Keep request bodies, SQL bindings and mail payloads out of logging and tracing. The application emits counts for delivery and does not record transport exception text. Set `CONTACT_RETENTION_DAYS` to the approved period after archiving and run `php artisan contact:retention` to count eligible archived records. Zero disables the report. No command automatically deletes correspondence. Before launch, approve the retention procedure for MariaDB, OVH mail and backups, and confirm the privacy notice reflects the actual processing.
+
 ### Testing and hosting
 
-Run node tests/run.mjs with the existing isolated MariaDB test account. The complete suite includes tests/panel.test.mjs, tests/content-admin.test.mjs and tests/media.test.mjs. Set PANEL_SCREENSHOTS, CONTENT_ADMIN_SCREENSHOTS or MEDIA_SCREENSHOTS to an ignored local directory for administrative screenshots. Run composer check-platform-reqs and composer audit --locked. PHP Intl and ZIP are also required by the panel dependencies.
+Run node tests/run.mjs with the existing isolated MariaDB test account. The complete suite includes tests/panel.test.mjs, tests/content-admin.test.mjs, tests/media.test.mjs and tests/contact.test.mjs. Set PANEL_SCREENSHOTS, CONTENT_ADMIN_SCREENSHOTS or MEDIA_SCREENSHOTS to an ignored local directory for administrative screenshots. Run composer check-platform-reqs and composer audit --locked. PHP Intl and ZIP are also required by the panel dependencies.
 
 Point both DNS names at the hosting service and obtain HTTPS certificates for both. Configure both names to serve the same Laravel public/ directory with the same application and database. Set the exact configured origins, then run php artisan config:cache and php artisan route:cache. Confirm with dhosting that both domains can share a document root, that PHP observes the original Host and HTTPS state, and that unapproved technical or origin hostnames are rejected. Production hostname isolation must be verified on that hosting environment before release. [dhosting hosting capabilities](https://dhosting.pl/elastyczny-hosting)
 

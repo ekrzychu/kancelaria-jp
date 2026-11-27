@@ -74,7 +74,7 @@ jobs:
         run: php tests/content.php
       - name: MariaDB migrations and import
         run: node --test tests/database.test.mjs
-      - name: HTTP routes and disabled-intake regressions
+      - name: HTTP route regressions
         run: node --test tests/http.test.mjs
       - name: Browser regressions
         run: node --test tests/browser.test.mjs
@@ -84,3 +84,5 @@ jobs:
         run: node --test tests/content-admin.test.mjs
       - name: Image processing, upload authorization and media lifecycle
         run: node --test tests/media.test.mjs
+      - name: Contact intake, messages and simulated email delivery
+        run: node --test tests/contact.test.mjs

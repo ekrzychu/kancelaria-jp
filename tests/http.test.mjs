@@ -1,13 +1,11 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
 import { test } from 'node:test';
 import { routes, startSite } from './support/site.mjs';
 
-test('public routing and disabled enquiry intake', async t => {
+test('public routing and contact page', async t => {
   const app = await startSite();
   t.after(app.stop);
-  const { origin, dir, data } = app;
+  const { origin, data } = app;
   const request = (path, options) => fetch(origin + path, { redirect: 'manual', ...options });
   const paths = routes(data);
   const canonical = data.site.url.replace(/\/$/, '');
@@ -84,42 +82,21 @@ test('public routing and disabled enquiry intake', async t => {
     assert.deepEqual(urls.sort(), paths.filter(path => !path.startsWith('/dokumenty/')).map(path => canonical + path).sort());
   });
 
-  await t.test('contact keeps its layout, phone and email while inputs are disabled', async () => {
+  await t.test('contact keeps its layout, phone and email with the enabled form', async () => {
     for (const path of ['/kontakt/', '/kontakt/?wyslano=1']) {
       const response = await request(path);
       assert.equal(response.status, 200);
-      assert.equal(response.headers.get('set-cookie'), null);
+      assert.match(response.headers.get('cache-control'), /no-store/);
       const html = await response.text();
       assert.match(html, /<form class="contact-form" id="formularz"/);
-      assert.match(html, /Formularz jest tymczasowo niedostępny/);
       assert(html.includes('href="tel:' + data.site.phone_href + '"'));
       assert(html.includes('href="mailto:' + data.site.email + '"'));
       for (const field of ['name', 'email', 'phone', 'message']) {
-        assert.match(html, new RegExp('<(?:input|textarea)[^>]*name="' + field + '"[^>]*disabled'));
+        assert.match(html, new RegExp('<(?:input|textarea)[^>]*name="' + field + '"'));
       }
-      assert.match(html, /<button class="button contact-submit" type="submit" disabled>/);
-      assert.doesNotMatch(html, /csrf_token|Wiadomość została zapisana|Wiadomość została wysłana/);
-    }
-  });
-
-  // The JSONL persistence and throttling tests are preserved at the approved baseline commit.
-  await t.test('direct POSTs cannot start intake or issue a success redirect', async () => {
-    const sample = { name: 'Synthetic Example', email: 'fixture@example.test', message: 'Synthetic only.' };
-    for (const path of ['/kontakt/', '/kontakt', '/kontakt/?wyslano=1']) {
-      for (const [headers, body] of [
-        [{}, new URLSearchParams(sample)],
-        [{ 'content-type': 'application/json' }, JSON.stringify({ ...sample, csrf_token: 'fixture', website: 'fixture' })],
-      ]) {
-        const response = await request(path, { method: 'POST', headers, body });
-        assert.equal(response.status, 405);
-        assert.equal(response.headers.get('location'), null);
-        assert.equal(response.headers.get('set-cookie'), null);
-        assert.equal(response.headers.get('allow'), 'GET, HEAD');
-        assert.doesNotMatch(await response.text(), /Wiadomość została zapisana|Wiadomość została wysłana/);
-      }
-    }
-    for (const file of ['contact-submissions.jsonl', 'contact-rate-limit.json']) {
-      await assert.rejects(readFile(join(dir, 'storage', file)), { code: 'ENOENT' });
+      assert.match(html, /<button class="button contact-submit" type="submit">/);
+      assert.match(html, /name="_token"/);
+      assert.doesNotMatch(html, /Wiadomość została przyjęta/);
     }
   });
 });

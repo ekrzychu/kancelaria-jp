@@ -3,8 +3,8 @@
 namespace App\Auth;
 
 use App\Enums\ContentSection;
-use App\Filament\Pages\Messages;
 use App\Filament\Resources\ArticleResource;
+use App\Filament\Resources\ContactMessageResource;
 use App\Filament\Resources\JobOfferResource;
 use App\Filament\Resources\SpecializationResource;
 use App\Filament\Resources\TeamMemberResource;
@@ -30,7 +30,7 @@ class PanelLoginResponse implements LoginResponse
                     ContentSection::Specializations => SpecializationResource::getUrl(),
                     ContentSection::Team => TeamMemberResource::getUrl(),
                     ContentSection::Career => JobOfferResource::getUrl(),
-                    ContentSection::Messages => Messages::getUrl(),
+                    ContentSection::Messages => ContactMessageResource::getUrl(),
                 };
             }
         }

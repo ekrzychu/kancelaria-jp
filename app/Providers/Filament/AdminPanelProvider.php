@@ -4,11 +4,11 @@ namespace App\Providers\Filament;
 
 use App\Auth\PanelLoginResponse;
 use App\Filament\Pages\Login;
-use App\Filament\Pages\Messages;
 use App\Filament\Pages\Profile;
 use App\Filament\Pages\RequestLocalPasswordReset;
 use App\Filament\Pages\ResetLocalPassword;
 use App\Filament\Resources\ArticleResource;
+use App\Filament\Resources\ContactMessageResource;
 use App\Filament\Resources\JobOfferResource;
 use App\Filament\Resources\SpecializationResource;
 use App\Filament\Resources\TeamMemberResource;
@@ -76,8 +76,7 @@ final class AdminPanelProvider extends PanelProvider
             ->navigationGroups([NavigationGroup::make('Administracja')->collapsible(false)])
             ->maxContentWidth(Width::Full)
             ->renderHook(PanelsRenderHook::STYLES_AFTER, fn () => view('filament.panel-style'))
-            ->resources([ArticleResource::class, SpecializationResource::class, TeamMemberResource::class, JobOfferResource::class, UserResource::class])
-            ->pages([Messages::class])
+            ->resources([ArticleResource::class, SpecializationResource::class, TeamMemberResource::class, JobOfferResource::class, ContactMessageResource::class, UserResource::class])
             ->middleware(['web', DisableBladeIconComponents::class, DispatchServingFilamentEvent::class])
             ->authMiddleware([
                 RequireCurrentAccountSession::class,

@@ -95,6 +95,8 @@ export async function startSite({ importContent = true, serve = true, cached = f
       CACHE_STORE: 'array',
       LOG_CHANNEL: 'single',
       MAIL_MAILER: 'array',
+      MAIL_FROM_ADDRESS: 'contact@example.test',
+      CONTACT_MAIL_TO: 'kontakt@kancelaria-jp.pl',
       QUEUE_CONNECTION: 'sync',
       ...database.env,
     };

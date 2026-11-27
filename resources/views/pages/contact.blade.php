@@ -56,31 +56,50 @@
     </div>
 
     <form class="contact-form" id="formularz" aria-labelledby="contact-form-title" aria-describedby="contact-form-status" tabindex="-1" method="post" action="/kontakt/" data-reveal="subtle">
+      @csrf
+      <div class="form-honeypot" hidden>
+        <label>Strona internetowa <input name="website" autocomplete="off" tabindex="-1"></label>
+      </div>
       <div class="contact-form-heading">
         <h2 id="contact-form-title">Napisz do nas</h2>
-        <p id="contact-form-status">Formularz jest tymczasowo niedostępny. Skontaktuj się z&nbsp;nami telefonicznie lub mailowo.</p>
+        <p id="contact-form-status">Pola oznaczone <span>*</span> są wymagane.</p>
       </div>
+      @if (session('contact_received'))
+        <p class="form-status" role="status">Wiadomość została przyjęta. Dziękujemy za kontakt.</p>
+      @endif
+      @if (isset($formError) || isset($formErrors))
+        <div class="form-status error" role="alert" tabindex="-1">
+          <p>{{ $formError ?? 'Sprawdź dane w formularzu i spróbuj ponownie.' }}</p>
+          @isset($formErrors)
+            <ul>
+              @foreach ($formErrors->all() as $error)
+                <li>{{ $error }}</li>
+              @endforeach
+            </ul>
+          @endisset
+        </div>
+      @endif
       <div class="contact-fields">
         <label class="contact-field">
           <span>Imię i nazwisko <span class="contact-required" aria-hidden="true">*</span></span>
-          <input name="name" autocomplete="name" maxlength="120" disabled required>
+          <input name="name" autocomplete="name" maxlength="120" value="{{ $formValues['name'] ?? '' }}" @if(isset($formErrors) && $formErrors->has('name')) aria-invalid="true" @endif required>
         </label>
         <label class="contact-field">
           <span>Adres e-mail <span class="contact-required" aria-hidden="true">*</span></span>
-          <input name="email" type="email" autocomplete="email" maxlength="180" disabled required>
+          <input name="email" type="email" autocomplete="email" maxlength="180" value="{{ $formValues['email'] ?? '' }}" @if(isset($formErrors) && $formErrors->has('email')) aria-invalid="true" @endif required>
         </label>
         <label class="contact-field">
           <span>Telefon <small>(opcjonalnie)</small></span>
-          <input name="phone" type="tel" autocomplete="tel" maxlength="40" disabled>
+          <input name="phone" type="tel" autocomplete="tel" maxlength="40" value="{{ $formValues['phone'] ?? '' }}" @if(isset($formErrors) && $formErrors->has('phone')) aria-invalid="true" @endif>
         </label>
         <label class="contact-field">
           <span>Opis sprawy <span class="contact-required" aria-hidden="true">*</span></span>
-          <textarea name="message" rows="5" maxlength="4000" disabled required></textarea>
+          <textarea name="message" rows="5" maxlength="4000" @if(isset($formErrors) && $formErrors->has('message')) aria-invalid="true" @endif required>{{ $formValues['message'] ?? '' }}</textarea>
         </label>
       </div>
       <div class="contact-form-footer">
         <p class="privacy-note">Dane z formularza służą wyłącznie do kontaktu w sprawie zgłoszenia. Szczegóły opisuje <a href="/dokumenty/polityka-prywatnosci/">polityka prywatności</a>.</p>
-        <button class="button contact-submit" type="submit" disabled>Wyślij wiadomość @include('partials.action-arrow', ['arrowClass' => 'contact-arrow'])</button>
+        <button class="button contact-submit" type="submit">Wyślij wiadomość @include('partials.action-arrow', ['arrowClass' => 'contact-arrow'])</button>
       </div>
     </form>
   </div>
