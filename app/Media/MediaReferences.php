@@ -58,7 +58,8 @@ final class MediaReferences
     public function bind(string $id, MediaPurpose $purpose, Model $record, string $field): void
     {
         $user = auth()->user();
-        abort_unless($user instanceof User && $user->canAccessSection($purpose->section()), 403);
+        abort_unless($user instanceof User && $purpose->allowed($user), 403);
+        abort_if($purpose === MediaPurpose::Avatar && ! $user->is($record), 403);
         $valid = preg_match('/\A[a-f0-9]{32}\z/', $id);
         $media = $valid ? MediaImage::lockForUpdate()->find($id) : null;
         if (! $media || $media->purpose !== $purpose
@@ -74,11 +75,16 @@ final class MediaReferences
 
     public function mayView(MediaImage $media, ?User $user): bool
     {
-        if ($user && ! $user->canAccessSection($media->purpose->section())) {
+        if ($user && ! $media->purpose->allowed($user)) {
             return false;
         }
         if ($media->record_id === null) {
             return $user !== null && $this->ownsPending($media, $user);
+        }
+
+        if ($media->purpose === MediaPurpose::Avatar) {
+            return $user !== null && $media->user_id === $user->getKey() && $media->record_id === $user->getKey()
+                && $user->avatar_media_id === $media->id;
         }
 
         if ($media->purpose === MediaPurpose::Portrait) {

@@ -18,7 +18,7 @@ final class MediaController
     public function upload(Request $request, MediaPurpose $purpose): JsonResponse
     {
         $user = $request->user();
-        abort_unless($user instanceof User && $user->canAccessSection($purpose->section()), 403);
+        abort_unless($user instanceof User && $purpose->allowed($user), 403);
         $request->validate(['image' => ['required', 'file', 'max:'.config('media.max_kilobytes')]], [
             'image.required' => 'Wybierz plik zdjęcia.',
             'image.file' => 'Nie udało się przesłać pliku zdjęcia.',

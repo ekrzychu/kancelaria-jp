@@ -41,7 +41,7 @@ final class ImageStorage
         $image = $this->processor->process($file, $purpose);
         $current = $user->fresh();
         abort_unless($current && $current->session_version === $user->session_version
-            && $current->canAccessSection($purpose->section()), 403);
+            && $purpose->allowed($current), 403);
         $media = new MediaImage();
         $media->forceFill([
             'id' => bin2hex(random_bytes(16)),
