@@ -1,14 +1,13 @@
 @extends('layouts.public')
 
 @section('content')
-<section class="page-hero">
-  <div class="container page-intro" data-reveal>
-    <span class="section-kicker">404</span>
-    <h1>Nie znaleziono strony.</h1>
-    <div>
-      <p>Adres może być nieaktualny albo strona została przeniesiona.</p>
-      <a class="button" href="/">Wróć na stronę główną</a>
-    </div>
+<section class="container error-page" aria-labelledby="error-title">
+  <p class="section-kicker">Błąd 404</p>
+  <h1 id="error-title">Nie znaleziono strony.</h1>
+  <p>Sprawdź adres lub wybierz jedną z poniższych stron.</p>
+  <div class="error-actions">
+    <a class="button" href="/">Wróć na stronę główną</a>
+    <a class="text-action" href="/kontakt/">Kontakt z kancelarią</a>
   </div>
 </section>
 @endsection

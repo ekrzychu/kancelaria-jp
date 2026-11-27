@@ -48,7 +48,29 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->respond(static function (Response $response, Throwable $exception, Request $request): Response {
             // An invalid Host header may itself have raised the exception.
             try {
-                return SiteHosts::isAdmin($request) ? SiteHostBoundary::protect($response) : $response;
+                if (SiteHosts::isAdmin($request)) {
+                    return SiteHostBoundary::protect($response);
+                }
+                $status = $response->getStatusCode();
+                $copy = match ($status) {
+                    403 => ['Dostęp ograniczony', 'Wybierz inną stronę lub skontaktuj się z kancelarią.'],
+                    405 => ['Nie można wykonać tej operacji', 'Otwórz stronę ponownie, korzystając z poniższych odnośników.'],
+                    429 => ['Zbyt wiele prób', 'Odczekaj chwilę i spróbuj ponownie.'],
+                    500, 503 => ['Usługa jest tymczasowo niedostępna', 'Spróbuj ponownie później lub skontaktuj się z kancelarią.'],
+                    default => null,
+                };
+                if ($request->getHost() === config('hosts.public') && $request->isMethod('GET')
+                    && ! $request->expectsJson() && ! $request->is('media/*') && $copy !== null) {
+                    [$heading, $message] = $copy;
+                    $response->setContent(view('pages.error', compact('status', 'heading', 'message'))->render());
+                    $response->headers->set('Content-Type', 'text/html; charset=UTF-8');
+                    $response->headers->set('Cache-Control', 'private, no-store');
+                } elseif ($request->getHost() === config('hosts.public') && $status >= 500) {
+                    return $request->expectsJson()
+                        ? response()->json(['message' => 'Usługa jest tymczasowo niedostępna.'], $status, ['Cache-Control' => 'no-store'])
+                        : response('Usługa jest tymczasowo niedostępna.', $status, ['Content-Type' => 'text/plain; charset=UTF-8', 'Cache-Control' => 'no-store']);
+                }
+                return $response;
             } catch (\Symfony\Component\HttpFoundation\Exception\SuspiciousOperationException) {
                 return $response;
             }

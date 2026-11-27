@@ -53,6 +53,9 @@ final class AdminPanelProvider extends PanelProvider
             ->userMenuItems(['profile' => fn (Action $action): Action => $action->label('Mój profil')])
             ->passwordReset($testRecovery ? RequestLocalPasswordReset::class : null, ResetLocalPassword::class)
             ->brandName(config('app.name'))
+            ->brandLogo(fn () => view('filament.brand'))
+            ->brandLogoHeight('2.35rem')
+            ->unsavedChangesAlerts()
             ->font('system-ui', provider: \Filament\FontProviders\LocalFontProvider::class)
             ->defaultAvatarProvider(PanelAvatar::class)
             ->homeUrl(PanelLoginResponse::destination(...))
@@ -73,7 +76,11 @@ final class AdminPanelProvider extends PanelProvider
             ->globalSearch(false)
             ->breadcrumbs(false)
             ->sidebarWidth('16rem')
-            ->navigationGroups([NavigationGroup::make('Administracja')->collapsible(false)])
+            ->navigationGroups([
+                NavigationGroup::make('Treść')->collapsible(false),
+                NavigationGroup::make('Kontakt')->collapsible(false),
+                NavigationGroup::make('Administracja')->collapsible(false),
+            ])
             ->maxContentWidth(Width::Full)
             ->renderHook(PanelsRenderHook::STYLES_AFTER, fn () => view('filament.panel-style'))
             ->resources([ArticleResource::class, SpecializationResource::class, TeamMemberResource::class, JobOfferResource::class, ContactMessageResource::class, UserResource::class])

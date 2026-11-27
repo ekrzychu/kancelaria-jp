@@ -10,6 +10,7 @@ use App\Media\MediaReferences;
 use App\Models\MediaImage;
 use App\Models\TeamMember;
 use BackedEnum;
+use UnitEnum;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -35,6 +36,7 @@ final class TeamMemberResource extends ManagedContentResource
     protected static ?string $navigationLabel = 'Zespół';
     protected static ?string $modelLabel = 'profil zespołu';
     protected static ?string $pluralModelLabel = 'profile zespołu';
+    protected static string|UnitEnum|null $navigationGroup = 'Treść';
     protected static ?int $navigationSort = 3;
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserGroup;
     protected static ?string $recordTitleAttribute = 'name';

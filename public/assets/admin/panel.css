@@ -154,12 +154,6 @@
     font-weight: 650;
 }
 
-.panel-placeholder {
-    padding-block: 1rem;
-    border-block-start: 1px solid #e0d5ca;
-    color: #624b57;
-}
-
 .panel-image-preview {
     display: block;
     max-inline-size: 100%;
@@ -168,3 +162,107 @@
     border-radius: .3rem;
     object-fit: contain;
 }
+
+@font-face {
+    font-family: "Panel Source Serif";
+    src: url("/assets/fonts/source-serif-4-latin.woff2") format("woff2");
+    font-weight: 200 900;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Panel Source Serif";
+    src: url("/assets/fonts/source-serif-4-latin-ext.woff2") format("woff2");
+    font-weight: 200 900;
+    font-display: swap;
+    unicode-range: U+0100-02FF, U+1E00-1EFF;
+}
+
+.fi-body {
+    --panel-serif: "Panel Source Serif", Georgia, serif;
+    --panel-line: #dfd4ca;
+    --panel-muted: #644e59;
+}
+
+.panel-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: .75rem;
+    line-height: 1.1;
+    color: #faf4ed;
+}
+
+.panel-brand svg {
+    inline-size: 2.1rem;
+    flex: none;
+    fill: currentColor;
+}
+
+.panel-brand strong,
+.panel-brand small { display: block; }
+.panel-brand strong { font: 600 clamp(1rem, 2vw, 1.22rem)/1.1 var(--panel-serif); }
+.panel-brand small { margin-top: .2rem; font-size: .68rem; letter-spacing: .02em; }
+.fi-topbar .fi-topbar-start { display: flex; min-inline-size: 0; }
+
+.fi-simple-header .panel-brand { color: #1d0613; margin-block-end: 1rem; }
+.fi-header-heading,
+.fi-simple-header-heading { font-family: var(--panel-serif); font-weight: 600; }
+.fi-header-heading { font-size: clamp(2rem, 1.6rem + 1vw, 2.8rem); }
+.fi-sidebar-item-btn .fi-icon { inline-size: 1.15rem; block-size: 1.15rem; }
+.fi-sidebar-item.fi-active > .fi-sidebar-item-btn { background: #ebe0e4; }
+.fi-ta-header-toolbar { border-bottom: 1px solid var(--panel-line); }
+.fi-ta-table thead th { color: var(--panel-muted); font-size: .78rem; }
+.fi-ta-table .fi-ta-cell .fi-ta-text { padding-block: .55rem; }
+.fi-ta-row:hover { background: #faf6f2; }
+.fi-ta-empty-state { padding-block: clamp(2rem, 6vw, 4rem); }
+.fi-ta-empty-state-heading { font-family: var(--panel-serif); font-size: 1.3rem; }
+.fi-input-wrp, .fi-btn, .fi-dropdown-panel, .fi-modal-window,
+.fi-section, .fi-ta-ctn, .fi-simple-main, .fi-fo-rich-editor, .fi-fo-repeater-item { border-radius: .2rem; }
+.fi-input-wrp { --tw-ring-color: #b9a79f; }
+.fi-body :is(a, button, input, select, textarea, [contenteditable]):focus-visible {
+    outline: 2px solid #833d58;
+    outline-offset: 2px;
+}
+.fi-topbar :is(a, button):focus-visible { outline-color: #e7becd; }
+
+.panel-writing :is(.tiptap, .fi-fo-rich-editor-content) {
+    min-block-size: 18rem;
+    font: 400 1.12rem/1.65 var(--panel-serif);
+}
+.panel-preview {
+    display: block;
+    inline-size: 100%;
+    max-inline-size: 100%;
+    block-size: 65dvh;
+    margin-inline: auto;
+    border: 1px solid var(--panel-line);
+    background: #fff;
+}
+.panel-preview-mobile { inline-size: 390px; }
+.panel-message-text {
+    display: block;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font: 400 1.13rem/1.7 var(--panel-serif);
+}
+
+@media (max-width: 31rem) {
+    .fi-topbar { padding-inline: .7rem; }
+    .panel-brand { gap: .45rem; }
+    .panel-brand svg { inline-size: 1.65rem; }
+    .panel-brand small { font-size: .61rem; }
+    .fi-header-heading { font-size: 2rem; }
+}
+
+.panel-preview-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-block-end: 1rem; }
+.panel-preview-controls [aria-pressed="true"] { background: #eadce1; }
+.fi-ta-row.panel-message-unread { background: #f6edf1; }
+.panel-message-unread .fi-ta-text { font-weight: 650; }
+.panel-message-archived .fi-ta-text { color: #64505a; }
+
+.fi-sidebar-group + .fi-sidebar-group { border-top: 1px solid var(--panel-line); padding-top: .8rem; }
+.fi-ta-header-toolbar .fi-input-wrp { background: #fffdf9; }
+.fi-ta-actions { gap: .35rem; }
+.fi-dropdown-panel, .fi-modal-window { border: 1px solid var(--panel-line); }
+.fi-fo-rich-editor .fi-fo-rich-editor-toolbar { border-color: var(--panel-line); }
+.fi-fo-rich-editor .tiptap { inline-size: 100%; max-inline-size: 72ch; margin-inline: 0 auto; }
