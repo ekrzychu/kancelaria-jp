@@ -12,12 +12,15 @@ use Filament\Pages\Page;
 use Filament\Support\Enums\Width;
 use Illuminate\Support\Facades\Validator;
 use Livewire\Attributes\Locked;
+use UnitEnum;
 
 final class Statistics extends Page
 {
     protected static ?string $slug = 'statystyki';
 
     protected static ?string $title = 'Statystyki';
+
+    protected static string|UnitEnum|null $navigationGroup = 'Administracja';
 
     protected static ?int $navigationSort = 0;
 

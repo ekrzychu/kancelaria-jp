@@ -12,6 +12,7 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use UnitEnum;
 use Illuminate\Support\HtmlString;
 
 final class ContactMessageResource extends Resource
@@ -21,6 +22,7 @@ final class ContactMessageResource extends Resource
     protected static ?string $navigationLabel = 'Wiadomości';
     protected static ?string $modelLabel = 'wiadomość';
     protected static ?string $pluralModelLabel = 'wiadomości';
+    protected static string|UnitEnum|null $navigationGroup = 'Kontakt';
     protected static ?int $navigationSort = 5;
 
     private const array STATUSES = ['unread' => 'Nieprzeczytana', 'read' => 'Przeczytana', 'archived' => 'Zarchiwizowana'];

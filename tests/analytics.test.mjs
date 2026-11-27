@@ -103,13 +103,17 @@ test('statistics enforces its own permission and reports counts, previous ranges
   assert.equal((await fetch(site.adminOrigin + '/statystyki', { redirect: 'manual' })).status, 302);
   await login(site, browser, 'denied@example.test', password, '/artykuly');
   const { evaluate } = browser;
+  const navigation = () => evaluate(() => [...document.querySelectorAll('.fi-sidebar-nav .fi-sidebar-group')].map(group => [
+    group.querySelector('.fi-sidebar-group-label')?.textContent.trim() ?? '',
+    [...group.querySelectorAll('.fi-sidebar-item-label')].map(label => label.textContent.trim()),
+  ]));
   assert.equal(await evaluate(async () => (await fetch('/statystyki')).status), 403);
   assert.equal(await evaluate(() => !!document.querySelector('.fi-sidebar a[href$="/statystyki"]')), false);
   await evaluate(() => document.querySelector('form[action$="/logout"]').requestSubmit());
   await until(() => evaluate(() => location.pathname === '/login'), 'logout');
   await login(site, browser, 'report@example.test', password, '/statystyki');
   assert.equal(await evaluate(async () => (await fetch('/wiadomosci')).status), 403);
-  assert.equal(await evaluate(() => document.querySelector('.fi-sidebar-item-label').textContent.trim()), 'Statystyki');
+  assert.deepEqual(await navigation(), [['Administracja', ['Statystyki']]]);
   const metric = key => evaluate(key => document.querySelector('[data-metric="' + key + '"]').textContent.trim(), key);
   assert.equal(await metric('views'), '—');
   assert.match(await evaluate(() => document.body.innerText), /Zliczanie odsłon jest wyłączone/);
@@ -188,14 +192,19 @@ test('statistics enforces its own permission and reports counts, previous ranges
     }, name);
     assert.equal(status, 403, name);
   }
+  await browser.call('Network.clearBrowserCookies');
+  await browser.viewport(1440, 1000);
+  await login(site, browser, 'admin@example.test', password, '/artykuly');
+  await browser.navigate(site.adminOrigin + '/statystyki');
+  assert.deepEqual(await navigation(), [
+    ['', ['Artykuły', 'Specjalizacje', 'Zespół', 'Kariera']],
+    ['Kontakt', ['Wiadomości']],
+    ['Administracja', ['Statystyki', 'Użytkownicy']],
+  ]);
+
   const screenshotDir = process.env.ANALYTICS_SCREENSHOTS;
   if (screenshotDir) {
-    await browser.call('Network.clearBrowserCookies');
     await browser.call('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });
-    await browser.viewport(1440, 1000);
-    await login(site, browser, 'admin@example.test', password, '/artykuly');
-    await browser.navigate(site.adminOrigin + '/statystyki');
-    assert.equal(await evaluate(() => document.querySelector('.fi-sidebar-item-label').textContent.trim()), 'Statystyki');
     await range('', '', '7');
     await until(() => evaluate(() => document.querySelector('.fi-wi-chart .fi-async-component')?.dataset.loading !== 'true'
       && document.querySelector('canvas')?.getBoundingClientRect().height > 0), 'screenshot chart');
