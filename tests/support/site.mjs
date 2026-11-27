@@ -40,7 +40,7 @@ async function freePort() {
   }
 }
 
-export async function startSite({ importContent = true, serve = true, cached = false } = {}) {
+export async function startSite({ importContent = true, serve = true, cached = false, prepare } = {}) {
   const dir = await mkdtemp(join(tmpdir(), 'kancelaria-jp-test-'));
   let child;
   let database;
@@ -69,6 +69,7 @@ export async function startSite({ importContent = true, serve = true, cached = f
     ]);
     await Promise.all(['app', 'artisan', 'bootstrap/app.php', 'bootstrap/providers.php', 'composer.json', 'config', 'database', 'public', 'resources', 'routes'].map(name =>
       cp(join(root, name), join(dir, name), { recursive: true })));
+    await prepare?.(dir);
     database = createTestDatabase(php);
     const host = '127.0.0.1:' + await freePort();
     const origin = 'http://' + host;

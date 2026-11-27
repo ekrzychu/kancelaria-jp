@@ -8,7 +8,7 @@ Public website and content administration for Jaroch-Konwent Pakos Kancelaria Ra
 - `app/Content/SiteContent.php` reads editable content through four Eloquent models and preserves the existing Blade data shapes. `PublicationContent` prepares publication lists, anchor navigation and table wrappers.
 - MariaDB is authoritative for articles, specializations, team profiles and job offers. Changes made through the database appear on the corresponding public pages without a deployment. A database failure returns a generic HTTP 503 for affected pages.
 - `app/data/site.json` is authoritative for firm identity, navigation, contact details, office hours, the canonical origin, social links and static documents.
-- `app/data/{articles,services,team,recruitment}.json` are reviewed migration inputs and regression fixtures. Edit current public database content in MariaDB.
+- `app/data/{articles,services,team,recruitment}.json` are reviewed migration inputs and regression fixtures. Editors manage current content through Filament.
 - `resources/views/` and `public/` contain the approved public templates and assets. `storage/` and `bootstrap/cache/` are private writable runtime directories.
 
 Phase 2 preserves the approved Phase 1 baseline `cca68503e4666e7c268e448c3c2d9d4821844e5c` and its 27 public pages. The sitemap preserves the canonical paths, includes published articles and active specializations, and excludes documents and deleted or hidden content. Laravel serves it directly through a cacheable route.
@@ -130,7 +130,7 @@ Back up the persistent MariaDB schema before deployments that run migrations. In
 Kontakt retains its disabled form, telephone and email links. Direct POSTs return HTTP 405. Enquiry storage, email delivery, production recovery, mandatory MFA and deployment are deferred.
 
 
-## Phase 3 administration
+## Administration
 
 Laravel serves the public site and the Filament panel from the same application and MariaDB schema. The Composer lockfile uses Laravel 13.44.1, Filament 5.12.0, Livewire 4.4.10 and Symfony HTML Sanitizer 8.1.12. Composer publishes the locked panel assets without a Node build. The panel reuses the approved prototype palette, CSS, navigation icons, account table and profile layout. This application replaces the prototype routing, article storage, preview rendering, account lock and upload controls.
 
@@ -157,7 +157,7 @@ php artisan migrate
 php artisan panel:provision-administrator
 ~~~
 
-The provisioning command prompts for an email and a hidden password with confirmation. The operator needs terminal access to the configured application and database. Administrators use Użytkownicy to create and edit accounts, change roles and deactivate or reactivate users. User records are independent of public team profiles. Employees start with no grants and can receive any combination of Artykuły, Specjalizacje, Zespół, Kariera and Wiadomości. Their first permitted section opens at login. Accounts without section grants land on Mój profil. The four non-article content sections are permission-checked placeholders.
+The provisioning command prompts for an email and a hidden password with confirmation. The operator needs terminal access to the configured application and database. Administrators use Użytkownicy to create and edit accounts, change roles and deactivate or reactivate users. User records are independent of public team profiles. Employees start with no grants and can receive any combination of Artykuły, Specjalizacje, Zespół, Kariera and Wiadomości. Their first permitted section opens at login. Accounts without section grants land on Mój profil. Wiadomości remains a permission-checked placeholder.
 
 An InnoDB row lock serializes account privilege changes and preserves at least one active administrator. Deactivation preserves records, and changes to privileges, email or active status invalidate existing sessions. Mój profil keeps email read-only and verifies the current password before changing the displayed name or password. A password change rotates the current session and invalidates other sessions. Database timestamps are UTC. Login times display in Europe/Warsaw.
 
@@ -171,9 +171,19 @@ Podgląd renders the public article template on the administrative hostname behi
 
 The importer retains the original HTML. In the editor, structures that cannot round-trip through Tiptap, such as figures, captioned tables and existing explicit anchors, appear between editable segments. On save the protected markup is reconstructed from the server-side record. Media uploading is deferred.
 
+### Specialization, team and recruitment administration
+
+Each resource uses its existing MariaDB content table and its own section permission. The same permissions apply to navigation, direct routes and Livewire actions.
+
+- **Specjalizacje** starts new records inactive. Activate or deactivate a record from its row. The address is generated from the title on creation and stays fixed after saving. The detailed description and service scope are ordered, plain-text lists. Leave the homepage description empty to use the short description. Restoring a record leaves it inactive.
+- **Zespół** requires an explicit public group. Saving a profile makes it public. Wspólnik na stronie głównej nominates a profile for one of two homepage slots, selected by display order. Existing portrait associations can be removed. To offer a portrait for selection, list its approved filename and label in config/site.php under team_portraits. The file must already exist in public/assets/img. The editor never uploads or deletes physical files. Restoring a profile makes it public again.
+- **Kariera** saves new offers as drafts. Opublikuj and Wznów rekrutację validate and save pending editor changes before making the offer public. Zakończ rekrutację removes it from the public list. New links accept HTTP(S) only. Restored open offers are closed until explicitly reopened.
+
+Use Przesuń wyżej or Przesuń niżej under Więcej to move a record one position at a time, including across page boundaries. For team members, moves stay within the same group, and the team group filter remains available. Clear search, status, category and trash filters to move records. Więcej also contains Przenieś do kosza and Przywróć. Content writes are serialized per schema and reordering runs in a transaction.
+
 ### Testing and hosting
 
-Run node tests/run.mjs with the existing isolated MariaDB test account. The complete suite includes tests/panel.test.mjs. Set PANEL_SCREENSHOTS to an ignored local directory for administrative screenshots. Run composer check-platform-reqs and composer audit --locked. PHP Intl and ZIP are also required by the panel dependencies.
+Run node tests/run.mjs with the existing isolated MariaDB test account. The complete suite includes tests/panel.test.mjs and tests/content-admin.test.mjs. Set PANEL_SCREENSHOTS or CONTENT_ADMIN_SCREENSHOTS to an ignored local directory for administrative screenshots. Run composer check-platform-reqs and composer audit --locked. PHP Intl and ZIP are also required by the panel dependencies.
 
 Point both DNS names at the hosting service and obtain HTTPS certificates for both. Configure both names to serve the same Laravel public/ directory with the same application and database. Set the exact configured origins, then run php artisan config:cache and php artisan route:cache. Confirm with dhosting that both domains can share a document root, that PHP observes the original Host and HTTPS state, and that unapproved technical or origin hostnames are rejected. Production hostname isolation must be verified on that hosting environment before release. [dhosting hosting capabilities](https://dhosting.pl/elastyczny-hosting)
 

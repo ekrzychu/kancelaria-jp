@@ -78,3 +78,5 @@ jobs:
         run: node --test tests/browser.test.mjs
       - name: Administrative hostname and CMS regressions
         run: node --test tests/panel.test.mjs
+      - name: Specialization, team and recruitment administration
+        run: node --test tests/content-admin.test.mjs

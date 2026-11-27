@@ -8,4 +8,5 @@ for (const [tool, args] of [
   [process.execPath, ['--test', 'tests/http.test.mjs']],
   [process.execPath, ['--test', 'tests/browser.test.mjs']],
   [process.execPath, ['--test', 'tests/panel.test.mjs']],
+  [process.execPath, ['--test', 'tests/content-admin.test.mjs']],
 ]) execFileSync(tool, args, { stdio: 'inherit', env: process.env });
