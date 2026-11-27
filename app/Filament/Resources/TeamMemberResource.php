@@ -63,7 +63,7 @@ final class TeamMemberResource extends ManagedContentResource
             Select::make('portrait')->label('Zdjęcie')->options(fn (?TeamMember $record): array => self::portraits($record))
                 ->placeholder('Bez zdjęcia')->helperText('Wybierz zatwierdzony portret lub pozostaw pole puste.'),
             Text::make(fn (?TeamMember $record): HtmlString => new HtmlString(
-                '<img class="max-h-40 max-w-full rounded" alt="Dotychczasowe zdjęcie" src="/assets/img/'.e($record?->portrait).'">'))
+                '<img class="panel-image-preview" alt="Dotychczasowe zdjęcie" src="/assets/img/'.e($record?->portrait).'">'))
                 ->visible(fn (?TeamMember $record): bool => isset(self::portraits($record)[$record?->portrait])),
             ImageUpload::make('portrait_media_id')->label('Prześlij portret')->purpose(MediaPurpose::Portrait)
                 ->helperText('Przesłany portret zastępuje dotychczasowe zdjęcie po zapisaniu profilu.'),

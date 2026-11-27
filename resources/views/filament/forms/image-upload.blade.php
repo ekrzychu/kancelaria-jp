@@ -42,7 +42,7 @@
     >
         <template x-if="image">
             <img :src="@js($field->previewPrefix()) + encodeURIComponent(image)" alt="Podgląd zdjęcia"
-                class="max-h-40 max-w-full rounded object-contain">
+                class="panel-image-preview">
         </template>
         <input id="{{ $getId() }}" type="file" accept="image/jpeg,image/png,image/webp" hidden
             x-ref="fileInput" :disabled="pending" x-on:change="upload($event)">

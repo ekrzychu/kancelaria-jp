@@ -159,3 +159,12 @@
     border-block-start: 1px solid #e0d5ca;
     color: #624b57;
 }
+
+.panel-image-preview {
+    display: block;
+    max-inline-size: 100%;
+    max-block-size: 12rem;
+    margin-block-end: .5rem;
+    border-radius: .3rem;
+    object-fit: contain;
+}

@@ -225,6 +225,7 @@ test('managed media uploads, editorial references and delivery respect the artic
   await visit(edit);
   assert(await evaluate(() => document.querySelectorAll('input[type=file]').length === 2));
   await showImages('img[src^="/media-panel/"]', '/media-panel/');
+  assert(await evaluate(() => document.querySelector('img.panel-image-preview').getBoundingClientRect().height <= 192));
   await capture('desktop-article-images');
   await action('EditArticle', 'publish');
   assert.equal(article().status, 'published');
