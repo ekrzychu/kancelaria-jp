@@ -309,3 +309,48 @@
     .panel-brand small { font-size: .61rem; }
     .fi-header-heading { font-size: 2rem; }
 }
+
+.panel-statistics { display: grid; gap: 1.35rem; }
+.panel-statistics-filters, .panel-statistics-dates { display: flex; flex-wrap: wrap; align-items: end; gap: .65rem; }
+.panel-statistics-filters label > span { display: block; margin-bottom: .25rem; color: var(--panel-muted); font-size: .8rem; }
+.panel-statistics-error { color: #81314e; }
+.panel-statistics-period { display: flex; flex-wrap: wrap; gap: .25rem 1rem; color: var(--panel-muted); font-size: .85rem; }
+.panel-statistics-period strong { color: var(--panel-ink); }
+.panel-statistics-note { margin-top: .55rem; padding-inline-start: .65rem; border-inline-start: 2px solid #843f5a; color: var(--panel-muted); font-size: .85rem; }
+
+.panel-statistics-totals {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: .8rem;
+    border-block: 1px solid var(--panel-line);
+}
+.panel-statistics-totals > div { padding: .9rem 1rem; }
+.panel-statistics-totals > div + div { border-inline-start: 1px solid var(--panel-line); }
+.panel-statistics-totals dt { font-size: .85rem; font-weight: 600; }
+.panel-statistics-totals dd[data-metric] { font: 600 clamp(1.9rem, 3vw, 2.65rem)/1.35 var(--panel-serif); font-variant-numeric: tabular-nums; }
+.panel-statistics-comparison { color: var(--panel-muted); font-size: .76rem; }
+
+.panel-statistics .fi-wi-chart .fi-section { background: transparent; border: 0; border-bottom: 1px solid var(--panel-line); border-radius: 0; }
+.panel-statistics .fi-section-header, .panel-statistics .fi-section-content { padding-inline: 0; }
+.panel-statistics .fi-section-header-heading, .panel-statistics-rankings h2 { font: 600 1.35rem/1.25 var(--panel-serif); }
+.panel-statistics-rankings { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.6rem 2rem; }
+.panel-statistics-rankings table { width: 100%; margin-top: .55rem; border-top: 1px solid var(--panel-line); }
+.panel-statistics-rankings tr { border-bottom: 1px solid var(--panel-line); }
+.panel-statistics-rankings :is(th, td) { padding: .5rem .7rem .5rem 0; text-align: start; font-size: .85rem; overflow-wrap: anywhere; }
+.panel-statistics-rankings thead { color: var(--panel-muted); }
+.panel-statistics-rankings tbody th { font-weight: 550; }
+.panel-statistics-rankings :is(th, td):last-child { text-align: end; min-inline-size: 4.5rem; padding-inline-end: 0; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.panel-statistics-rankings p { margin-top: .55rem; color: var(--panel-muted); font-size: .85rem; }
+
+@media (max-width: 39.999rem) {
+    .panel-statistics-rankings, .panel-statistics-totals { grid-template-columns: minmax(0, 1fr); }
+    .panel-statistics-totals > div {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        column-gap: .75rem;
+        padding: .6rem 0;
+    }
+    .panel-statistics-totals dd[data-metric] { grid-column: 2; grid-row: 1 / span 2; }
+    .panel-statistics-totals > div + div { border-inline-start: 0; border-top: 1px solid var(--panel-line); }
+}

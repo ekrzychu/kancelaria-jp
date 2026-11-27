@@ -9,6 +9,7 @@ enum ContentSection: string
     case Team = 'team';
     case Career = 'career';
     case Messages = 'messages';
+    case Analytics = 'analytics';
 
     public function label(): string
     {
@@ -18,6 +19,7 @@ enum ContentSection: string
             self::Team => 'Zespół',
             self::Career => 'Kariera',
             self::Messages => 'Wiadomości',
+            self::Analytics => 'Statystyki',
         };
     }
 

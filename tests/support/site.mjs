@@ -40,7 +40,7 @@ async function freePort() {
   }
 }
 
-export async function startSite({ importContent = true, serve = true, cached = false, prepare } = {}) {
+export async function startSite({ importContent = true, serve = true, cached = false, analyticsEnabled = false, prepare } = {}) {
   const dir = await mkdtemp(join(tmpdir(), 'kancelaria-jp-test-'));
   let child;
   let database;
@@ -81,6 +81,7 @@ export async function startSite({ importContent = true, serve = true, cached = f
       ...env,
       APP_ENV: 'testing',
       APP_DEBUG: 'false',
+      ANALYTICS_ENABLED: analyticsEnabled ? 'true' : 'false',
       APP_URL: origin,
       PUBLIC_HOST: '127.0.0.1',
       ADMIN_HOST: 'panel.localhost',

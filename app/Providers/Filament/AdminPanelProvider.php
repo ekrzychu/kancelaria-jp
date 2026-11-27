@@ -7,6 +7,7 @@ use App\Filament\Pages\Login;
 use App\Filament\Pages\Profile;
 use App\Filament\Pages\RequestLocalPasswordReset;
 use App\Filament\Pages\ResetLocalPassword;
+use App\Filament\Pages\Statistics;
 use App\Filament\Resources\ArticleResource;
 use App\Filament\Resources\ContactMessageResource;
 use App\Filament\Resources\JobOfferResource;
@@ -79,6 +80,7 @@ final class AdminPanelProvider extends PanelProvider
             ->navigationGroups([NavigationGroup::make('Administracja')->collapsible(false)])
             ->maxContentWidth(Width::SevenExtraLarge)
             ->renderHook(PanelsRenderHook::STYLES_AFTER, fn () => view('filament.panel-style'))
+            ->pages([Statistics::class])
             ->resources([ArticleResource::class, SpecializationResource::class, TeamMemberResource::class, JobOfferResource::class, ContactMessageResource::class, UserResource::class])
             ->middleware(['web', DisableBladeIconComponents::class, DispatchServingFilamentEvent::class])
             ->authMiddleware([

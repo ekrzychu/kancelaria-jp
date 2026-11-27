@@ -236,3 +236,15 @@ Design references used were the editorial layout and navigation in [Craft CMS](h
 ## Branches and license
 
 The Laravel migration is on `laravel-migration`. `main` and the two fullscreen animation branches retain their existing histories. This is proprietary software. See [LICENSE](LICENSE). Asset licenses remain alongside their assets.
+
+## Website statistics (Phase 7B)
+
+Statystyki is available to administrators and employees with the separate **Statystyki** permission. It reports page views and counts of saved contact submissions, with 7-, 30- and 90-day presets and an inclusive custom range of up to 366 days. Presets include today. The comparison uses the immediately preceding period of the same length. Days follow Europe/Warsaw, including daylight-saving changes. Contact counts reflect records still present in Wiadomości, including archived records and records with failed email delivery. The report reads only their counts.
+
+A page view is a successful public HTML navigation that reaches Laravel on a recognized route. Reloads count again. The figures measure page views, not unique visitors. Redirects, errors, media, static files, panel pages, previews and framework requests are excluded. Common bot signatures and browser prefetch/prerender headers are filtered on a best-effort basis. Visits served entirely by a cache or missed during a database interruption are absent. A dynamic page uses its saved public slug. Query strings never enter the counters.
+
+Requests add to a MariaDB bucket keyed by local date, canonical page and source category. Referrers are classified in memory as a search engine, social network, other external site, internal navigation, or unknown. The external-source list shows the first three categories. Analytics retains no raw referrers, query strings, IPs, user agents, cookies, fingerprints or visitor histories. Web-server and proxy access logs are configured separately.
+
+- Back up MariaDB and run `php artisan migrate --force` during deployment. Collection defaults to off. Approve the counting policy and retention, then set `ANALYTICS_ENABLED=true` and rebuild the configuration cache with `php artisan config:cache`. Refresh the route cache with `php artisan route:cache` when deploying this release.
+- Set `ANALYTICS_RETENTION_DAYS` to the approved window (1–730 days, default 365). Schedule `php artisan analytics:maintain` hourly with the deployment PHP CLI in the application directory. It records today's coverage when enabled and deletes expired analytics buckets, even when collection is disabled. It never deletes contact messages. Run it once after enabling collection and monitor cron failures.
+- Days with counted traffic or a successful maintenance marker have data. A marker with no counted traffic appears as zero. Days without either appear as missing, including dates before collection and dates outside retention. For partial periods, the daily average uses covered days and view comparisons require coverage across both periods. Today's numbers are provisional. Stats remain readable when collection is off. There is no backfill.

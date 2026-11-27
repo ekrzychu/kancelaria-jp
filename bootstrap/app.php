@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\PublicPages;
+use App\Http\Middleware\CountPageView;
 use App\Http\Middleware\RequireCurrentAccountSession;
 use App\Http\Middleware\SiteHostBoundary;
 use App\Support\SiteHosts;
@@ -15,7 +16,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(using: static function (): void {
-        Route::domain(config('hosts.public'))->group(base_path('routes/web.php'));
+        Route::domain(config('hosts.public'))->middleware(CountPageView::class)->group(base_path('routes/web.php'));
     })
     ->withMiddleware(static function (Middleware $middleware): void {
         $middleware->append(SiteHostBoundary::class);

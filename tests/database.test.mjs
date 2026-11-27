@@ -44,7 +44,7 @@ test('MariaDB migrations, dry run, rollback, exact import, and repeat refusal', 
   const tableSettings = rows(database,
     'SELECT TABLE_NAME, ENGINE, TABLE_COLLATION FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() ORDER BY TABLE_NAME');
   assert.deepEqual(tableSettings.map(table => table.TABLE_NAME), [
-    ...tables, 'migrations', 'admin_account_lock', 'users', 'password_reset_tokens', 'sessions', 'media_images', 'contact_messages',
+    ...tables, 'migrations', 'admin_account_lock', 'users', 'password_reset_tokens', 'sessions', 'media_images', 'contact_messages', 'daily_page_views',
   ].sort());
   assert(tableSettings.every(table => table.ENGINE === 'InnoDB' && table.TABLE_COLLATION === 'utf8mb4_unicode_ci'));
   const date = rows(database, "SELECT DATA_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='articles' AND COLUMN_NAME='date'");
@@ -142,7 +142,7 @@ test('import preserves long Unicode HTML, article states and optional job fields
 test('homepage selection migration preserves the previous visible order', async t => {
   const { artisan, database, stop } = await startSite({ serve: false });
   t.after(stop);
-  artisan(['migrate:rollback', '--step=2', '--force']);
+  artisan(['migrate:rollback', '--path=database/migrations/2026_11_27_000005_add_homepage_specialization_selection.php', '--force']);
   rows(database, 'UPDATE specializations SET active=0 WHERE display_order=1');
   rows(database, 'UPDATE specializations SET deleted_at=UTC_TIMESTAMP() WHERE display_order=2');
   const previouslyVisible = rows(database,

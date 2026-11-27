@@ -67,6 +67,14 @@ if ($operation === 'provision') {
         'attempts' => $attempts,
         'delivered' => Mail::mailer('array')->getSymfonyTransport()->messages()->count(),
     ], JSON_THROW_ON_ERROR);
+} elseif ($operation === 'analytics-increment') {
+    $day = \App\Analytics\PageViews::today()->toDateString();
+    while (microtime(true) < (float) $argv[3]) {
+        usleep(1000);
+    }
+    for ($i = 0; $i < 20; $i++) {
+        \App\Analytics\PageViews::increment($day, 'home', 'unknown');
+    }
 } elseif ($operation === 'deactivate') {
     [, , , $operator, $target, $start] = $argv;
     Auth::setUser(User::findOrFail($operator));
