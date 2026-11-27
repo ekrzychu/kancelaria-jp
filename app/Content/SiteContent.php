@@ -56,10 +56,16 @@ final class SiteContent
         return JobOffer::open()->get()->map->only(['title', 'description', 'url'])->all();
     }
 
-    public function publishedArticles(): array
+    public function publishedArticles(bool $includeBody = false): array
     {
-        // PublicationContent's stable date sorting keeps ID order for equal dates.
-        return Article::published()->orderBy('id')->get()->map(self::articleData(...))->all();
+        $fields = ['slug', 'title', 'summary', 'category', 'author'];
+        if ($includeBody) {
+            $fields[] = 'body_html';
+        }
+
+        return Article::published()->orderByDesc('date')->orderBy('id')->get([...$fields, 'date'])
+            ->map(fn (Article $article): array => $article->only($fields) + ['date' => $article->date?->format('Y-m-d')])
+            ->all();
     }
 
     public function publishedArticle(string $slug): ?array

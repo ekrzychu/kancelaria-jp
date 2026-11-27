@@ -115,17 +115,19 @@ function articleRows(database, rows, replace = false) {
   database.query(operations);
 }
 
-test('homepage applies publication eligibility, date order, and a stable tie-break', async t => {
+test('homepage and archive preserve publication eligibility, ordering and searchable body text', async t => {
   const { origin, database, stop } = await startSite();
   t.after(stop);
   const fixtures = [
     { slug: 'oldest', date: '2023-12-31' },
     { slug: 'previous', date: '2024-01-01' },
     { slug: 'missing-date' },
-    { slug: 'newest', date: '2025-06-02' },
+    { slug: 'newest', date: '2025-06-02', body_html: '<p>Żółwi&nbsp;znacznik</p><p>wyłącznie w treści</p>' },
     { slug: 'leap-day', date: '2024-02-29' },
     { slug: 'same-day', date: '2024-02-29' },
     { slug: 'blank-summary', date: '2026-01-01', summary: ' ' },
+    { slug: 'blank-title', date: '2026-02-01', title: ' \t ' },
+    { slug: 'another-undated' },
   ].map(entry => ({ title: entry.slug, summary: 'Synthetic preview.', ...entry }));
   articleRows(database, fixtures, true);
 
@@ -140,6 +142,12 @@ test('homepage applies publication eligibility, date order, and a stable tie-bre
     ['2024-02-29', '29.02.2024'],
     ['2024-02-29', '29.02.2024'],
   ]);
+  const archive = await fetch(origin + '/artykuly/');
+  assert.equal(archive.status, 200);
+  const archiveHtml = await archive.text();
+  assert.deepEqual([...archiveHtml.matchAll(/href="\/([^"]+)\/" aria-labelledby="publication-title-\d+"/g)].map(match => match[1]),
+    ['blank-summary', 'newest', 'leap-day', 'same-day', 'previous', 'oldest', 'missing-date', 'another-undated']);
+  assert.match(archiveHtml, /data-publication-search="newest Synthetic preview\. Żółwi znacznik wyłącznie w treści /);
 });
 
 test('related publications use the two newest valid entries out of 100', async t => {
@@ -154,6 +162,8 @@ test('related publications use the two newest valid entries out of 100', async t
   const current = rows[99];
   rows[96].slug = 'admin';
   rows[96].date = '2099-01-01';
+  rows[95].title = ' \t ';
+  rows[95].date = '2098-01-01';
 
   for (const [dataset, expected] of [
     [[...rows.filter((_, i) => i % 2 === 0), ...rows.filter((_, i) => i % 2 !== 0).reverse()], ['fixture-98', 'fixture-97']],

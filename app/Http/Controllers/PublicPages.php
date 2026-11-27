@@ -67,7 +67,7 @@ final class PublicPages
 
     public function articles(): Response
     {
-        return $this->page('articles', 'Artykuły', $this->publications->archive($this->content->publishedArticles()) + [
+        return $this->page('articles', 'Artykuły', $this->publications->archive($this->content->publishedArticles(includeBody: true)) + [
             'description' => 'Publikacje prawne kancelarii Jaroch-Konwent Pakos. Analizy i komentarze z praktyki radców prawnych we Wrocławiu.',
         ]);
     }

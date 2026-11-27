@@ -25,8 +25,6 @@ final class PublicationContent
                 $publications[] = compact('title', 'summary', 'published') + ['slug' => $article['slug'] ?? ''];
             }
         }
-        usort($publications, static fn ($left, $right) => $right['published'] <=> $left['published']);
-
         return array_slice($publications, 0, 3);
     }
 
@@ -40,7 +38,6 @@ final class PublicationContent
             $publication['archive_category'] = is_string($publication['category'] ?? null) ? trim($publication['category']) : '';
         }
         unset($publication);
-        usort($publications, static fn (array $a, array $b): int => $b['archive_date'] <=> $a['archive_date']);
 
         $categories = array_unique(array_filter(array_column($publications, 'archive_category'), 'strlen'));
         $years = array_unique(array_filter(array_map(static fn (array $entry): string => substr($entry['archive_date'], 0, 4), $publications), 'strlen'));
@@ -57,12 +54,8 @@ final class PublicationContent
                 || !is_string($entry['title'] ?? null) || trim($entry['title']) === '') {
                 continue;
             }
-            $entry['related_date'] = self::date($entry['date'] ?? null)?->format('Y-m-d') ?? '';
             $related[] = $entry;
         }
-        usort($related, static fn (array $a, array $b): int =>
-            $b['related_date'] <=> $a['related_date']
-        );
         return array_slice($related, 0, 2);
     }
 
