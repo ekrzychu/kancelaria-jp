@@ -1,2 +1,2 @@
-The local search SVG is loaded by icon('search') in the specialization and article directories.
-Other active icons, including action arrows and brand marks, are inline in the PHP templates.
+The public search SVG URL is retained. The specialization and article directories render the matching Blade partial.
+Action arrows and brand marks also render inline.

@@ -3,7 +3,6 @@
 namespace App\Providers;
 
 use App\Auth\PanelLoginResponse;
-use App\Enums\ContentSection;
 use App\Http\Controllers\PublicPages;
 use App\Http\Middleware\RequireCurrentAccountSession;
 use App\Models\User;
@@ -14,7 +13,6 @@ use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -43,8 +41,6 @@ final class AppServiceProvider extends ServiceProvider
                 ->middleware('web')
                 ->name('panel.'));
         }
-
-        Gate::define('access-content', fn (User $user, ContentSection $section): bool => $user->canAccessSection($section));
 
         RateLimiter::for('contact', fn (Request $request) => Limit::perMinute(5)->by($request->ip())
             ->response(fn (Request $request, array $headers) => app(PublicPages::class)

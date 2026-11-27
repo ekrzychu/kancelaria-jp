@@ -11,4 +11,12 @@ for (const [tool, args] of [
   [process.execPath, ['--test', 'tests/content-admin.test.mjs']],
   [process.execPath, ['--test', 'tests/media.test.mjs']],
   [process.execPath, ['--test', 'tests/contact.test.mjs']],
-]) execFileSync(tool, args, { stdio: 'inherit', env: process.env });
+]) {
+  const github = process.env.GITHUB_ACTIONS === 'true';
+  if (github) console.log('::group::' + args.at(-1));
+  try {
+    execFileSync(tool, args, { stdio: 'inherit' });
+  } finally {
+    if (github) console.log('::endgroup::');
+  }
+}

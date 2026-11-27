@@ -13,7 +13,7 @@
     <div class="filter-line" data-service-filters data-reveal="subtle" hidden>
       <div class="service-search">
         <label>
-          {{ \App\Support\ViewAssets::searchIcon() }}
+          @include('partials.search-icon')
           <span class="visually-hidden">Szukaj specjalizacji</span>
           <input type="search" placeholder="Szukaj specjalizacji" autocomplete="off" data-service-search aria-controls="service-list">
         </label>

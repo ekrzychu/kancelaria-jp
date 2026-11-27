@@ -123,20 +123,22 @@ $env:TEST_DB_PASSWORD = $credentials.test
 node tests/run.mjs
 ```
 
-Each run creates random `kancelaria_jp_test_<hex>` schemas using the isolated account, runs migrations and imports fixtures as needed, then drops only schemas it created. The harness rejects missing test credentials, port 3306 and servers outside the MariaDB 11.4 and 12.3 series. It uses disposable files and an explicit test connection. GitHub Actions uses PHP 8.4, pins its own MariaDB 11.4.13 service image and generates a masked ephemeral test password. Tests cover MariaDB operations, route/config caching, public visibility, browser interactions, contact submissions and simulated email delivery.
+Each run creates random `kancelaria_jp_test_<hex>` schemas using the isolated account, runs migrations and imports fixtures as needed, then drops only schemas it created. The harness rejects missing test credentials, port 3306 and servers outside the MariaDB 11.4 and 12.3 series. It uses disposable files and an explicit test connection. GitHub Actions uses PHP 8.4, pins its own MariaDB 11.4.13 service image and generates a masked ephemeral test password. CI invokes the same runner and groups its output by suite. Set PANEL_SCREENSHOTS, CONTENT_ADMIN_SCREENSHOTS or MEDIA_SCREENSHOTS to an ignored directory to capture panel screenshots.
 
 Run `php tests/content.php`, `node --test tests/database.test.mjs`, `node --test tests/http.test.mjs`, `node --test tests/browser.test.mjs` or `node --test tests/contact.test.mjs` individually when needed.
 
 Use `node tests/snapshots.mjs test-artifacts/phase2-mariadb --details --stable` for visual comparisons. Export `cca68503e4666e7c268e448c3c2d9d4821844e5c` to a temporary directory with `git archive`, install its locked dependencies there, and run the same capture command with a separate output directory. The 33 views use 1440×900 and 390×844. The six homepage stages use regular motion and the internal layouts use reduced motion for stable comparison.
 
-## Hosting and deferred work
+## Production deployment
 
-Serve only Laravel's `public/` directory. Verify dhosting's PHP CLI and web runtime, `pdo_mysql`, MariaDB 11.4 credentials and TLS settings, write access to `storage/` and `bootstrap/cache/`, HTTPS, rewrites for `/sitemap.xml`, route/config caching, and backup/restore in staging. The hosting account has yet to be verified. [dhosting hosting capabilities](https://dhosting.pl/elastyczny-hosting) · [Laravel database configuration](https://laravel.com/docs/13.x/database)
+The dhosting environment still needs staging verification. Use this release checklist. [dhosting hosting capabilities](https://dhosting.pl/elastyczny-hosting)
 
-Back up the persistent MariaDB schema before deployments that run migrations. Include the database in restore rehearsals because Git contains the original import, while live edits exist in MariaDB. Future deployments run forward migrations and use the existing content. Reserve `site:import-content` for first-time provisioning of empty schemas and avoid reset or reimport operations on a live schema.
-
-Production account recovery, mandatory MFA and deployment remain deferred. See Contact submissions and Wiadomości below for the contact release requirements.
-
+1. Point both hostnames at Laravel's `public/` directory with HTTPS. Set the exact public and admin origins from the table below. Confirm PHP sees the original host, HTTPS state and client IP. Reject other hostnames and keep Kontakt outside shared caching. Check redirects and the `/sitemap.xml` rewrite.
+2. Verify the supported PHP CLI and web extensions, the MariaDB connection and TLS settings, and write access to `storage/`, `bootstrap/cache/` and the [persistent media directory](#article-images-and-team-portraits). Install the locked dependencies and run `composer check-platform-reqs` and `composer audit --locked`.
+3. Back up MariaDB and managed media together and verify a restore. Run `php artisan migrate --force` before serving the release. Use `site:import-content` only on first-time provisioning of an empty content schema.
+4. Set `APP_ENV=production`, `APP_DEBUG=false`, `MAIL_MAILER=smtp`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_SCHEME`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME` and `CONTACT_MAIL_TO=kontakt@kancelaria-jp.pl`. Authenticate as the dedicated dhosting mailbox with `smtps` on 465 or `smtp` on 587 with required STARTTLS. Verify routing to OVH, SPF/DKIM/DMARC and the existing OVH MX. Verify receipt and visitor Reply-To in Outlook during an authorized release test. Local and CI runs use the in-memory transport. [dhosting SMTP settings](https://dhosting.pl/pomoc/baza-wiedzy/porty-poczty-i-szyfrowanie-smtp-587-i-465-imap-993-oraz-pop3-995/)
+5. Run `php artisan config:cache` and `php artisan route:cache`. Schedule `php artisan contact:deliver` every minute using the deployment PHP CLI and application directory. Each run processes up to 20 due messages. Monitor failed and uncertain deliveries in Wiadomości.
+6. Approve the [contact privacy notice and retention procedure](#contact-submissions-and-wiadomości). Production invitations, recovery procedures and mandatory MFA remain release work.
 
 ## Administration
 
@@ -217,17 +219,9 @@ Kontakt validates and stores the visitor's name, email, optional phone and messa
 
 Administrators and active employees with the Wiadomości grant can search by sender name or email and open the private details. Opening an unread message marks it as read. Staff can mark it unread, archive it, or queue an eligible delivery retry. The panel does not offer edits, deletion or export.
 
-Run the forward migration before serving the new form. In the production environment set `APP_ENV=production`, `APP_DEBUG=false`, `MAIL_MAILER=smtp`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_SCHEME`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME` and `CONTACT_MAIL_TO=kontakt@kancelaria-jp.pl`. Use the dedicated dhosting mailbox as the authenticated sender. Use `smtps` with port 465 for implicit TLS or `smtp` with port 587 for required STARTTLS, according to the mailbox settings. The application addresses the message directly to the OVH mailbox and sets Reply-To to the visitor. Confirm with the providers that dhosting routes this recipient to OVH, the sender's SPF/DKIM/DMARC are correct, and the existing OVH MX stays in place. Verify receipt and Outlook Reply behavior during an authorized release test. Local and CI runs use the in-memory array transport. [dhosting SMTP settings](https://dhosting.pl/pomoc/baza-wiedzy/porty-poczty-i-szyfrowanie-smtp-587-i-465-imap-993-oraz-pop3-995/) · [Laravel mail configuration](https://laravel.com/docs/13.x/mail)
-
-Rebuild Laravel's config and route caches after setting the environment. Schedule `php artisan contact:deliver` every minute using the deployment PHP CLI and application directory. Each run processes up to 20 due messages. The initial attempt and up to two automatic retries use the same Message-ID and wait five and ten minutes after failures. The panel can queue another attempt after the automatic retries stop. Wysłana means the configured transport accepted the email. Interrupted attempts become Wymaga sprawdzenia after 30 minutes and wait for a manual decision. Check the recipient mailbox before retrying an uncertain result, since SMTP may have accepted the message before the connection or process failed. Monitor cron execution and failed or uncertain deliveries in the panel.
+The initial delivery attempt and up to two automatic retries use the same Message-ID. Failures wait five and ten minutes before retrying. Staff can queue another attempt in the panel. Wysłana means the configured transport accepted the email. An interrupted attempt becomes Wymaga sprawdzenia after 30 minutes. Check the recipient inbox before retrying because SMTP may already have accepted it.
 
 Keep submissions, mail copies, backups and SMTP credentials restricted to authorized staff and operators. Keep request bodies, SQL bindings and mail payloads out of logging and tracing. The application emits counts for delivery and does not record transport exception text. Set `CONTACT_RETENTION_DAYS` to the approved period after archiving and run `php artisan contact:retention` to count eligible archived records. Zero disables the report. No command automatically deletes correspondence. Before launch, approve the retention procedure for MariaDB, OVH mail and backups, and confirm the privacy notice reflects the actual processing.
-
-### Testing and hosting
-
-Run node tests/run.mjs with the existing isolated MariaDB test account. The complete suite includes tests/panel.test.mjs, tests/content-admin.test.mjs, tests/media.test.mjs and tests/contact.test.mjs. Set PANEL_SCREENSHOTS, CONTENT_ADMIN_SCREENSHOTS or MEDIA_SCREENSHOTS to an ignored local directory for administrative screenshots. Run composer check-platform-reqs and composer audit --locked. PHP Intl and ZIP are also required by the panel dependencies.
-
-Point both DNS names at the hosting service and obtain HTTPS certificates for both. Configure both names to serve the same Laravel public/ directory with the same application and database. Set the exact configured origins, then run php artisan config:cache and php artisan route:cache. Confirm with dhosting that both domains can share a document root, that PHP observes the original Host and HTTPS state, and that unapproved technical or origin hostnames are rejected. Production hostname isolation must be verified on that hosting environment before release. [dhosting hosting capabilities](https://dhosting.pl/elastyczny-hosting)
 
 ## Branches and license
 

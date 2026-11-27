@@ -17,7 +17,7 @@
       <form class="publication-filters" role="search" aria-label="Szukaj i filtruj artykuły" data-publication-filters data-reveal="subtle" hidden>
         <div class="publication-search">
           <label>
-            {{ \App\Support\ViewAssets::searchIcon() }}
+            @include('partials.search-icon')
             <span class="visually-hidden">Szukaj artykułów</span>
             <input type="search" name="query" placeholder="Szukaj artykułów" autocomplete="off" aria-controls="publication-list">
           </label>

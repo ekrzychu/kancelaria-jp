@@ -68,21 +68,5 @@ jobs:
           docker exec "$DB_CONTAINER" mariadb --user=root --protocol=socket --execute 'SELECT VERSION() AS ci_mariadb_version;'
           printf 'TEST_DB_PASSWORD=%s\n' "$test_password" >> "$GITHUB_ENV"
       - run: google-chrome --version
-      - name: PHP and JavaScript syntax
-        run: node tests/check.mjs
-      - name: JSON and content validation
-        run: php tests/content.php
-      - name: MariaDB migrations and import
-        run: node --test tests/database.test.mjs
-      - name: HTTP route regressions
-        run: node --test tests/http.test.mjs
-      - name: Browser regressions
-        run: node --test tests/browser.test.mjs
-      - name: Administrative hostname and CMS regressions
-        run: node --test tests/panel.test.mjs
-      - name: Specialization, team and recruitment administration
-        run: node --test tests/content-admin.test.mjs
-      - name: Image processing, upload authorization and media lifecycle
-        run: node --test tests/media.test.mjs
-      - name: Contact intake, messages and simulated email delivery
-        run: node --test tests/contact.test.mjs
+      - name: Regression suite
+        run: node tests/run.mjs
