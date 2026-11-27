@@ -5,14 +5,17 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\ContactMessageResource\Pages;
 use App\Models\ContactMessage;
 use BackedEnum;
+use UnitEnum;
 use Filament\Actions\ViewAction;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\HtmlString;
 
 final class ContactMessageResource extends Resource
 {
@@ -21,6 +24,7 @@ final class ContactMessageResource extends Resource
     protected static ?string $navigationLabel = 'Wiadomości';
     protected static ?string $modelLabel = 'wiadomość';
     protected static ?string $pluralModelLabel = 'wiadomości';
+    protected static string|UnitEnum|null $navigationGroup = 'Kontakt';
     protected static ?int $navigationSort = 5;
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedEnvelope;
 
@@ -32,14 +36,13 @@ final class ContactMessageResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return $table->columns([
+        return $table->recordClasses(fn (ContactMessage $record): ?string => 'panel-message-'.$record->status)->columns([
             TextColumn::make('created_at')->label('Data zgłoszenia')->dateTime('d.m.Y, H:i', timezone: 'Europe/Warsaw')->sortable(),
             TextColumn::make('name')->label('Nadawca')->searchable()->wrap(),
             TextColumn::make('email')->label('Adres e-mail')->searchable()->wrap(),
-            TextColumn::make('status')->label('Status')->badge()
-                ->formatStateUsing(fn (string $state): string => self::STATUSES[$state])
-                ->color(fn (string $state): string => $state === 'unread' ? 'primary' : 'gray'),
-            TextColumn::make('delivery_status')->label('Wysyłka e-mail')->badge()
+            TextColumn::make('status')->label('Status')
+                ->formatStateUsing(fn (string $state): string => self::STATUSES[$state]),
+            TextColumn::make('delivery_status')->label('Wysyłka e-mail')
                 ->formatStateUsing(fn (string $state): string => self::DELIVERY[$state])
                 ->color(fn (string $state): string => match ($state) {
                     'sent' => 'success', 'failed', 'uncertain' => 'danger', default => 'gray',
@@ -47,23 +50,30 @@ final class ContactMessageResource extends Resource
         ])->defaultSort('created_at', 'desc')->filters([
             SelectFilter::make('status')->label('Status')->options(self::STATUSES),
             SelectFilter::make('delivery_status')->label('Wysyłka e-mail')->options(self::DELIVERY),
-        ])->recordActions([ViewAction::make()->label('Otwórz')]);
+        ])->recordActions([ViewAction::make()->label('Otwórz')])->emptyStateHeading('Brak wiadomości');
     }
 
     public static function infolist(Schema $schema): Schema
     {
         return $schema->components([
-            TextEntry::make('name')->label('Imię i nazwisko'),
-            TextEntry::make('email')->label('Adres e-mail'),
-            TextEntry::make('phone')->label('Telefon')->placeholder('—'),
-            TextEntry::make('created_at')->label('Data zgłoszenia')->dateTime('d.m.Y, H:i', timezone: 'Europe/Warsaw'),
-            TextEntry::make('status')->label('Status')->formatStateUsing(fn (string $state): string => self::STATUSES[$state]),
-            TextEntry::make('delivery_status')->label('Wysyłka e-mail')->formatStateUsing(fn (string $state): string => self::DELIVERY[$state]),
-            TextEntry::make('delivery_attempts')->label('Liczba prób wysyłki'),
-            TextEntry::make('next_attempt_at')->label('Następna próba')->dateTime('d.m.Y, H:i', timezone: 'Europe/Warsaw')->placeholder('—'),
-            TextEntry::make('sent_at')->label('Wysłano')->dateTime('d.m.Y, H:i', timezone: 'Europe/Warsaw')->placeholder('—'),
-            TextEntry::make('message')->label('Treść wiadomości')->columnSpanFull()
-                ->extraAttributes(['style' => 'white-space: pre-wrap; overflow-wrap: anywhere']),
+            Section::make('Wiadomość')->schema([
+                TextEntry::make('message')->hiddenLabel()->formatStateUsing(fn (string $state): HtmlString => new HtmlString(
+                    '<span class="panel-message-text">'.e($state).'</span>',
+                )),
+            ])->columnSpanFull(),
+            Section::make('Dane kontaktowe')->schema([
+                TextEntry::make('email')->label('Adres e-mail'),
+                TextEntry::make('phone')->label('Telefon')->placeholder('—'),
+                TextEntry::make('created_at')->label('Data zgłoszenia')->dateTime('d.m.Y, H:i', timezone: 'Europe/Warsaw'),
+            ])->columnSpanFull()->columns(3),
+            Section::make('Status i wysyłka e-mail')->schema([
+                TextEntry::make('status')->label('Status')->formatStateUsing(fn (string $state): string => self::STATUSES[$state]),
+                TextEntry::make('delivery_status')->label('Wysyłka e-mail')->formatStateUsing(fn (string $state): string => self::DELIVERY[$state]),
+                TextEntry::make('delivery_attempts')->label('Liczba prób wysyłki'),
+                TextEntry::make('last_attempt_at')->label('Ostatnia próba')->dateTime('d.m.Y, H:i', timezone: 'Europe/Warsaw')->placeholder('—'),
+                TextEntry::make('next_attempt_at')->label('Następna próba')->dateTime('d.m.Y, H:i', timezone: 'Europe/Warsaw')->placeholder('—'),
+                TextEntry::make('sent_at')->label('Wysłano')->dateTime('d.m.Y, H:i', timezone: 'Europe/Warsaw')->placeholder('—'),
+            ])->columnSpanFull()->columns(3)->collapsible(),
         ]);
     }
 

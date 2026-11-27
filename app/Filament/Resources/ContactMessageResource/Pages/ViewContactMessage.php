@@ -14,6 +14,11 @@ final class ViewContactMessage extends ViewRecord
     protected static string $resource = ContactMessageResource::class;
     protected static ?string $title = 'Wiadomość';
 
+    public function getHeading(): string
+    {
+        return $this->getRecord()->name;
+    }
+
     #[Unexposed]
     public function mount(int|string $record): void
     {

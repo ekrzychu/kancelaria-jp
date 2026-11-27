@@ -79,7 +79,7 @@ final class DeliverContactMessages extends Command
         $body = "Imię i nazwisko: {$record->name}\nAdres e-mail: {$record->email}\n"
             .'Telefon: '.($record->phone ?? '—')."\n\nTreść wiadomości:\n{$record->message}";
 
-        $sent = Mail::mailer($mailer)->raw($body, function (Message $message) use ($record): void {
+        $sent = Mail::mailer($mailer)->send(['html' => 'mail.contact', 'raw' => $body], compact('record'), function (Message $message) use ($record): void {
             $message->to(config('mail.contact.to'))->replyTo($record->email)->subject('Nowa wiadomość z formularza kontaktowego');
             $message->getSymfonyMessage()->getHeaders()
                 ->addIdHeader('Message-ID', $record->id.'@'.config('hosts.public'));
