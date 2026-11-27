@@ -32,7 +32,7 @@ test('section employees manage specializations, public profiles and recruitment 
   }
 
   const visit = path => browser.navigate(app.adminOrigin + path);
-  const { wire } = livewire(browser, app);
+  const { ready, wire } = livewire(browser, app);
   const html = async (path, status = 200) => {
     const response = await fetch(app.origin + path, { redirect: 'manual' });
     assert.equal(response.status, status, path);
@@ -82,6 +82,7 @@ test('section employees manage specializations, public profiles and recruitment 
   assert.equal(specialization(), undefined);
   assert(await evaluate(() => document.querySelectorAll('.fi-fo-field-wrp-error-message').length > 0));
   await wire('CreateSpecialization', 'create', { ...specData, slug: 'niedozwolony-adres', active: true, display_order: 999, homepage_featured: true });
+  await ready('ListSpecializations');
   assert(specialization());
   const detail = '/specjalizacje/' + slug + '/';
   const specId = specialization().id;
@@ -94,7 +95,7 @@ test('section employees manage specializations, public profiles and recruitment 
     body: specData.body.toReversed(), scope: specData.scope.toReversed() });
   assert.deepEqual(JSON.parse(specialization().body), ['Drugi akapit', 'Pierwszy akapit']);
   assert.deepEqual(JSON.parse(specialization().scope), ['Punkt B', 'Punkt A']);
-  await visit('/specjalizacje');
+  await ready('ListSpecializations');
   await capture('specialization-list');
   await action('ListSpecializations', 'activate', specialization());
   const visibleSpec = await html(detail);
@@ -109,7 +110,7 @@ test('section employees manage specializations, public profiles and recruitment 
   await visit('/specjalizacje/' + specId + '/edytuj');
   await wire('EditSpecialization', 'save', { home_summary: null });
   assert((await html('/')).includes(specData.summary));
-  await visit('/specjalizacje');
+  await ready('ListSpecializations');
   await action('ListSpecializations', 'deactivate', specialization());
   await html(detail, 404);
   assert(!(await html('/sitemap.xml')).includes(detail));
@@ -133,12 +134,14 @@ test('section employees manage specializations, public profiles and recruitment 
   assert.equal(profile(), undefined);
   assert(await evaluate(() => document.querySelectorAll('.fi-fo-field-wrp-error-message').length > 0));
   await wire('CreateTeamMember', 'create', { ...teamData, portrait: null });
+  await ready('ListTeamMembers');
   assert.equal(profile().team_group, 'support');
   assert.equal(profile().portrait, null);
   assert((await html('/zespol/')).includes(name));
   assert(!(await html('/')).includes(name));
   await visit('/zespol/' + profile().id + '/edytuj');
   await wire('EditTeamMember', 'save', { portrait, role: 'Radca prawny testowy' });
+  await ready('ListTeamMembers');
   assert.equal(profile().portrait, portrait);
   assert((await html('/zespol/')).includes('/assets/img/' + portrait));
   await visit('/zespol/' + profile().id + '/edytuj');
@@ -146,7 +149,7 @@ test('section employees manage specializations, public profiles and recruitment 
   await wire('EditTeamMember', 'save', { portrait: null });
   assert.equal(profile().portrait, null);
   const before = sql('SELECT id, display_order FROM team_members WHERE team_group != ?', ['support']);
-  await visit('/zespol');
+  await ready('ListTeamMembers');
   await capture('team-list');
   const order = profile().display_order;
   await action('ListTeamMembers', 'moveUp', profile());
@@ -159,6 +162,7 @@ test('section employees manage specializations, public profiles and recruitment 
   const previousPartner = sql('SELECT id FROM team_members WHERE homepage_partner AND id != ? ORDER BY display_order LIMIT 1', [profile().id])[0];
   await visit('/zespol/' + previousPartner.id + '/edytuj');
   await wire('EditTeamMember', 'save', { homepage_partner: false });
+  await ready('ListTeamMembers');
   assert((await html('/')).includes(name));
   assert.equal(sql('SELECT count(*) AS count FROM users')[0].count, 4);
 
@@ -173,6 +177,7 @@ test('section employees manage specializations, public profiles and recruitment 
   await wire('CreateJobOffer', 'create', { title: jobTitle, url: 'javascript:alert(1)' });
   assert.equal(job(jobTitle), undefined);
   await wire('CreateJobOffer', 'create', { title: jobTitle, url: 'https://example.test/recruitment' });
+  await ready('ListJobOffers');
   const jobId = job(jobTitle).id;
   assert.equal(job(jobTitle).status, 'draft');
   assert(!(await html('/kariera/')).includes(jobTitle));
@@ -184,6 +189,7 @@ test('section employees manage specializations, public profiles and recruitment 
   assert.equal(job(editedTitle).status, 'open');
   assert((await html('/kariera/')).includes('&lt;b&gt;Tekst próbny&lt;/b&gt;'));
   await until(() => evaluate(() => location.pathname === '/kariera'), 'return to recruitment list after publishing');
+  await ready('ListJobOffers');
   await visit('/kariera/' + jobId + '/edytuj');
   await action('EditJobOffer', 'close', null);
   assert.equal(job(editedTitle).status, 'closed');
@@ -192,14 +198,14 @@ test('section employees manage specializations, public profiles and recruitment 
   await visit('/kariera/' + jobId + '/edytuj');
   await wire('EditJobOffer', 'save', { description: 'Opis z dotychczasowym odnośnikiem' });
   assert.equal(job(editedTitle).description, 'Opis z dotychczasowym odnośnikiem');
-  await visit('/kariera');
+  await ready('ListJobOffers');
   await capture('job-list');
   await action('ListJobOffers', 'reopen', job(editedTitle));
   assert.equal(job(editedTitle).status, 'open');
   assert.equal(job(editedTitle).url, '/kontakt/');
   await visit('/kariera/dodaj');
   await wire('CreateJobOffer', 'create', { title: 'Druga oferta próbna' });
-  await visit('/kariera');
+  await ready('ListJobOffers');
   const secondJob = () => job('Druga oferta próbna');
   sql('UPDATE job_offers SET url=? WHERE id=?', ['javascript:alert(1)', secondJob().id]);
   await action('ListJobOffers', 'publish', secondJob());
@@ -224,6 +230,7 @@ test('section employees manage specializations, public profiles and recruitment 
   await visit('/kariera/dodaj');
   await wire('CreateJobOffer', 'publish', { title: 'Oferta opublikowana przy tworzeniu' });
   await until(() => evaluate(() => location.pathname === '/kariera'), 'return to recruitment list after creation');
+  await ready('ListJobOffers');
   assert.equal(job('Oferta opublikowana przy tworzeniu').status, 'open');
   await browser.viewport(390, 844, true);
   await visit('/kariera');
