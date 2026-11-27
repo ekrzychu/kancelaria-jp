@@ -7,6 +7,7 @@ use App\Content\JobStatus;
 use App\Filament\Resources\JobOfferResource\Pages;
 use App\Models\JobOffer;
 use BackedEnum;
+use UnitEnum;
 use Closure;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Textarea;
@@ -26,6 +27,7 @@ final class JobOfferResource extends ManagedContentResource
     protected static ?string $navigationLabel = 'Kariera';
     protected static ?string $modelLabel = 'oferta pracy';
     protected static ?string $pluralModelLabel = 'oferty pracy';
+    protected static string|UnitEnum|null $navigationGroup = 'Treść';
     protected static ?int $navigationSort = 4;
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBriefcase;
     protected static ?string $recordTitleAttribute = 'title';

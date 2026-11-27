@@ -18,7 +18,7 @@ class EditUser extends EditRecord
 
     public function getSaveFormAction(): \Filament\Actions\Action
     {
-        return parent::getSaveFormAction()->submit(null)->action('save')->requiresConfirmation()
+        return parent::getSaveFormAction()->label('Zapisz zmiany')->submit(null)->action('save')->requiresConfirmation()
             ->modalDescription('Zmiany uprawnień lub adresu e-mail zakończą bieżące sesje użytkownika.');
     }
 

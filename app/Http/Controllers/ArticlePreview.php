@@ -12,6 +12,11 @@ final class ArticlePreview
     {
         Gate::authorize('view', $article);
 
-        return $pages->renderArticle($article, preview: true);
+        $response = $pages->renderArticle($article, preview: true);
+        if (request()->boolean('frame')) {
+            $response->headers->set('Content-Security-Policy', "frame-ancestors 'self'");
+        }
+
+        return $response;
     }
 }

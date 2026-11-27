@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 
 final class PublicUrl
@@ -25,6 +26,18 @@ final class PublicUrl
     public static function isArticleSlug(mixed $slug): bool
     {
         return self::isSlug($slug) && ! in_array($slug, self::RESERVED_SLUGS, true);
+    }
+
+    public static function availableSlug(string $title, string $model, array $reserved = []): string
+    {
+        $base = Str::slug($title, '-', 'pl') ?: 'wpis';
+        for ($number = 1; ; $number++) {
+            $suffix = $number === 1 ? '' : '-'.$number;
+            $slug = substr($base, 0, 191 - strlen($suffix)).$suffix;
+            if (! in_array($slug, $reserved, true) && ! $model::withTrashed()->where('slug', $slug)->exists()) {
+                return $slug;
+            }
+        }
     }
 
     public static function path(Request $request): string

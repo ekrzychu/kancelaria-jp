@@ -13,6 +13,7 @@ use App\Media\MediaReferences;
 use App\Models\Article;
 use App\Support\PublicUrl;
 use BackedEnum;
+use UnitEnum;
 use Closure;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
@@ -27,8 +28,9 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Text;
-use Filament\Schemas\Components\Utilities\Get;
-use Filament\Schemas\Components\Utilities\Set;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Group;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
@@ -40,7 +42,6 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\HtmlString;
-use Illuminate\Support\Str;
 
 final class ArticleResource extends Resource
 {
@@ -49,6 +50,7 @@ final class ArticleResource extends Resource
     protected static ?string $navigationLabel = 'Artykuły';
     protected static ?string $modelLabel = 'artykuł';
     protected static ?string $pluralModelLabel = 'artykuły';
+    protected static string|UnitEnum|null $navigationGroup = 'Treść';
     protected static ?int $navigationSort = 1;
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
     protected static ?string $recordTitleAttribute = 'title';
@@ -62,23 +64,17 @@ final class ArticleResource extends Resource
     public static function form(Schema $schema): Schema
     {
         return $schema->components(function (?Article $record): array {
-            $fields = [
-                TextInput::make('title')->label('Tytuł')->required()->maxLength(255)
-                    ->live(onBlur: true)
-                    ->afterStateUpdated(function (?string $state, Get $get, Set $set, ?Article $record): void {
-                        if ($record === null && blank($get('slug'))) {
-                            $set('slug', Str::limit(Str::slug($state ?? ''), 191, ''));
-                        }
-                    }),
-                TextInput::make('slug')->label('Adres artykułu')->required()->maxLength(191)
+            $metadata = [
+                TextInput::make('slug')->label('Adres artykułu')->required(fn (?Article $record): bool => $record !== null)->maxLength(191)
                     ->unique(ignoreRecord: true)
                     ->rule(fn (): Closure => function (string $attribute, mixed $value, Closure $fail): void {
                         if (! PublicUrl::isArticleSlug($value)) {
                             $fail('Użyj wolnego adresu zawierającego małe litery, cyfry i łączniki.');
                         }
                     })
+                    ->visible(fn (): bool => auth()->user()->isActiveAdministrator())
                     ->disabled(fn (?Article $record): bool => $record && $record->status !== ArticleStatus::Draft)
-                    ->helperText('Adres pozostaje stały po pierwszej publikacji.'),
+                    ->helperText('Puste pole oznacza adres z tytułu. Adres pozostaje stały po pierwszej publikacji.'),
                 TextInput::make('category')->label('Kategoria')->maxLength(255),
                 TextInput::make('author')->label('Autor')->maxLength(255),
                 DatePicker::make('date')->label('Data publikacji')->format('Y-m-d')
@@ -88,18 +84,19 @@ final class ArticleResource extends Resource
                 Textarea::make('summary')->label('Streszczenie')->rows(2)->maxLength(15_000)->columnSpanFull(),
             ];
 
+            $writing = [TextInput::make('title')->label('Tytuł artykułu')->required()->string()->maxLength(255)];
             foreach (app(ArticleEditing::class)->parts($record) as $index => $part) {
-                $fields[] = $part['locked']
+                $writing[] = $part['locked']
                     ? Text::make(new HtmlString($part['html']))->columnSpanFull()
                     : RichEditor::make('body_'.$index)->label('Treść artykułu')->columnSpanFull()
-                        ->maxLength(ArticleHtml::MAX_LENGTH)->fileAttachments(false)
+                        ->maxLength(ArticleHtml::MAX_LENGTH)->fileAttachments(false)->stickyToolbar()
                         ->toolbarButtons([
-                            ['bold', 'italic'], ['h2', 'h3'], ['bulletList', 'orderedList'],
-                            ['blockquote', 'link', 'table'], ['undo', 'redo'],
+                            ['h2', 'h3'], ['bold', 'italic', 'link'], ['bulletList', 'orderedList', 'blockquote'],
+                            ['table'], ['undo', 'redo'],
                         ]);
             }
             $positions = app(ArticleFigures::class)->positions($record);
-            $fields[] = Repeater::make('image_blocks')->label('Zdjęcia w artykule')->defaultItems(0)
+            $images = Repeater::make('image_blocks')->label('Zdjęcia w artykule')->defaultItems(0)
                 ->addActionLabel('Dodaj zdjęcie')->maxItems(20)->columnSpanFull()
                 ->validationMessages(['max' => 'Możesz dodać do 20 zdjęć.'])
                 ->helperText('Wybierz położenie względem zapisanej treści. Zdjęcia w tym samym miejscu pojawiają się w kolejności listy.')
@@ -115,7 +112,13 @@ final class ArticleResource extends Resource
                         ->validationMessages(['required' => 'Wybierz położenie.', 'in' => 'Wybierz dostępne położenie.']),
                 ]);
 
-            return $fields;
+            return [Grid::make(['default' => 1, 'xl' => 3])->schema([
+                Group::make([
+                    Section::make('Treść publikacji')->schema($writing)->extraAttributes(['class' => 'panel-writing']),
+                    Section::make('Ilustracje')->schema([$images]),
+                ])->columnSpan(['default' => 1, 'xl' => 2]),
+                Section::make('Metadane publikacji')->schema($metadata),
+            ])->columnSpanFull()];
         });
     }
 
@@ -170,6 +173,17 @@ final class ArticleResource extends Resource
             ->authorize('view')
             ->url(fn (Article $record): string => route('filament.admin.articles.preview', ['article' => $record]))
             ->openUrlInNewTab();
+    }
+
+    public static function embeddedPreviewAction(): Action
+    {
+        return Action::make('previewSaved')->label('Podgląd')->color('gray')->authorize('view')
+            ->modalHeading('Podgląd zapisanej publikacji')->modalWidth('7xl')->modalSubmitAction(false)
+            ->modalCancelActionLabel('Zamknij')
+            ->modalContent(fn (Article $record) => view('filament.article-preview', [
+                'url' => route('filament.admin.articles.preview', ['article' => $record, 'frame' => 1]),
+                'standaloneUrl' => route('filament.admin.articles.preview', ['article' => $record]),
+            ]));
     }
 
     public static function publicationAction(ArticleStatus $status, ?Closure $saveForm = null): Action

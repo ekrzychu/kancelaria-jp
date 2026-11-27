@@ -37,7 +37,13 @@ final class SiteHostBoundary
             abort_unless($request->headers->get('Origin') === $origin, 403);
         }
 
-        return self::protect($next($request));
+        $response = self::protect($next($request));
+        if ($response->isSuccessful() && $request->routeIs('filament.admin.articles.preview')
+            && $response->headers->get('Content-Security-Policy') === "frame-ancestors 'self'") {
+            $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
+        }
+
+        return $response;
     }
 
     public static function protect(Response $response): Response

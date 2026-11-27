@@ -7,6 +7,7 @@ use App\Content\ArticleStatus;
 use App\Filament\Resources\ArticleResource;
 use App\Media\MediaReferences;
 use App\Models\Article;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Support\Enums\Width;
 use Illuminate\Database\Eloquent\Model;
@@ -22,7 +23,7 @@ final class EditArticle extends EditRecord
 
     protected static ?string $title = 'Edytuj artykuł';
 
-    protected Width|string|null $maxContentWidth = Width::FiveExtraLarge;
+    protected Width|string|null $maxContentWidth = Width::Full;
 
     #[Locked]
     public string $originalBodyHash;
@@ -37,7 +38,7 @@ final class EditArticle extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            ArticleResource::previewAction()->color('gray'),
+            ArticleResource::embeddedPreviewAction(),
             ArticleResource::publicationAction(ArticleStatus::Published, function (Article $record): void {
                 try {
                     $this->handleRecordUpdate($record, $this->form->getState());
@@ -47,11 +48,21 @@ final class EditArticle extends EditRecord
                     throw $exception;
                 }
             })->after(function (): void {
-                $this->refreshFormData(['date']);
                 $this->rememberData();
+                $this->redirect(ArticleResource::getUrl());
             }),
             ArticleResource::publicationAction(ArticleStatus::Unpublished),
         ];
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return ArticleResource::getUrl();
+    }
+
+    protected function getSaveFormAction(): Action
+    {
+        return parent::getSaveFormAction()->label('Zapisz zmiany');
     }
 
     protected function mutateFormDataBeforeFill(array $data): array
@@ -77,7 +88,10 @@ final class EditArticle extends EditRecord
                 throw ValidationException::withMessages(['data.title' => 'Treść zmieniła się od otwarcia formularza. Odśwież stronę.']);
             }
 
-            $current->fill(Arr::only($data, ['slug', 'title', 'category', 'author', 'date', 'summary', 'image_alt']));
+            $current->fill(Arr::only($data, ['title', 'category', 'author', 'date', 'summary', 'image_alt']));
+            if ($current->status === ArticleStatus::Draft && auth()->user()->isActiveAdministrator() && isset($data['slug'])) {
+                $current->slug = $data['slug'];
+            }
             $current->body_html = app(ArticleEditing::class)->saveBody($current, $data);
             app(MediaReferences::class)->saveArticle($current, $data + ['image_blocks' => []]);
             $current->save();

@@ -14,7 +14,7 @@ final class EditJobOffer extends EditContent
 
     protected function getHeaderActions(): array
     {
-        return JobOfferResource::publicationActions(function (JobOffer $record): array {
+        $actions = JobOfferResource::publicationActions(function (JobOffer $record): array {
             try {
                 return JobOfferResource::contentData($this->form->getState(), $record);
             } catch (ValidationException $exception) {
@@ -23,5 +23,16 @@ final class EditJobOffer extends EditContent
                 throw $exception;
             }
         });
+
+        foreach ($actions as $action) {
+            if ($action->getName() !== 'close') {
+                $action->after(function (): void {
+                    $this->rememberData();
+                    $this->redirect(JobOfferResource::getUrl());
+                });
+            }
+        }
+
+        return $actions;
     }
 }

@@ -13,6 +13,11 @@ abstract class CreateContent extends CreateRecord
 
     protected Width|string|null $maxContentWidth = Width::FiveExtraLarge;
 
+    protected function getRedirectUrl(): string
+    {
+        return static::getResource()::getUrl();
+    }
+
     protected function handleRecordCreation(array $data): Model
     {
         $resource = static::getResource();
