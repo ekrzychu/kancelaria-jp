@@ -211,4 +211,4 @@ Point both DNS names at the hosting service and obtain HTTPS certificates for bo
 
 ## Branches and license
 
-The Laravel migration is on `feature/laravel-migration`. `main` and the two fullscreen animation branches retain their existing histories. This is proprietary software. See [LICENSE](LICENSE). Asset licenses remain alongside their assets.
+The Laravel migration is on `laravel-migration`. `main` and the two fullscreen animation branches retain their existing histories. This is proprietary software. See [LICENSE](LICENSE). Asset licenses remain alongside their assets.

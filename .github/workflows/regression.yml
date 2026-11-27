@@ -4,11 +4,11 @@ on:
   push:
     branches:
       - main
-      - feature/laravel-migration
+      - laravel-migration
   pull_request:
     branches:
       - main
-      - feature/laravel-migration
+      - laravel-migration
 
 permissions:
   contents: read
