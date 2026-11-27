@@ -114,11 +114,57 @@ test('browser regression against the Laravel application', async t => {
       viewport: [innerWidth, innerHeight],
     }));
     assert(initial.every(stage => stage.pinned && stage.hold > 0), 'Expected full-screen stages with ' + JSON.stringify(desktopCapabilities));
+    assert(await evaluate(() => {
+      const photo = document.querySelector('.home-hero-photo');
+      return photo.offsetParent.matches('.home-stage-content')
+        && Math.abs(photo.getBoundingClientRect().width / photo.offsetParent.clientWidth - .57) < .01;
+    }), 'the hero photograph stays anchored to the full stage width');
     const progress = name => evaluate(name => Number(document.querySelector('[data-home-stage="' + name + '"]').style.getPropertyValue('--stage-progress')), name);
+    const motionTargets = {
+      hero: ['.home-hero-heading', '.home-hero-intro', '.home-hero-photo'],
+      practices: ['.home-practices-intro', '.home-practices-rail'],
+      publications: ['.home-publications-heading', '.home-publications-list article'],
+      profile: ['.home-profile-statement', '.home-profile-detail', '.home-experience', '.home-team'],
+      office: ['.home-office-copy', '.home-office-photo img'],
+      clients: ['.home-clients h2', '.home-client-logos'],
+    };
+    const measureMotion = selector => evaluate(selector => [...document.querySelectorAll(selector)].map(element => {
+      const { x, y, width, height } = element.getBoundingClientRect();
+      return [x, y, width, height].map(value => Math.round(value * 100) / 100);
+    }), selector);
+
     for (const stage of initial) {
-      for (const fraction of [.24, .72, .32]) {
+      const states = [];
+      for (const fraction of [.24, .72, .24]) {
         await scroll(stage.start + stage.hold * fraction);
-        await until(async () => Math.abs(await progress(stage.id) - fraction) < .06, stage.id + ' progress at ' + fraction);
+        await until(async () => Math.abs(await progress(stage.id) - fraction) < .02, stage.id + ' progress at ' + fraction);
+        states.push(await measureMotion(motionTargets[stage.id].join(', ')));
+      }
+      const [start, forward, reversed] = states;
+      assert.deepEqual(reversed, start, stage.id + ' reverses to the same composition');
+      const offsets = forward.map((box, index) => {
+        const original = start[index];
+        assert.deepEqual([box[0], ...box.slice(2)], [original[0], ...original.slice(2)], stage.id + ' keeps horizontal position and size');
+        return box[1] - original[1];
+      });
+      if (stage.id === 'practices') {
+        assert(offsets[0] > 30 && offsets[1] < 0, 'specializations retain their expressive opposing motion');
+      } else {
+        assert(offsets.every(offset => offset < -2 && offset > -18), stage.id + ' drifts upwards together');
+        if (stage.id === 'hero') assert(Math.abs(offsets[0] - offsets[1]) < .03 && offsets[2] > offsets[0], 'hero photograph moves slightly slower: ' + offsets);
+        if (stage.id === 'office') assert(offsets[0] > offsets[1], 'office photograph moves slightly slower');
+      }
+
+      const frames = '[data-home-stage="' + stage.id + '"] .home-frame';
+      for (const boundary of [stage.start, stage.start + stage.hold]) {
+        const leading = [];
+        for (const side of [-1, 1]) {
+          await scroll(boundary + side * 2);
+          await evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+          const [[, y]] = await measureMotion(frames);
+          leading.push(y);
+        }
+        assert(Math.abs(leading[1] - leading[0]) <= 5, stage.id + ' has no position jump at the sticky boundary');
       }
     }
     await scroll(0);

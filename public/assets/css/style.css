@@ -3680,12 +3680,6 @@ main:has(.archive-empty) + .site-footer {
     translate: .25em 0;
   }
 
-  .has-photo-scroll [data-scroll-photo] img {
-    inset-block-start: -10%;
-    height: 120%;
-    translate: 0 var(--scroll-motion-offset, 0%);
-  }
-
   .home-contact-float {
     transform-origin: right center;
     transition: scale 200ms var(--motion-ease), opacity 200ms var(--motion-ease), visibility 200ms;
@@ -3771,28 +3765,25 @@ main:has(.archive-empty) + .site-footer {
   padding-block: var(--stage-top) var(--stage-bottom);
 }
 
+/* During the hold, the layout drifts together. Natural document flow handles entry and exit. */
+[data-pinned]:not(.home-practices) > .home-stage-viewport > .home-stage-content {
+  --stage-drift: calc(min(2rem, .065 * var(--stage-hold, 0px)) * var(--stage-progress, 0));
+  translate: 0 calc(-1 * var(--stage-drift));
+}
+
+[data-pinned] [data-reveal].is-revealed {
+  animation: none;
+}
+
 .home-hero[data-pinned] {
   --stage-top: max(6.5rem, 8.5dvh);
   --stage-bottom: max(4.5rem, 12dvh);
 }
 
-.home-hero[data-pinned] .home-hero-heading {
-  translate: 0 calc(-1 * clamp(2rem, 16dvh - 4.75rem, 6.5rem) * var(--stage-progress, 0));
-}
-
-.home-hero[data-pinned] .home-hero-heading .section-kicker {
-  translate: 0 calc(clamp(.5rem, 1dvh, .875rem) * var(--stage-progress, 0));
-}
-
+/* Offset a fraction of the shared drift for a slower photographic layer. */
 .home-hero[data-pinned] .home-hero-photo {
   inset-block-end: -1.5rem;
-  translate: 0 calc(-1 * clamp(2.5rem, 4.4dvh, 4rem) * var(--stage-progress, 0));
-  scale: calc(1 + .03 * var(--stage-progress, 0));
-  transform-origin: right top;
-}
-
-.home-hero[data-pinned] .home-hero-intro {
-  translate: 0 calc(clamp(2.25rem, 4.5dvh, 4rem) * var(--stage-progress, 0));
+  translate: 0 calc(.24 * var(--stage-drift));
 }
 
 #specjalizacje[data-pinned] {
@@ -3827,51 +3818,6 @@ main:has(.archive-empty) + .site-footer {
   padding-inline-start: .75rem;
 }
 
-.home-publications[data-pinned] .home-publications-heading {
-  translate: 0 calc(1rem * (1 - var(--stage-entry, 1)) - clamp(2rem, 16dvh - 5rem, 6.25rem) * var(--stage-progress, 0));
-}
-
-.home-publications[data-pinned] .home-publications-list li {
-  /* Let the articles continue past their resting position during the hold. */
-  --article-entry-offset: calc(var(--article-distance, 2.25rem) * (1 - .72 * var(--stage-entry, 1)));
-  --article-travel: clamp(1.875rem, 3.75dvh, 3.125rem);
-  translate: 0 calc(var(--article-entry-offset) - var(--article-travel) * var(--stage-progress, 0));
-}
-
-.home-publications[data-pinned] .home-publications-list li:nth-child(2) {
-  --article-distance: clamp(3rem, 7dvh, 7rem);
-  --article-travel: clamp(2.25rem, 4.5dvh, 3.75rem);
-}
-
-.home-publications[data-pinned] .home-publications-list li:nth-child(3) {
-  --article-distance: clamp(4.5rem, 13dvh, 12rem);
-  --article-travel: clamp(2.875rem, 5.9dvh, 5rem);
-}
-
-.home-publications[data-pinned] .home-publications-list li:first-child article {
-  translate: 0 calc(-1 * clamp(1.75rem, 3.4dvh, 2.5rem) * var(--stage-progress, 0));
-}
-
-.home-profile[data-pinned] .home-profile-layout {
-  translate: 0 calc(1.125rem * (1 - var(--stage-entry, 1)));
-}
-
-.home-profile[data-pinned] .home-profile-statement {
-  translate: 0 calc(-1 * clamp(2rem, 16dvh - 5rem, 6.25rem) * var(--stage-progress, 0));
-}
-
-.home-profile[data-pinned] .home-profile-detail {
-  translate: 0 calc(-1 * clamp(2rem, 4.5dvh, 4rem) * var(--stage-progress, 0));
-}
-
-.home-profile[data-pinned] .home-experience {
-  translate: 0 calc(clamp(1.5rem, 3.2dvh, 2.75rem) * var(--stage-progress, 0));
-}
-
-.home-profile[data-pinned] .home-team {
-  translate: 0 calc(clamp(1.75rem, 3.5dvh, 3rem) * var(--stage-progress, 0));
-}
-
 .home-office[data-pinned] {
   --stage-top: max(4.125rem, 6dvh);
   --stage-bottom: 1.25rem;
@@ -3883,18 +3829,10 @@ main:has(.archive-empty) + .site-footer {
     var(--office-photo-ratio) * 1.9 / 1.08));
 }
 
-.home-office[data-pinned] .home-office-copy {
-  translate: 0 calc(-1 * clamp(1.25rem, 2.7dvh, 2.25rem) * var(--stage-progress, 0));
-}
-
-.home-clients[data-pinned] h2 {
-  translate: 0 calc(1rem * (1 - var(--stage-entry, 1)) - clamp(2rem, 16dvh - 5rem, 6.25rem) * var(--stage-progress, 0));
-}
-
-.home-clients[data-pinned] .home-client-logos {
-  translate: 0 calc(.875rem * (1 - var(--stage-entry, 1)) + clamp(1.5rem, 3.4dvh, 2.75rem) * var(--stage-progress, 0));
-  scale: calc(1 - .03 * var(--stage-progress, 0));
-  transform-origin: center top;
+.home-office[data-pinned] .home-office-photo img {
+  inset-block-start: -10%;
+  height: 120%;
+  translate: 0 calc(.24 * var(--stage-drift));
 }
 
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) and (forced-colors: none) {

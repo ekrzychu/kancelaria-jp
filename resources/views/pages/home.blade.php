@@ -159,7 +159,7 @@ $summary = $service['home_summary'] ?? $service['summary'];
     <div class="home-stage-backdrop" aria-hidden="true"></div>
     <div class="home-stage-content">
       <div class="home-frame home-office-layout">
-        <picture class="home-office-photo" data-reveal="image" data-scroll-photo data-home-surface="photo">
+        <picture class="home-office-photo" data-reveal="image" data-home-surface="photo">
           <img src="/assets/img/office-entrance-1280.webp"
             srcset="/assets/img/office-entrance-760.webp 760w, /assets/img/office-entrance-1280.webp 1280w, /assets/img/office-entrance-2240.webp 2240w"
             sizes="(max-width: 42rem) 90vw, (max-width: 56rem) 49vw, (min-width: 129rem) 66rem, 55vw"

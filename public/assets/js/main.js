@@ -51,7 +51,6 @@
   initScrollNavigation();
 
   initFloatingContact();
-  initScrollMotion();
   initSiteCursor();
   document.querySelectorAll('[data-about-process], [data-career-process]').forEach(initProcessTimeline);
   const finishReveal = initReveals();
@@ -564,7 +563,6 @@
       const y = window.scrollY;
       for (const stage of stages) {
         const elapsed = y - stage.start;
-        setProgress(stage, '--stage-entry', clamp(1 + elapsed / height));
         setProgress(stage, '--stage-progress', clamp(elapsed / stage.hold));
       }
     }
@@ -638,68 +636,6 @@
     desktop.addEventListener('change', measure);
     document.fonts?.ready.then(measure);
     measure();
-  }
-
-  function initScrollMotion() {
-    if (navigator.maxTouchPoints > 0 || !('IntersectionObserver' in window) || !window.CSS?.supports('translate', '0 1%')) return;
-
-    const motion = window.matchMedia(
-      '(min-width: 57rem) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)'
-    );
-    const targets = document.querySelectorAll('[data-scroll-photo]');
-    if (!targets.length) return;
-    const visible = new Set();
-    let frame = 0;
-
-    const observer = new IntersectionObserver(entries => {
-      for (const { target, isIntersecting } of entries) {
-        if (isIntersecting) visible.add(target);
-        else visible.delete(target);
-      }
-      schedule();
-    });
-
-    function draw() {
-      frame = 0;
-      const viewport = window.innerHeight;
-      const offsets = Array.from(visible, element => {
-        const { top, height } = element.getBoundingClientRect();
-        const stage = element.closest('[data-pinned]');
-        const hold = parseFloat(stage?.style.getPropertyValue('--stage-hold')) || 0;
-        const pinnedDistance = hold * Number(stage?.style.getPropertyValue('--stage-progress') ?? 0);
-        // Include the pinned scroll distance for fullscreen stages.
-        const progress = Math.max(0, Math.min(1, (viewport - top + pinnedDistance) / (viewport + height + hold)));
-        return [element, (progress - .5) * 16];
-      });
-      for (const [element, offset] of offsets) {
-        element.style.setProperty('--scroll-motion-offset', `${offset.toFixed(3)}%`);
-      }
-    }
-
-    function schedule() {
-      if (visible.size && !frame) frame = requestAnimationFrame(draw);
-    }
-
-    function sync() {
-      document.body.classList.toggle('has-photo-scroll', motion.matches);
-      if (motion.matches) {
-        targets.forEach(element => observer.observe(element));
-        window.addEventListener('scroll', schedule, { passive: true });
-        window.addEventListener('resize', schedule, { passive: true });
-        return;
-      }
-
-      observer.disconnect();
-      visible.clear();
-      cancelAnimationFrame(frame);
-      frame = 0;
-      targets.forEach(element => element.style.removeProperty('--scroll-motion-offset'));
-      window.removeEventListener('scroll', schedule);
-      window.removeEventListener('resize', schedule);
-    }
-
-    motion.addEventListener('change', sync);
-    sync();
   }
 
   function initProcessTimeline(list) {
