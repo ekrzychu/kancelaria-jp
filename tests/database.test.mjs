@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { startSite } from './support/site.mjs';
+import { php, startSite } from './support/site.mjs';
 
 const tables = ['articles', 'specializations', 'team_members', 'job_offers'];
 const counts = database => database.query(tables.map(table => ({ sql: 'SELECT COUNT(*) AS total FROM ' + table })))
@@ -25,6 +26,20 @@ test('MariaDB migrations, dry run, rollback, exact import, and repeat refusal', 
   t.after(stop);
 
   assert.match(database.version, /^(?:11\.4|12\.3)\.\d+.*MariaDB/i);
+  const env = { ...process.env, ...database.env, APP_ENV: 'testing' };
+  const denied = spawnSync(php, ['tests/support/model-checks.php', dir], {
+    env: { ...env, DB_PORT: '3306' }, encoding: 'utf8',
+  });
+  assert.equal(denied.status, 1);
+  assert.match(denied.stderr, /requires a disposable test database/);
+
+  const cache = join(dir, 'bootstrap', 'cache', 'mismatched.php');
+  artisan(['config:cache'], { APP_CONFIG_CACHE: cache, DB_DATABASE: 'kancelaria_jp_test_ffffffffffffffff' });
+  const mismatched = spawnSync(php, ['tests/support/model-checks.php', dir], {
+    env: { ...env, APP_CONFIG_CACHE: cache }, encoding: 'utf8',
+  });
+  assert.equal(mismatched.status, 1);
+  assert.match(mismatched.stderr, /requires a disposable test database/);
   assert.deepEqual(counts(database), [0, 0, 0, 0]);
   const tableSettings = rows(database,
     'SELECT TABLE_NAME, ENGINE, TABLE_COLLATION FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() ORDER BY TABLE_NAME');

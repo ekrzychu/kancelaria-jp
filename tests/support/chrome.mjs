@@ -4,6 +4,36 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { stopProcess, until } from './site.mjs';
 
+export function livewire(browser, site) {
+  const { evaluate } = browser;
+  const ready = name => until(() => evaluate(name => {
+    if (!window.Livewire) return false;
+    const element = [...document.querySelectorAll('[wire\\:snapshot]')]
+      .find(el => JSON.parse(el.getAttribute('wire:snapshot')).memo.name.split('\\').at(-1) === name);
+    return element?.getAttribute('wire:id');
+  }, name), name).catch(async error => {
+    const state = await evaluate(() => ({
+      path: location.pathname,
+      livewire: typeof window.Livewire,
+      componentNames: [...document.querySelectorAll('[wire\\:snapshot]')]
+        .map(el => JSON.parse(el.getAttribute('wire:snapshot')).memo.name),
+      title: document.title,
+    }));
+    const log = await readFile(join(site.dir, 'storage', 'logs', 'laravel.log'), 'utf8').catch(() => '');
+    const detail = log.split(/\r?\n/).filter(line => line.includes('.ERROR:')).at(-1) ?? '';
+    throw new Error(error.message + ' ' + JSON.stringify(state) + '\n' + detail.slice(0, 500));
+  });
+  const wire = async (name, method, data = {}, args = []) => {
+    const id = await ready(name.split(/[.-]/).filter(Boolean).map(part => part[0].toUpperCase() + part.slice(1)).join(''));
+    return evaluate(async (id, method, data, args) => {
+      const component = window.Livewire.find(id);
+      for (const [key, value] of Object.entries(data)) await component.$set('data.' + key, value, false);
+      await component.$call(method, ...args);
+    }, id, method, data, args);
+  };
+  return { ready, wire };
+}
+
 export async function startBrowser() {
   const profile = await mkdtemp(join(tmpdir(), 'kancelaria-jp-chrome-'));
   const executable = process.env.CHROME_BIN || (process.platform === 'win32'

@@ -4,7 +4,7 @@ import { copyFile, readFile, writeFile } from 'node:fs/promises';
 import { request } from 'node:http';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { startBrowser } from './support/chrome.mjs';
+import { livewire, startBrowser } from './support/chrome.mjs';
 import { startSite, until } from './support/site.mjs';
 
 test('section employees manage specializations, public profiles and recruitment with cached Laravel routes', async t => {
@@ -32,17 +32,7 @@ test('section employees manage specializations, public profiles and recruitment 
   }
 
   const visit = path => browser.navigate(app.adminOrigin + path);
-  const wire = async (name, method, data = {}, args = []) => {
-    await until(() => evaluate(name => window.Livewire && [...document.querySelectorAll('[wire\\:snapshot]')]
-      .some(el => JSON.parse(el.getAttribute('wire:snapshot')).memo.name.split('\\').at(-1) === name), name), name);
-    await evaluate(async (name, method, data, args) => {
-      const element = [...document.querySelectorAll('[wire\\:snapshot]')]
-        .find(el => JSON.parse(el.getAttribute('wire:snapshot')).memo.name.split('\\').at(-1) === name);
-      const component = window.Livewire.find(element.getAttribute('wire:id'));
-      for (const [key, value] of Object.entries(data)) await component.$set('data.' + key, value, false);
-      await component.$call(method, ...args);
-    }, name, method, data, args);
-  };
+  const { wire } = livewire(browser, app);
   const html = async (path, status = 200) => {
     const response = await fetch(app.origin + path, { redirect: 'manual' });
     assert.equal(response.status, status, path);

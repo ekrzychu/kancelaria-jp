@@ -3,7 +3,7 @@ import { randomBytes } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { startBrowser } from './support/chrome.mjs';
+import { livewire, startBrowser } from './support/chrome.mjs';
 import { startSite, until } from './support/site.mjs';
 
 test('contact intake, confidential administration and cron delivery', async t => {
@@ -126,16 +126,7 @@ test('contact intake, confidential administration and cron delivery', async t =>
     t.after(browser.close);
     const { evaluate } = browser;
     const visit = path => browser.navigate(app.adminOrigin + path);
-    const wire = async (name, method, data = {}, args = []) => {
-      await until(() => evaluate(() => !!window.Livewire), 'Livewire');
-      return evaluate(async (name, method, data, args) => {
-        const element = [...document.querySelectorAll('[wire\\:snapshot]')]
-          .find(el => JSON.parse(el.getAttribute('wire:snapshot')).memo.name.split('\\').at(-1) === name);
-        const component = window.Livewire.find(element.getAttribute('wire:id'));
-        for (const [key, value] of Object.entries(data)) await component.$set('data.' + key, value, false);
-        await component.$call(method, ...args);
-      }, name, method, data, args);
-    };
+    const { wire } = livewire(browser, app);
     const waitForPath = path => until(() => evaluate(path => location.pathname === path, path), path);
     const login = async (email, path) => {
       await browser.call('Network.clearBrowserCookies');

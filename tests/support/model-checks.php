@@ -6,20 +6,11 @@ use App\Content\ArticleStatus;
 use App\Models\Article;
 use App\Models\JobOffer;
 use App\Models\Specialization;
-use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
-if (getenv('APP_ENV') !== 'testing' || getenv('DB_HOST') !== '127.0.0.1' || getenv('DB_USERNAME') !== 'kjp_test'
-    || ! preg_match('/\Akancelaria_jp_test_[a-f0-9]{16}\z/', getenv('DB_DATABASE') ?: '')) {
-    throw new RuntimeException('This command requires a disposable test database.');
-}
-
-$base = $argv[1];
-require $base.'/vendor/autoload.php';
-$app = require $base.'/bootstrap/app.php';
-$app->make(Kernel::class)->bootstrap();
+require __DIR__.'/bootstrap-test.php';
 
 function check(bool $condition, string $message): void
 {

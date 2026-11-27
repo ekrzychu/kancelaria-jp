@@ -4,20 +4,11 @@ declare(strict_types=1);
 
 use App\Media\ImageProcessor;
 use App\Media\MediaPurpose;
-use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
 
-if (getenv('APP_ENV') !== 'testing' || getenv('DB_USERNAME') !== 'kjp_test'
-    || getenv('DB_HOST') !== '127.0.0.1' || getenv('DB_PORT') === '3306'
-    || ! preg_match('/\Akancelaria_jp_test_[a-f0-9]{16}\z/', getenv('DB_DATABASE') ?: '')) {
-    exit(1);
-}
-
-[, $base, $operation] = $argv;
-require $base.'/vendor/autoload.php';
-$app = require $base.'/bootstrap/app.php';
-$app->make(Kernel::class)->bootstrap();
+require __DIR__.'/bootstrap-test.php';
+$operation = $argv[2];
 
 $folder = storage_path('media-fixtures');
 if (! is_dir($folder)) {

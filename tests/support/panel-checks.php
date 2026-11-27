@@ -5,7 +5,6 @@ declare(strict_types=1);
 use App\Actions\ManageAccount;
 use App\Models\User;
 use Filament\Facades\Filament;
-use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Mail\Events\MessageSending;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
@@ -14,16 +13,8 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\RateLimiter;
 
-if (getenv('APP_ENV') !== 'testing' || getenv('DB_USERNAME') !== 'kjp_test'
-    || getenv('DB_HOST') !== '127.0.0.1' || getenv('DB_PORT') === '3306'
-    || ! preg_match('/\Akancelaria_jp_test_[a-f0-9]{16}\z/', getenv('DB_DATABASE') ?: '')) {
-    exit(1);
-}
-
-[, $base, $operation] = $argv;
-require $base.'/vendor/autoload.php';
-$app = require $base.'/bootstrap/app.php';
-$app->make(Kernel::class)->bootstrap();
+require __DIR__.'/bootstrap-test.php';
+$operation = $argv[2];
 
 if ($operation === 'provision') {
     $data = json_decode(stream_get_contents(STDIN), true, 512, JSON_THROW_ON_ERROR);

@@ -5,7 +5,7 @@ import { request } from 'node:http';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { startSite, until } from './support/site.mjs';
-import { startBrowser } from './support/chrome.mjs';
+import { livewire, startBrowser } from './support/chrome.mjs';
 
 test('GD validates and re-encodes JPEG, PNG and WebP from disposable fixtures', async t => {
   const app = await startSite();
@@ -33,21 +33,7 @@ test('managed media uploads, editorial references and delivery respect the artic
   }
 
   const visit = path => browser.navigate(app.adminOrigin + path);
-  const wire = async (name, method, data = {}, args = []) => {
-    await until(() => evaluate(name => window.Livewire && [...document.querySelectorAll('[wire\\:snapshot]')]
-      .some(el => JSON.parse(el.getAttribute('wire:snapshot')).memo.name.split('\\').at(-1) === name), name), name)
-      .catch(async failure => {
-        const log = await readFile(join(app.dir, 'storage', 'logs', 'laravel.log'), 'utf8').catch(() => '');
-        throw new Error(failure.message + ' ' + (log.split(/\r?\n/).filter(line => line.includes('.ERROR:')).at(-1) ?? '').slice(0, 430));
-      });
-    return evaluate(async (name, method, data, args) => {
-      const root = [...document.querySelectorAll('[wire\\:snapshot]')]
-        .find(el => JSON.parse(el.getAttribute('wire:snapshot')).memo.name.split('\\').at(-1) === name);
-      const component = window.Livewire.find(root.getAttribute('wire:id'));
-      for (const [key, value] of Object.entries(data)) await component.$set('data.' + key, value, false);
-      await component.$call(method, ...args);
-    }, name, method, data, args);
-  };
+  const { wire } = livewire(browser, app);
   const login = async (user, destination) => {
     await browser.call('Network.clearBrowserCookies');
     await visit('/login');

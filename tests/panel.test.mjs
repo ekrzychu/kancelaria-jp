@@ -1,10 +1,8 @@
 import assert from 'node:assert/strict';
 import { createHash, randomBytes } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
 import { request } from 'node:http';
-import { join } from 'node:path';
 import { test } from 'node:test';
-import { startBrowser } from './support/chrome.mjs';
+import { livewire, startBrowser } from './support/chrome.mjs';
 import { startSite, until } from './support/site.mjs';
 
 function http(app, path, { admin = true, method = 'GET', headers = {}, body } = {}) {
@@ -87,30 +85,7 @@ test('administrators and employees manage accounts and publications in the brows
   const title = 'Syntetyczna publikacja kontrolna';
   app.panelChecks(['provision'], JSON.stringify({ name: 'Test admin', email: adminEmail, password: adminPassword }));
 
-  const wireReady = name => until(() => evaluate(name => window.Livewire && [...document.querySelectorAll('[wire\\:snapshot]')]
-    .some(el => JSON.parse(el.getAttribute('wire:snapshot')).memo.name.split('\\').at(-1) === name), name), name).catch(async error => {
-    const state = await evaluate(() => ({
-      path: location.pathname,
-      livewire: typeof window.Livewire,
-      componentNames: [...document.querySelectorAll('[wire\\:snapshot]')]
-        .map(el => JSON.parse(el.getAttribute('wire:snapshot')).memo.name),
-      title: document.title,
-    }));
-    const log = await readFile(join(app.dir, 'storage', 'logs', 'laravel.log'), 'utf8').catch(() => '');
-    const detail = log.split(/\r?\n/).filter(line => line.includes('.ERROR:')).at(-1) ?? '';
-    throw new Error(error.message + ' ' + JSON.stringify(state) + '\n' + detail.slice(0, 500));
-  });
-  const wire = async (name, method, data = {}, args = []) => {
-    name = name.split(/[.-]/).filter(Boolean).map(part => part[0].toUpperCase() + part.slice(1)).join('');
-    await wireReady(name);
-    return evaluate(async (name, method, data, args) => {
-      const page = [...document.querySelectorAll('[wire\\:snapshot]')]
-        .find(el => JSON.parse(el.getAttribute('wire:snapshot')).memo.name.split('\\').at(-1) === name);
-      const component = window.Livewire.find(page.getAttribute('wire:id'));
-      for (const [key, value] of Object.entries(data)) await component.$set('data.' + key, value, false);
-      await component.$call(method, ...args);
-    }, name, method, data, args);
-  };
+  const { ready: wireReady, wire } = livewire(browser, app);
   const waitPath = path => until(() => evaluate(path => location.pathname === path, path), path);
   const waitText = value => until(() => evaluate(value => document.body.innerText.includes(value), value), value);
   const login = async (email, password, expectedPath = '/artykuly') => {
