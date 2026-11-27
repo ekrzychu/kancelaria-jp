@@ -14,7 +14,9 @@
   <p>{{ $message }}</p>
   <div class="error-actions">
     <a class="button" href="/">Wróć na stronę główną</a>
-    <a class="text-action" href="/kontakt/">Kontakt z kancelarią</a>
+    <a class="text-action" href="{{ $status >= 500 ? 'mailto:kontakt@kancelaria-jp.pl' : '/kontakt/' }}">
+      {{ $status >= 500 ? 'Napisz do kancelarii' : 'Kontakt z kancelarią' }}
+    </a>
   </div>
 </main>
 </body>

@@ -46,7 +46,7 @@ test('public routing and contact page', async t => {
       assert.match(result.headers.get('cache-control'), /no-store/);
       const html = await result.text();
       assert.match(html, /Usługa jest tymczasowo niedostępna/);
-      assert.match(html, /href="\/kontakt\/"/);
+      assert.match(html, /href="mailto:kontakt@kancelaria-jp\.pl"/);
       assert.doesNotMatch(html, /SQLSTATE|unavailable_articles|QueryException/);
     } finally {
       rename('unavailable_articles', 'articles');
