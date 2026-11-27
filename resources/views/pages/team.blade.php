@@ -3,11 +3,11 @@
 @section('content')
 <section class="team-hero" aria-labelledby="team-title">
   <div class="team-frame team-hero-layout">
-    <div data-reveal="subtle">
+    <div data-reveal>
       <span class="section-kicker">Zespół</span>
       <h1 id="team-title">Ludzie stojący za sprawami.</h1>
     </div>
-    <p data-reveal="subtle">Nasz zespół tworzą radcowie prawni, adwokaci i&nbsp;specjaliści wspierający codzienną pracę kancelarii. Łączymy doświadczenie i&nbsp;różne perspektywy w&nbsp;pracy nad sprawami klientów.</p>
+    <p data-reveal>Nasz zespół tworzą radcowie prawni, adwokaci i&nbsp;specjaliści wspierający codzienną pracę kancelarii. Łączymy doświadczenie i&nbsp;różne perspektywy w&nbsp;pracy nad sprawami klientów.</p>
   </div>
 </section>
 
@@ -17,19 +17,14 @@
     @php $headingId = 'team-' . $group . '-title'; @endphp
     <section class="team-group team-group--{{ $group }}" aria-labelledby="{{ $headingId }}"@if ($group === 'leadership') data-home-surface="beige"@endif>
       <div class="team-frame team-group-layout">
-        <h2 class="team-group-heading" id="{{ $headingId }}" data-reveal="subtle">{{ $heading }}</h2>
+        <h2 class="team-group-heading" id="{{ $headingId }}" data-reveal>{{ $heading }}</h2>
         <ul class="team-list" role="list" data-reveal-sequence>
           @foreach ($people as $person)
-            @php
-$portrait = $person['portrait'] ?? '';
-            $managedPortrait = $person['portrait_media_id'] ?? null;
-            $hasPortrait = is_string($portrait)
-                && preg_match('/\A[\w.-]+\.(?:avif|jpe?g|png|webp)\z/i', $portrait)
-                && is_file(public_path('assets/img/' . $portrait));
-@endphp
-            <li class="team-person{{ $hasPortrait || $managedPortrait ? ' has-portrait' : '' }}" data-reveal="team-person">
-              @if ($hasPortrait || $managedPortrait)
-                <img class="team-portrait" src="{{ $managedPortrait ? \App\Models\MediaImage::url($managedPortrait) : '/assets/img/'.$portrait }}" alt="" loading="lazy" decoding="async">
+            <li class="team-person{{ $person['portrait_url'] ? ' has-portrait' : '' }}" data-reveal>
+              @if ($person['portrait_url'])
+                <div class="team-portrait-frame">
+                  <img class="team-portrait" src="{{ $person['portrait_url'] }}" alt="" loading="lazy" decoding="async">
+                </div>
               @endif
               <div>
                 <h3>{{ $person['name'] }}</h3>
@@ -45,8 +40,8 @@ $portrait = $person['portrait'] ?? '';
 
 <section class="team-career" aria-labelledby="team-career-title">
   <div class="team-frame team-career-layout">
-    <h2 id="team-career-title" data-reveal="subtle">Dołącz do naszego zespołu.</h2>
-    <div data-reveal="subtle">
+    <h2 id="team-career-title" data-reveal>Dołącz do naszego zespołu.</h2>
+    <div data-reveal>
       <p>Sprawdź informacje o&nbsp;pracy i&nbsp;możliwościach współpracy z&nbsp;naszą kancelarią.</p>
       <a class="text-action team-career-action" href="/kariera/">
         <span>Zobacz karierę</span>

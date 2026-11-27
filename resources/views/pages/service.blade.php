@@ -3,33 +3,33 @@
 @section('content')
 <section class="service-hero" aria-labelledby="service-title">
   <div class="services-frame service-hero-layout">
-    <div data-reveal="subtle">
+    <div data-reveal>
       <span class="section-kicker">{{ $service['category'] }}</span>
       <h1 id="service-title">{{ $service['title'] }}</h1>
     </div>
-    <p data-reveal="subtle">{{ $service['summary'] }}</p>
+    <p data-reveal>{{ $service['summary'] }}</p>
   </div>
 </section>
 
 <section class="service-details" aria-label="Informacje o specjalizacji">
   <div class="services-frame service-layout">
     <article class="service-content">
-      <div class="service-description" data-reveal="subtle">
+      <div class="service-description" data-reveal>
         @foreach ($service['body'] as $paragraph)
           <p>{{ $paragraph }}</p>
         @endforeach
       </div>
 
       <section class="service-scope-section" aria-labelledby="service-scope-title">
-        <h2 id="service-scope-title" data-reveal="subtle">Zakres działań</h2>
+        <h2 id="service-scope-title" data-reveal>Zakres działań</h2>
         <ul class="service-scope" role="list">
           @foreach ($service['scope'] as $point)
-            <li data-reveal="subtle">{{ $point }}</li>
+            <li data-reveal>{{ $point }}</li>
           @endforeach
         </ul>
       </section>
 
-      <section class="service-contact" aria-labelledby="service-contact-title" data-reveal="subtle">
+      <section class="service-contact" aria-labelledby="service-contact-title" data-reveal>
         <h2 id="service-contact-title">Porozmawiajmy o&nbsp;Twojej sprawie.</h2>
         <div>
           <p>Skontaktuj się z&nbsp;kancelarią, aby omówić możliwy zakres współpracy.</p>
@@ -41,7 +41,7 @@
       </section>
     </article>
 
-    <nav class="side-index" aria-label="Specjalizacje" data-reveal="subtle">
+    <nav class="side-index" aria-label="Specjalizacje" data-reveal>
       <a class="side-index-heading" href="/specjalizacje/">Wszystkie specjalizacje</a>
       @foreach ($services as $item)
         <a href="/specjalizacje/{{ $item['slug'] }}/"@if ($item['slug'] === $service['slug']) aria-current="page"@endif>

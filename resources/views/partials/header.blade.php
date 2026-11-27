@@ -2,7 +2,7 @@
 <header class="site-header">
   <div class="header-bar"@if ($path === '/') data-home-surface="burgundy"@endif>
     <div class="container header-inner">
-      <a class="brand" href="{{ $previewPublicOrigin ?? '' }}/" aria-label="{{ $site['name'] }} — strona główna"@if ($path === '/') aria-current="page"@endif data-reveal>
+      <a class="brand" href="{{ $previewPublicOrigin ?? '' }}/" aria-label="{{ $site['name'] }} — strona główna"@if ($path === '/') aria-current="page"@endif>
         <span class="brand-mark" aria-hidden="true">
           @include('partials.brand-mark')
         </span>
@@ -11,14 +11,14 @@
           <small>{{ $site['tagline'] }}</small>
         </span>
       </a>
-      <button class="menu-button" type="button" aria-controls="main-nav" aria-expanded="false" data-reveal hidden>
+      <button class="menu-button" type="button" aria-controls="main-nav" aria-expanded="false" hidden>
         Menu <span class="menu-icon" aria-hidden="true"></span>
       </button>
       <div class="nav-panel">
         <nav class="main-nav" id="main-nav" aria-label="Menu główne">
           @foreach ($site['nav'] as $item)
             @php $current = $path === $item['url'] ? 'page' : (str_starts_with($path, rtrim($item['url'], '/') . '/') ? 'location' : null); @endphp
-            <a class="nav-link" href="{{ ($previewPublicOrigin ?? '') . $item['url'] }}"@if ($current) aria-current="{{ $current }}"@endif data-reveal>{{ $item['label'] }}</a>
+            <a class="nav-link" href="{{ ($previewPublicOrigin ?? '') . $item['url'] }}"@if ($current) aria-current="{{ $current }}"@endif>{{ $item['label'] }}</a>
           @endforeach
         </nav>
       </div>

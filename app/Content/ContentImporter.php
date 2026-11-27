@@ -30,6 +30,7 @@ final class ContentImporter
             $team[] = Arr::only((array) $person, ['name', 'role', 'portrait']) + [
                 'team_group' => TeamGroup::fromReviewedRole($person->role),
                 'homepage_partner' => str_starts_with(mb_strtolower($person->role, 'UTF-8'), 'wspólnik'),
+                'portrait_source' => filled($person->portrait ?? null) ? 'existing' : 'none',
                 'display_order' => $index + 1,
             ];
         }

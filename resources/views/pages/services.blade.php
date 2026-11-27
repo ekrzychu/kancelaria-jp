@@ -2,7 +2,7 @@
 
 @section('content')
 <section class="page-hero services-hero">
-  <div class="services-frame page-intro" data-reveal="subtle">
+  <div class="services-frame page-intro" data-reveal>
     <span class="section-kicker">Specjalizacje</span>
     <h1>Zakres wsparcia prawnego.</h1>
   </div>
@@ -10,7 +10,7 @@
 
 <section class="services-directory" aria-label="Katalog specjalizacji">
   <div class="services-frame">
-    <div class="filter-line" data-service-filters data-reveal="subtle" hidden>
+    <div class="filter-line" data-service-filters data-reveal hidden>
       <div class="service-search">
         <label>
           @include('partials.search-icon')
@@ -26,13 +26,13 @@
       <p class="filter-status" data-service-status aria-live="polite"></p>
     </div>
 
-    <div class="editorial-list" id="service-list" data-service-list>
+    <div class="editorial-list" id="service-list" data-service-list data-reveal-sequence>
       @foreach ($services as $service)
         @php $searchText = mb_strtolower($service['title'] . ' ' . $service['summary'] . ' ' . $service['category']); @endphp
         <a
           class="editorial-row"
           data-service-row
-          data-reveal="service-row"
+          data-reveal
           data-title="{{ $searchText }}"
           href="/specjalizacje/{{ $service['slug'] }}/"
         >

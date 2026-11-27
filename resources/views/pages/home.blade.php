@@ -144,12 +144,7 @@ $summary = $service['home_summary'] ?? $service['summary'];
           @if ($partners)
             <ul role="list">
               @foreach ($partners as $person)
-                <li>
-                  <p>{{ $person['name'] }}</p><span>{{ $person['role'] }}</span>
-                  @if ($person['portrait_media_id'])
-                    <img class="home-team-portrait" src="{{ \App\Models\MediaImage::url($person['portrait_media_id']) }}" alt="" loading="lazy" decoding="async">
-                  @endif
-                </li>
+                <li><p>{{ $person['name'] }}</p><span>{{ $person['role'] }}</span></li>
               @endforeach
             </ul>
           @endif

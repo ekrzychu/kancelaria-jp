@@ -8,8 +8,11 @@ use App\Filament\Resources\JobOfferResource\Pages;
 use App\Models\JobOffer;
 use Closure;
 use Filament\Actions\Action;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Text;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
@@ -36,28 +39,65 @@ final class JobOfferResource extends ManagedContentResource
 
     public static function form(Schema $schema): Schema
     {
+        $facts = [];
+        foreach (JobOffer::FACTS as $field => $label) {
+            $facts[] = $field === 'deadline'
+                ? DatePicker::make($field)->label($label)
+                : TextInput::make($field)->label($label)->maxLength(255);
+        }
+
+        $lists = [];
+        foreach (JobOffer::LISTS as $field => $label) {
+            $lists[] = Repeater::make($field)->label($label)->simple(
+                Textarea::make('punkt')->required()->string()->maxLength(2000)->rows(2),
+            )->defaultItems(0)->maxItems(30)->addActionLabel('Dodaj punkt');
+        }
+
         return $schema->components([
-            TextInput::make('title')->label('Nazwa stanowiska')->required()->maxLength(self::TITLE_LENGTH),
-            Text::make(fn (?JobOffer $record): string => 'Status: '.self::STATUSES[($record?->status ?? JobStatus::Draft)->value]),
-            Textarea::make('description')->label('Opis ogłoszenia')->rows(5)->maxLength(self::DESCRIPTION_LENGTH)->columnSpanFull(),
-            TextInput::make('url')->label('Link do ogłoszenia')->maxLength(self::URL_LENGTH)->columnSpanFull()
-                ->helperText('Nowe odnośniki muszą używać HTTP lub HTTPS.'),
+            Section::make('Podstawowe informacje')->columnSpanFull()->columns(2)->schema([
+                TextInput::make('title')->label('Nazwa stanowiska')->required()->maxLength(self::TITLE_LENGTH),
+                TextInput::make('slug')->label('Adres ogłoszenia')->prefix('/kariera/')->disabled()
+                    ->placeholder('Powstanie z nazwy przy pierwszym zapisie'),
+                Text::make(fn (?JobOffer $record): string => 'Status: '.self::STATUSES[($record?->status ?? JobStatus::Draft)->value])->columnSpanFull(),
+                Textarea::make('description')->label('Krótki opis')->rows(3)->maxLength(self::DESCRIPTION_LENGTH)->columnSpanFull(),
+                ...$facts,
+            ]),
+            Section::make('Treść ogłoszenia')->columnSpanFull()->columns(2)->schema([
+                Textarea::make('body')->label('Opis stanowiska')->rows(5)->maxLength(self::DESCRIPTION_LENGTH)->columnSpanFull(),
+                ...$lists,
+            ]),
+            Section::make('Aplikowanie')->columnSpanFull()->columns(2)->schema([
+                Textarea::make('application_instructions')->label(JobOffer::APPLICATION_TEXT['application_instructions'])->rows(3)->maxLength(self::DESCRIPTION_LENGTH)->columnSpanFull(),
+                Textarea::make('application_documents')->label(JobOffer::APPLICATION_TEXT['application_documents'])->rows(3)->maxLength(self::DESCRIPTION_LENGTH)->columnSpanFull(),
+                TextInput::make('application_email')->label('Adres e-mail do składania aplikacji')->email()->maxLength(255),
+                TextInput::make('url')->label('Opcjonalny zewnętrzny link aplikacyjny')->maxLength(self::URL_LENGTH)
+                    ->helperText('Opcjonalny adres HTTP lub HTTPS do składania aplikacji.'),
+                Textarea::make('candidate_privacy')->label(JobOffer::APPLICATION_TEXT['candidate_privacy'])->rows(4)->maxLength(self::DESCRIPTION_LENGTH)->columnSpanFull(),
+            ]),
         ]);
     }
 
     public static function contentData(array $data, ?Model $record = null): array
     {
         $url = $data['url'] ?? null;
-        // Preserve supported links from the content import if the editor leaves them unchanged.
-        $legacyLink = $record && is_string($url) && $record->url === $url
-            && preg_match('~\A(?:/(?!/)[^\x00-\x20\\\\]*|\#[^\s]*|mailto:[^\s]+|tel:[+0-9-]+)\z~i', $url);
-
-        // Publishing from the list has no editor form to validate the saved fields.
-        return static::validateContent($data, [
+        $legacyLink = $record && is_string($url) && $record->url === $url && JobOffer::legacyLink($url);
+        $rules = [
             'title' => 'required|string|max:'.self::TITLE_LENGTH,
-            'description' => 'nullable|string|max:'.self::DESCRIPTION_LENGTH,
+            'application_email' => 'nullable|string|email:filter|max:255',
             'url' => ['nullable', 'string', 'max:'.self::URL_LENGTH, ...($legacyLink ? [] : ['url:http,https'])],
-        ]);
+        ];
+        foreach (array_keys(JobOffer::FACTS) as $field) {
+            $rules[$field] = $field === 'deadline' ? 'nullable|date_format:Y-m-d' : 'nullable|string|max:255';
+        }
+        foreach (['description', 'body', ...array_keys(JobOffer::APPLICATION_TEXT)] as $field) {
+            $rules[$field] = 'nullable|string|max:'.self::DESCRIPTION_LENGTH;
+        }
+        foreach (array_keys(JobOffer::LISTS) as $field) {
+            $rules[$field] = 'nullable|array|list|max:30';
+            $rules[$field.'.*'] = 'required|string|max:2000';
+        }
+
+        return static::validateContent($data, $rules);
     }
 
     public static function table(Table $table): Table
@@ -97,7 +137,7 @@ final class JobOfferResource extends ManagedContentResource
                     }
 
                     if ($opens) {
-                        $current->fill($form ? $form($current) : static::contentData($current->only(['title', 'description', 'url']), $current));
+                        $current->fill($form ? $form($current) : static::contentData(array_replace($current->attributesToArray(), ['deadline' => $current->deadline?->toDateString()]), $current));
                     }
                     $current->status = $to;
                     $current->save();

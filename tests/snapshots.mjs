@@ -43,10 +43,12 @@ try {
     await browser.viewport(width, height, mobile);
     await browser.call('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'no-preference' }] });
     await browser.navigate(site.origin + '/');
-    const stages = await browser.evaluate(() => [...document.querySelectorAll('[data-home-stage]')].map(node => ({
-      name: node.dataset.homeStage,
-      top: node.getBoundingClientRect().top + scrollY + .28 * (parseFloat(node.style.getPropertyValue('--stage-hold')) || 0),
-    })));
+    const stages = await browser.evaluate(() => [...document.querySelectorAll('[data-home-stage]')].map(node => {
+      const { top, height } = node.getBoundingClientRect();
+      const viewport = node.querySelector('.home-stage-viewport').getBoundingClientRect().height;
+      const hold = node.hasAttribute('data-pinned') ? height - viewport : 0;
+      return { name: node.dataset.homeStage, top: top + scrollY + .28 * hold };
+    }));
     for (const { name, top } of stages) {
       await browser.evaluate(y => scrollTo({ top: y, behavior: 'instant' }), top);
       await settledScreenshot(width + '-home-' + name);

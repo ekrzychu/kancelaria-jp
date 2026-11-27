@@ -67,6 +67,30 @@ test('public routing and contact page', async t => {
     }
   });
 
+  await t.test('formal documents render their contents and preserve legacy links', async () => {
+    for (const [slug, oldPath, headings, evidence] of [
+      ['kodeks-etyczny', '/wp-content/uploads/Kodeks-Etyczny.pdf', 7, /1 stycznia 2024/],
+      ['strategia-esg', '/wp-content/uploads/Strategia-zrownowazonego-rozwoju.pdf', 5, /Marta Jaroch.Konwent/],
+      ['polityka-prywatnosci', '/polityka-prywatnosci/', 8, /Projekt do zatwierdzenia/],
+    ]) {
+      const path = '/dokumenty/' + slug + '/';
+      const page = await (await request(path)).text();
+      const toc = page.match(/<nav aria-label="Spis treści dokumentu">([\s\S]*?)<\/nav>/)[1];
+      const anchors = [...toc.matchAll(/href="#([^"]+)"/g)].map(match => match[1]);
+      assert.equal(anchors.length, headings, slug);
+      for (const id of anchors) assert(page.includes('id="' + id + '"'), id);
+      assert.match(page, evidence);
+      if (slug === 'polityka-prywatnosci') {
+        assert.match(page, /MariaDB[\s\S]+SMTP[\s\S]+OVH[\s\S]+XSRF-TOKEN[\s\S]+Statystyki są domyślnie wyłączone/);
+        assert.doesNotMatch(page, /WordPress|Google Analytics|3CX/);
+      }
+      assert(page.includes('href="/dokumenty/">Wróć do dokumentów'));
+      const redirected = await request(oldPath + '?from=old');
+      assert.equal(redirected.status, 301);
+      assert.equal(redirected.headers.get('location'), path + '?from=old');
+    }
+  });
+
   await t.test('repeated slashes and HEAD preserve the canonical page', async () => {
     const path = '/specjalizacje/' + data.services[0].slug + '/';
     const result = await request(path.replace('/specjalizacje/', '/specjalizacje//'));
@@ -282,8 +306,8 @@ test('specialization order, persisted team groups, and active vacancies are data
       ['Nabór utajniony szkic', 'draft', null],
       ['Nabór utajniony skasowany', 'open', '2026-11-01 12:00:00'],
     ].map(([title,status,deleted], index) => ({
-      sql: 'INSERT INTO job_offers (title,description,url,status,deleted_at,display_order) VALUES (?,?,?,?,?,?)',
-      params: [title,'Opis próby – żółć','https://fixture.example.test/job',status,deleted,index+1],
+      sql: 'INSERT INTO job_offers (slug,title,description,url,status,deleted_at,display_order) VALUES (?,?,?,?,?,?,?)',
+      params: ['oferta-probna-' + index,title,'Opis próby – żółć','https://fixture.example.test/job',status,deleted,index+1],
     })),
   ]);
   const home = await htmlAt('/');
@@ -300,7 +324,16 @@ test('specialization order, persisted team groups, and active vacancies are data
   assert(!team.includes(data.team[3].name));
   const career = await htmlAt('/kariera/');
   assert.match(career, /Próba naboru otwarta/);
-  assert.match(career, /https:\/\/fixture\.example\.test\/job/);
+  assert.match(career, /href="\/kariera\/oferta-probna-0\/"/);
+  assert.doesNotMatch(career, /fixture\.example\.test/);
+  const offer = await htmlAt('/kariera/oferta-probna-0/');
+  assert.match(offer, /https:\/\/fixture\.example\.test\/job/);
+  assert.match(offer, /rel="canonical" href="[^"]+\/kariera\/oferta-probna-0\/"/);
+  assert(sitemap.includes('/kariera/oferta-probna-0/'));
+  for (const index of [1, 2, 3]) {
+    await htmlAt('/kariera/oferta-probna-' + index + '/', 404);
+    assert(!sitemap.includes('/kariera/oferta-probna-' + index + '/'));
+  }
   assert.doesNotMatch(career, /Nabór utajniony/);
   database.query([{ sql: 'UPDATE job_offers SET status=? WHERE title=?', params: ['closed', 'Próba naboru otwarta'] }]);
   assert.doesNotMatch(await htmlAt('/kariera/'), /Próba naboru otwarta/);

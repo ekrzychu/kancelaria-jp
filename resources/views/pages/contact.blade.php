@@ -3,11 +3,11 @@
 @section('content')
 <section class="contact-hero" aria-labelledby="contact-title">
   <div class="contact-frame contact-hero-layout">
-    <div data-reveal="subtle">
+    <div data-reveal>
       <span class="section-kicker">Kontakt</span>
       <h1 id="contact-title">Porozmawiajmy o&nbsp;Twojej sprawie.</h1>
     </div>
-    <div class="contact-intro" data-reveal="subtle">
+    <div class="contact-intro" data-reveal>
       <p>Skontaktuj się z&nbsp;nami telefonicznie lub mailowo. Spotkania odbywają się po wcześniejszym umówieniu.</p>
       <a class="text-action contact-action" href="#formularz"><span>Przejdź do formularza</span>@include('partials.action-arrow', ['arrowClass' => 'contact-arrow'])</a>
     </div>
@@ -17,7 +17,7 @@
 <section class="contact-enquiries" aria-labelledby="contact-details-title">
   <div class="contact-frame contact-layout">
     <div class="contact-details">
-      <div data-reveal="subtle">
+      <div data-reveal>
         <h2 id="contact-details-title">Dane kontaktowe</h2>
         <dl class="contact-methods">
           <div>
@@ -30,7 +30,7 @@
           </div>
         </dl>
       </div>
-      <dl class="contact-office-details" data-reveal="subtle">
+      <dl class="contact-office-details" data-reveal>
         <div>
           <dt>Adres</dt>
           <dd>
@@ -55,7 +55,7 @@
       </dl>
     </div>
 
-    <form class="contact-form" id="formularz" aria-labelledby="contact-form-title" aria-describedby="contact-form-status" tabindex="-1" method="post" action="/kontakt/" data-reveal="subtle">
+    <form class="contact-form" id="formularz" aria-labelledby="contact-form-title" aria-describedby="contact-form-status" tabindex="-1" method="post" action="/kontakt/" data-reveal>
       @csrf
       <div class="form-honeypot" hidden>
         <label>Strona internetowa <input name="website" autocomplete="off" tabindex="-1"></label>
@@ -107,13 +107,13 @@
 
 <section class="contact-location" aria-labelledby="contact-location-title">
   <div class="contact-frame contact-location-layout">
-    <div class="contact-location-copy" data-reveal="subtle">
+    <div class="contact-location-copy" data-reveal>
       <h2 id="contact-location-title">Odwiedź nas we&nbsp;Wrocławiu.</h2>
       <address>@include('partials.office-address')</address>
       <p>Spotkania odbywają się po wcześniejszym umówieniu.</p>
       <a class="text-action contact-action" href="{{ $directions }}"><span>Wyznacz trasę</span>@include('partials.action-arrow', ['arrowClass' => 'contact-arrow'])</a>
     </div>
-    <figure class="contact-photo" data-reveal="subtle" data-home-surface="photo">
+    <figure class="contact-photo" data-reveal data-home-surface="photo">
       <img src="/assets/img/office-entrance-760.webp"
         srcset="/assets/img/office-entrance-760.webp 760w, /assets/img/office-entrance-1280.webp 1280w"
         sizes="(min-width: 68rem) 27rem, (min-width: 48rem) 42vw, 90vw"

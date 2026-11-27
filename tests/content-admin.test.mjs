@@ -128,26 +128,28 @@ test('section employees manage specializations, public profiles and recruitment 
   const profile = () => find('team_members', 'name', name);
   await visit('/zespol/dodaj');
   const teamData = { name, role: 'Radca prawny', team_group: 'support', homepage_partner: true };
-  await wire('CreateTeamMember', 'create', { ...teamData, portrait: '../office-reception-800.webp' });
+  await wire('CreateTeamMember', 'create', { ...teamData, portrait_selection: '../office-reception-800.webp' });
   assert.equal(profile(), undefined);
-  await wire('CreateTeamMember', 'create', { ...teamData, portrait: null, team_group: 'unknown' });
+  await wire('CreateTeamMember', 'create', { ...teamData, portrait_selection: 'none', team_group: 'unknown' });
   assert.equal(profile(), undefined);
   assert(await evaluate(() => document.querySelectorAll('.fi-fo-field-wrp-error-message').length > 0));
-  await wire('CreateTeamMember', 'create', { ...teamData, portrait: null });
+  await wire('CreateTeamMember', 'create', { ...teamData, portrait_selection: 'none' });
   await ready('ListTeamMembers');
   assert.equal(profile().team_group, 'support');
   assert.equal(profile().portrait, null);
   assert((await html('/zespol/')).includes(name));
   assert(!(await html('/')).includes(name));
   await visit('/zespol/' + profile().id + '/edytuj');
-  await wire('EditTeamMember', 'save', { portrait, role: 'Radca prawny testowy' });
+  await wire('EditTeamMember', 'save', { portrait_selection: portrait, role: 'Radca prawny testowy' });
   await ready('ListTeamMembers');
   assert.equal(profile().portrait, portrait);
   assert((await html('/zespol/')).includes('/assets/img/' + portrait));
   await visit('/zespol/' + profile().id + '/edytuj');
   await capture('team-editor');
-  await wire('EditTeamMember', 'save', { portrait: null });
-  assert.equal(profile().portrait, null);
+  await wire('EditTeamMember', 'save', { portrait_selection: 'none' });
+  assert.equal(profile().portrait, portrait);
+  assert.equal(profile().portrait_source, 'none');
+  assert(!(await html('/zespol/')).includes('/assets/img/' + portrait));
   const before = sql('SELECT id, display_order FROM team_members WHERE team_group != ?', ['support']);
   await ready('ListTeamMembers');
   await capture('team-list');
@@ -176,11 +178,20 @@ test('section employees manage specializations, public profiles and recruitment 
   assert((await evaluate(() => document.body.innerText)).includes('Zapisz szkic'));
   await wire('CreateJobOffer', 'create', { title: jobTitle, url: 'javascript:alert(1)' });
   assert.equal(job(jobTitle), undefined);
-  await wire('CreateJobOffer', 'create', { title: jobTitle, url: 'https://example.test/recruitment' });
+  await wire('CreateJobOffer', 'create', { title: jobTitle, url: null, application_email: 'invalid@example.test\nBcc: elsewhere@example.test' });
+  assert.equal(job(jobTitle), undefined);
+  await wire('CreateJobOffer', 'create', {
+    title: jobTitle, url: 'https://example.test/recruitment', application_email: null, location: 'Wrocław',
+    deadline: '2027-02-12', requirements: [{ punkt: 'Znajomość prawa' }, { punkt: 'Uważna lektura dokumentów' }],
+    application_instructions: 'Wyślij CV.', application_documents: 'CV',
+  });
+  assert(job(jobTitle), await evaluate(() => [...document.querySelectorAll('.fi-fo-field-wrp-error-message')].map(x => x.textContent).join(' | ')));
   await ready('ListJobOffers');
   const jobId = job(jobTitle).id;
+  const jobPath = '/kariera/probna-oferta-pracy/';
   assert.equal(job(jobTitle).status, 'draft');
   assert(!(await html('/kariera/')).includes(jobTitle));
+  await html(jobPath, 404);
   await visit('/kariera/' + jobId + '/edytuj');
   await capture('job-editor');
   await action('EditJobOffer', 'publish', null, { title: '' });
@@ -188,12 +199,20 @@ test('section employees manage specializations, public profiles and recruitment 
   await action('EditJobOffer', 'publish', null, { title: editedTitle, description: '<b>Tekst próbny</b>' });
   assert.equal(job(editedTitle).status, 'open');
   assert((await html('/kariera/')).includes('&lt;b&gt;Tekst próbny&lt;/b&gt;'));
+  const jobPage = await html(jobPath);
+  for (const value of [editedTitle, 'Wrocław', '12.02.2027', 'Znajomość prawa', 'Wyślij CV.', 'https://example.test/recruitment']) {
+    assert(jobPage.includes(value), value);
+  }
+  assert(jobPage.indexOf('Znajomość prawa') < jobPage.indexOf('Uważna lektura dokumentów'));
+  assert(!jobPage.includes('Mile widziane'));
+  assert.equal(job(editedTitle).slug, 'probna-oferta-pracy');
   await until(() => evaluate(() => location.pathname === '/kariera'), 'return to recruitment list after publishing');
   await ready('ListJobOffers');
   await visit('/kariera/' + jobId + '/edytuj');
   await action('EditJobOffer', 'close', null);
   assert.equal(job(editedTitle).status, 'closed');
   assert.equal(await html('/kariera/'), empty);
+  await html(jobPath, 404);
   sql('UPDATE job_offers SET url=? WHERE id=?', ['/kontakt/', jobId]);
   await visit('/kariera/' + jobId + '/edytuj');
   await wire('EditJobOffer', 'save', { description: 'Opis z dotychczasowym odnośnikiem' });
@@ -203,6 +222,7 @@ test('section employees manage specializations, public profiles and recruitment 
   await action('ListJobOffers', 'reopen', job(editedTitle));
   assert.equal(job(editedTitle).status, 'open');
   assert.equal(job(editedTitle).url, '/kontakt/');
+  assert.match(await html(jobPath), /href="\/kontakt\/"[^>]*>Przejdź do aplikacji/);
   await visit('/kariera/dodaj');
   await wire('CreateJobOffer', 'create', { title: 'Druga oferta próbna' });
   await ready('ListJobOffers');
@@ -213,6 +233,7 @@ test('section employees manage specializations, public profiles and recruitment 
   sql('UPDATE job_offers SET url=NULL WHERE id=?', [secondJob().id]);
   await visit('/kariera');
   await action('ListJobOffers', 'publish', secondJob());
+  assert.match(await html('/kariera/druga-oferta-probna/'), /href="\/kariera\/#kontakt-rekrutacja"/);
   const checkOrder = async first => {
     const content = await html('/kariera/');
     assert.equal(content.indexOf(editedTitle) < content.indexOf('Druga oferta próbna'), first);
@@ -224,14 +245,16 @@ test('section employees manage specializations, public profiles and recruitment 
   await action('ListJobOffers', 'moveUp', secondJob());
   await checkOrder(false);
   await action('ListJobOffers', 'delete', job(editedTitle));
+  await html(jobPath, 404);
   await action('ListJobOffers', 'restore', job(editedTitle));
   assert.equal(job(editedTitle).status, 'closed');
   assert(!(await html('/kariera/')).includes(editedTitle));
   await visit('/kariera/dodaj');
-  await wire('CreateJobOffer', 'publish', { title: 'Oferta opublikowana przy tworzeniu' });
+  await wire('CreateJobOffer', 'publish', { title: 'Oferta opublikowana przy tworzeniu', application_email: 'praca+test@example.test' });
   await until(() => evaluate(() => location.pathname === '/kariera'), 'return to recruitment list after creation');
   await ready('ListJobOffers');
   assert.equal(job('Oferta opublikowana przy tworzeniu').status, 'open');
+  assert((await html('/kariera/oferta-opublikowana-przy-tworzeniu/')).includes("href=\"mailto:praca%2Btest@example.test\""));
   await browser.viewport(390, 844, true);
   await visit('/kariera');
   await capture('mobile-recruitment');

@@ -35,7 +35,7 @@ final class SiteContent
 
     public function homepagePartners(): array
     {
-        return TeamMember::homepagePartners()->limit(2)->get()->map->only(['name', 'role', 'portrait_media_id'])->all();
+        return TeamMember::homepagePartners()->limit(2)->get()->map->only(['name', 'role'])->all();
     }
 
     public function teamGroups(): array
@@ -46,7 +46,7 @@ final class SiteContent
         }
 
         foreach (TeamMember::ordered()->get() as $person) {
-            $groups[$person->team_group->value]['people'][] = $person->only(['name', 'role', 'portrait', 'portrait_media_id']);
+            $groups[$person->team_group->value]['people'][] = $person->only(['name', 'role']) + ['portrait_url' => $person->publicPortraitUrl()];
         }
 
         return $groups;
@@ -54,7 +54,7 @@ final class SiteContent
 
     public function openVacancies(): array
     {
-        return JobOffer::open()->get()->map->only(['title', 'description', 'url'])->all();
+        return JobOffer::open()->get(['title', 'slug', 'description', ...array_keys(JobOffer::FACTS)])->all();
     }
 
     public function publishedArticles(bool $includeBody = false): array
@@ -81,7 +81,9 @@ final class SiteContent
         return [
             '/', '/o-kancelarii/', '/specjalizacje/',
             ...Specialization::visible()->pluck('slug')->map(static fn (string $slug): string => '/specjalizacje/'.$slug.'/'),
-            '/zespol/', '/kariera/', '/kontakt/', '/artykuly/',
+            '/zespol/', '/kariera/',
+            ...JobOffer::open()->pluck('slug')->map(static fn (string $slug): string => '/kariera/'.$slug.'/'),
+            '/kontakt/', '/artykuly/',
             ...Article::published()->orderBy('id')->pluck('slug')->map(static fn (string $slug): string => '/'.$slug.'/'),
         ];
     }

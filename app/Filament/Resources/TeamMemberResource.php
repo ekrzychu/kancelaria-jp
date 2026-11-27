@@ -7,12 +7,12 @@ use App\Filament\Forms\ImageUpload;
 use App\Filament\Resources\TeamMemberResource\Pages;
 use App\Media\MediaPurpose;
 use App\Media\MediaReferences;
-use App\Models\MediaImage;
 use App\Models\TeamMember;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
-use Filament\Schemas\Components\Text;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
@@ -22,8 +22,6 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
-use Illuminate\Support\HtmlString;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 final class TeamMemberResource extends ManagedContentResource
@@ -48,8 +46,7 @@ final class TeamMemberResource extends ManagedContentResource
             $options[$record->portrait] ??= 'Dotychczasowe zdjęcie';
         }
 
-        return array_filter($options, fn (string $filename): bool => preg_match('/\A[\w.-]+\.(?:avif|jpe?g|png|webp)\z/i', $filename)
-            && is_file(public_path('assets/img/'.$filename)), ARRAY_FILTER_USE_KEY);
+        return array_filter($options, fn (string $filename): bool => TeamMember::existingPortraitUrl($filename) !== null, ARRAY_FILTER_USE_KEY);
     }
 
     public static function form(Schema $schema): Schema
@@ -58,13 +55,18 @@ final class TeamMemberResource extends ManagedContentResource
             TextInput::make('name')->label('Imię i nazwisko')->required()->string()->maxLength(255),
             TextInput::make('role')->label('Stanowisko')->required()->string()->maxLength(255),
             Select::make('team_group')->label('Grupa')->options(self::groups())->required(),
-            Select::make('portrait')->label('Zdjęcie')->options(fn (?TeamMember $record): array => self::portraits($record))
-                ->placeholder('Bez zdjęcia')->helperText('Wybierz zatwierdzony portret lub pozostaw pole puste.'),
-            Text::make(fn (?TeamMember $record): HtmlString => new HtmlString(
-                '<img class="panel-image-preview" alt="Dotychczasowe zdjęcie" src="/assets/img/'.e($record?->portrait).'">'))
-                ->visible(fn (?TeamMember $record): bool => isset(self::portraits($record)[$record?->portrait])),
-            ImageUpload::make('portrait_media_id')->label('Prześlij portret')->purpose(MediaPurpose::Portrait)
-                ->helperText('Przesłany portret zastępuje dotychczasowe zdjęcie po zapisaniu profilu.'),
+            Select::make('portrait_selection')->label('Zdjęcie na stronie')->required()->default('none')->selectablePlaceholder(false)
+                ->options(fn (Get $get, ?TeamMember $record): array => ['none' => 'Brak zdjęcia']
+                    + (filled($get('portrait_media_id')) ? ['uploaded' => 'Przesłane zdjęcie'] : [])
+                    + self::portraits($record))
+                ->helperText('Wybranie opcji „Brak zdjęcia” zachowuje plik w panelu.'),
+            ImageUpload::make('portrait_media_id')->label('Przesłane zdjęcie (podgląd prywatny)')->purpose(MediaPurpose::Portrait)->live()
+                ->afterStateUpdated(function (mixed $state, Get $get, Set $set): void {
+                    if (blank($state) && $get('portrait_selection') === 'uploaded') {
+                        $set('portrait_selection', 'none');
+                    }
+                })
+                ->helperText('Aby opublikować plik, wybierz „Przesłane zdjęcie” w polu „Zdjęcie na stronie”. Zapisz profil po usunięciu lub zastąpieniu pliku.'),
             Toggle::make('homepage_partner')->label('Wspólnik na stronie głównej')->default(false)
                 ->rules(['required', 'boolean'])
                 ->helperText('Strona główna pokazuje maksymalnie dwa wyróżnione profile według kolejności.'),
@@ -73,9 +75,7 @@ final class TeamMemberResource extends ManagedContentResource
 
     public static function contentData(array $data, ?Model $record = null): array
     {
-        return static::validateContent($data, [
-            'portrait' => ['nullable', 'string', Rule::in(array_keys(self::portraits($record)))],
-        ]) + Arr::only($data, ['name', 'role', 'team_group', 'homepage_partner']);
+        return Arr::only($data, ['name', 'role', 'team_group', 'homepage_partner']);
     }
 
     public static function savePortrait(TeamMember $member, array $data): void
@@ -86,7 +86,17 @@ final class TeamMemberResource extends ManagedContentResource
                 throw ValidationException::withMessages(['data.portrait_media_id' => 'Wybierz poprawne zdjęcie.']);
             }
             app(MediaReferences::class)->bind($id, MediaPurpose::Portrait, $member, 'data.portrait_media_id');
-            $member->portrait = null;
+        }
+        $selection = $data['portrait_selection'] ?? 'none';
+        if ($selection === 'uploaded' && $id !== null) {
+            $member->portrait_source = 'uploaded';
+        } elseif ($selection === 'none' || ($selection === 'uploaded' && $id === null)) {
+            $member->portrait_source = 'none';
+        } elseif (is_string($selection) && isset(self::portraits($member)[$selection])) {
+            $member->portrait_source = 'existing';
+            $member->portrait = $selection;
+        } else {
+            throw ValidationException::withMessages(['data.portrait_selection' => 'Wybierz dostępne zdjęcie.']);
         }
         $member->portrait_media_id = $id;
         $member->save();
@@ -98,11 +108,7 @@ final class TeamMemberResource extends ManagedContentResource
             return null;
         }
 
-        $path = match (true) {
-            filled($record->portrait_media_id) => MediaImage::url($record->portrait_media_id, private: true),
-            isset(self::portraits($record)[$record->portrait]) => '/assets/img/'.$record->portrait,
-            default => null,
-        };
+        $path = $record->publicPortraitUrl(private: true);
 
         return $path === null ? null : rtrim(config('hosts.admin_url'), '/').$path;
     }

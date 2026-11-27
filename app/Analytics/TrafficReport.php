@@ -87,6 +87,7 @@ final class TrafficReport
             return match ($type) {
                 'article' => $articles[$slug] ?? '/'.$slug.'/',
                 'service' => $services[$slug] ?? '/specjalizacje/'.$slug.'/',
+                'job' => '/kariera/'.$slug.'/',
                 'document' => '/dokumenty/'.$slug.'/',
                 default => PageViews::PAGES[$key],
             };

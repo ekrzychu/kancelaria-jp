@@ -13,12 +13,17 @@ Route::get('/specjalizacje', [PublicPages::class, 'services'])->name('services.i
 Route::get('/specjalizacje/{slug}', [PublicPages::class, 'service'])->name('services.show');
 Route::get('/zespol', [PublicPages::class, 'team'])->name('team');
 Route::get('/kariera', [PublicPages::class, 'career'])->name('career');
+Route::get('/kariera/{slug}', [PublicPages::class, 'job'])->where('slug', '[a-z0-9-]+')->name('career.show');
 Route::get('/aktualnosci', [PublicPages::class, 'legacyArchive'])->name('articles.legacy');
 Route::get('/artykuly', [PublicPages::class, 'articles'])->name('articles.index');
 Route::get('/kontakt', [PublicPages::class, 'contact'])->middleware('web')->name('contact');
 Route::post('/kontakt', [PublicPages::class, 'submitContact'])->middleware(['web', 'throttle:contact'])->name('contact.submit');
 Route::get('/dokumenty', [PublicPages::class, 'documents'])->name('documents.index');
 Route::get('/dokumenty/{slug}', [PublicPages::class, 'document'])->name('documents.show');
+Route::get('/polityka-prywatnosci', [PublicPages::class, 'legacyDocument'])->defaults('document', 'polityka-prywatnosci');
+Route::get('/wp-content/uploads/Kodeks-Etyczny.pdf', [PublicPages::class, 'legacyDocument'])->defaults('document', 'kodeks-etyczny');
+Route::get('/wp-content/uploads/Strategia-zrownowazonego-rozwoju.pdf', [PublicPages::class, 'legacyDocument'])->defaults('document', 'strategia-esg');
+
 Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 Route::get('/media/{media}', [MediaController::class, 'publicImage'])->where('media', '[a-f0-9]{32}');
 

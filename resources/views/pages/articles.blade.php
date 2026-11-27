@@ -3,18 +3,18 @@
 @section('content')
 <section class="publication-hero" aria-labelledby="publications-title">
   <div class="publication-frame publication-hero-layout">
-    <div data-reveal="subtle">
+    <div data-reveal>
       <span class="section-kicker">Artykuły</span>
       <h1 id="publications-title">Publikacje prawne.</h1>
     </div>
-    <p data-reveal="subtle">Analizy i&nbsp;komentarze do zmian w&nbsp;prawie.</p>
+    <p data-reveal>Analizy i&nbsp;komentarze do zmian w&nbsp;prawie.</p>
   </div>
 </section>
 
 <section class="publication-archive{{ $publications ? '' : ' archive-empty' }}" aria-label="Publikacje" data-publication-archive>
   <div class="publication-frame">
     @if ($publications)
-      <form class="publication-filters" role="search" aria-label="Szukaj i filtruj artykuły" data-publication-filters data-reveal="subtle" hidden>
+      <form class="publication-filters" role="search" aria-label="Szukaj i filtruj artykuły" data-publication-filters data-reveal hidden>
         <div class="publication-search">
           <label>
             @include('partials.search-icon')
@@ -80,7 +80,7 @@ $date = $publication['archive_date'];
 @endphp
           <{{ $tag }}
             class="publication-entry editorial-row"
-            data-reveal="publication-row"
+            data-reveal
             data-publication-title="{{ $publication['title'] }}"
             data-publication-date="{{ $date }}"
             data-publication-category="{{ $publication['archive_category'] }}"
@@ -104,7 +104,7 @@ $date = $publication['archive_date'];
         @endforeach
       </div>
     @else
-      <div class="archive-note" data-reveal="subtle">
+      <div class="archive-note" data-reveal>
         <h2>Archiwum w przygotowaniu</h2>
         <p>W sprawie konkretnego zagadnienia napisz lub zadzwoń.</p>
         <a class="text-action" href="/kontakt/">Skontaktuj się</a>

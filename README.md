@@ -11,7 +11,7 @@ Public website and content administration for Jaroch-Konwent Pakos Kancelaria Ra
 - `app/data/{articles,services,team,recruitment}.json` are reviewed migration inputs and regression fixtures. Editors manage current content through Filament.
 - `resources/views/` and `public/` contain the approved public templates and assets. `storage/` and `bootstrap/cache/` are private writable runtime directories.
 
-Phase 2 preserves the approved Phase 1 baseline `cca68503e4666e7c268e448c3c2d9d4821844e5c` and its 27 public pages. The sitemap preserves the canonical paths, includes published articles and active specializations, and excludes documents and deleted or hidden content. Laravel serves it directly through a cacheable route.
+Phase 2 preserves the approved Phase 1 baseline `cca68503e4666e7c268e448c3c2d9d4821844e5c` and its 27 public pages. The sitemap preserves the canonical paths, includes published articles, active specializations and open job offers, and excludes documents and deleted or hidden content. Laravel serves it directly through a cacheable route.
 
 ## Requirements
 
@@ -96,8 +96,8 @@ For regressions, use Node.js 22 or newer and Chrome or Chromium. Set `CHROME_BIN
 | --- | --- |
 | `articles` / `Article` | Unique ASCII slug `VARCHAR(191)`, title, category, author and image metadata `VARCHAR(255)`, summary `TEXT`, body `LONGTEXT`, nullable date-only `DATE`, status enum. |
 | `specializations` / `Specialization` | Unique ASCII slug `VARCHAR(191)`, title and category `VARCHAR(255)`, summary and optional homepage summary `TEXT`, body and scope `JSON`, active flag, unsigned display order. |
-| `team_members` / `TeamMember` | Name, displayed role and optional portrait `VARCHAR(255)`, explicit group enum, homepage partner flag, unsigned display order. |
-| `job_offers` / `JobOffer` | Nullable title `VARCHAR(255)`, optional description and URL `TEXT`, status enum, unsigned display order. Open offers require a title. |
+| `team_members` / `TeamMember` | Name, role, optional approved asset and managed media reference, public portrait source, explicit group enum, homepage partner flag and display order. |
+| `job_offers` / `JobOffer` | Unique ASCII slug, title, optional short description and application link, structured employment and application fields, four ordered JSON lists, status and display order. Open offers require a title. |
 
 Each table has a bigint ID, `created_at` and `updated_at` UTC timestamps, and a nullable `deleted_at` timestamp for recoverable deletion. The JSON values in specializations are ordered lists. Team group and homepage partner eligibility are stored independently. Ordered lists use display order then ID. Publication lists sort newest first, undated items follow dated ones, and equal dates retain insertion order by ascending ID.
 
@@ -186,8 +186,8 @@ The importer retains the original HTML. In the editor, structures that cannot ro
 Each resource uses its existing MariaDB content table and its own section permission. The same permissions apply to navigation, direct routes and Livewire actions.
 
 - **Specjalizacje** starts new records inactive. Activate or deactivate a record from its row. The address is generated from the title on creation and stays fixed after saving. The detailed description and service scope are ordered, plain-text lists. Leave the homepage description empty to use the short description. Restoring a record leaves it inactive.
-- **Zespół** requires an explicit public group. Saving a profile makes it public. Wspólnik na stronie głównej nominates a profile for one of two homepage slots, selected by display order. Existing portrait associations can be removed. To offer a portrait for selection, list its approved filename and label in config/site.php under team_portraits. The file must already exist in public/assets/img. The team editor also accepts managed portrait uploads. Restoring a profile makes it public again.
-- **Kariera** saves new offers as drafts. Opublikuj and Wznów rekrutację validate and save pending editor changes before making the offer public. Zakończ rekrutację removes it from the public list. New links accept HTTP(S) only. Restored open offers are closed until explicitly reopened.
+- **Zespół** requires an explicit public group. Saving a profile makes it public. Wspólnik na stronie głównej nominates a profile for one of two homepage slots, selected by display order. The homepage displays the selected profiles as text. On the team page, **Zdjęcie na stronie** selects Brak zdjęcia, Przesłane zdjęcie when a managed upload exists, or an approved existing image. Register approved filenames and labels in `config/site.php` under `team_portraits` and keep those files in `public/assets/img`. Restoring a profile makes it public again.
+- **Kariera** saves new offers as drafts. Opublikuj and Wznów rekrutację validate and save pending editor changes before making the offer public. The title generates a stable, collision-safe `/kariera/{slug}/` address on the first save. The listing always opens that address. Employment details, ordered lists, and recruiting and candidate information are optional. The final action uses an external HTTP(S) application link, a supplied email address, a preserved compatible legacy link, or the general recruiting contact. Zakończ rekrutację removes the offer from the list and sitemap and closes its public URL. Restored open offers are closed until explicitly reopened.
 
 Use Przesuń wyżej or Przesuń niżej under Więcej to move a record one position at a time, including across page boundaries. For team members, moves stay within the same group, and the team group filter remains available. Clear search, status, category and trash filters to move records. Więcej also contains Przenieś do kosza and Przywróć. Content writes are serialized per schema and reordering runs in a transaction.
 
@@ -196,7 +196,7 @@ Use Przesuń wyżej or Przesuń niżej under Więcej to move a record one positi
 
 Use Zdjęcia w artykule to upload one or more images and edit their alternative text, caption and placement. Placement refers to the saved article blocks. Save the text first to make new blocks available in the placement list. Images assigned to the same place follow the list order. Removing a block removes its reference after saving. Existing reviewed figures remain in their original markup.
 
-Use Prześlij portret on a team profile to preview a replacement. Saving an uploaded portrait replaces the former association. Clear the uploaded portrait to remove it or to select an approved existing portrait. A profile can be saved without an image.
+The upload field previews the stored team portrait privately. Choose **Brak zdjęcia** to hide it while keeping the file attached. Reopen the profile and choose **Przesłane zdjęcie** to publish it again. Use the separate removal or replacement controls and save to change the stored file. Hidden managed portraits cannot be served by the public media endpoint. Git-managed photos remain public static files even if a profile stops using them.
 
 Both editors accept JPEG, PNG and WebP up to 10 MB, 24 megapixels and 12,000 pixels on either edge. PHP GD checks and decodes the input, applies EXIF orientation and writes WebP at quality 85. Widths are capped at 1920 px for articles and 1200 px for portraits. Smaller images retain their size. The output preserves aspect ratio and transparency, and re-encoding removes metadata. Animated images and other formats are rejected.
 
@@ -212,6 +212,14 @@ php artisan media:clean-temporary --apply
 ~~~
 
 Enable PHP GD with JPEG, PNG and WebP support in both the web runtime and CLI. Configure upload_max_filesize to at least 10M, post_max_size to at least 12M, memory_limit to at least 384M and allow PHP to write to its temporary upload directory and the persistent media directory. Use php --ini and php -i to verify the loaded configuration. On the current portable Windows workstation, the loopback server uses an ignored storage/app/phase5-runtime/media.ini override through PHP_INI_SCAN_DIR. Set the same scan directory for local Composer or Artisan commands. Confirm these settings and the storage path on dhosting before deployment. This phase verifies the local and CI environments.
+
+### Formal documents
+
+The ethics code, ESG strategy and draft privacy policy are version-controlled Blade content in `resources/views/pages/documents/`. They share the article reading layout and stay available through the documents directory and existing links. Review changes against the official sources before deployment. Preserve section IDs and the permanent redirects from the former privacy-policy URL and PDF download paths. [Ethics code](https://kancelaria-jp.pl/wp-content/uploads/Kodeks-Etyczny.pdf) · [ESG strategy](https://kancelaria-jp.pl/wp-content/uploads/Strategia-zrownowazonego-rozwoju.pdf) · [Existing privacy policy](https://kancelaria-jp.pl/polityka-prywatnosci/)
+
+Before deployment, back up MariaDB and managed files, pause editorial writes, and apply the two forward migrations with `php artisan migrate --force`. They assign slugs to existing offers, including those in the trash, and backfill the current effective portrait source. Optional recruitment fields remain unset until an editor fills them. Rebuild the route and view caches as part of the normal release.
+
+The updated privacy policy remains a draft. Confirm the production hosting and delivery configuration, log practices, retention and legal information before replacing the live policy. The implementation review records all substantive changes and decisions requiring the firm's approval. [Privacy policy implementation review](docs/privacy-policy-review.md)
 
 ### Contact submissions and Wiadomości
 

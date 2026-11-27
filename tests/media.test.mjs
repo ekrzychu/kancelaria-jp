@@ -158,44 +158,47 @@ test('managed media uploads, editorial references and delivery respect the artic
   } finally {
     sql('DROP TRIGGER test_reject_media');
   }
+  const portraitField = 'select[wire\\:model^="data.portrait_selection"]';
   const portrait = await uploadFile(fixture.png);
+  await until(() => evaluate(selector => !!document.querySelector(selector)?.querySelector('option[value="uploaded"]'), portraitField),
+    'uploaded portrait appears as a public selection');
   await capture('desktop-portrait-upload');
   assert.equal(meta(portrait).width, 1200);
   assert.equal(await privateStatus(portrait), 200);
   assert.equal((await publicMedia(portrait)).status, 404);
   const name = 'Profil testowy z portretem';
   const member = () => sql('SELECT * FROM team_members WHERE name=?', [name])[0];
-  await wire('CreateTeamMember', 'create', { name, role: 'Stanowisko testowe', team_group: 'support' });
+  await wire('CreateTeamMember', 'create', { name, role: 'Stanowisko testowe', team_group: 'support', portrait_selection: 'uploaded' });
   assert.equal(member().portrait_media_id, portrait);
   assert.equal((await publicMedia(portrait)).headers.get('content-type'), 'image/webp');
   assert.match((await publicMedia(portrait)).headers.get('cache-control'), /no-store/);
   assert((await (await fetch(app.origin + '/zespol/')).text()).includes('/media/' + portrait));
   assert(!(await (await fetch(app.origin + '/')).text()).includes('/media/' + portrait));
   sql('UPDATE team_members SET homepage_partner=1, display_order=0 WHERE id=?', [member().id]);
-  await browser.navigate(app.origin);
-  await until(() => evaluate(id => document.querySelector('.home-team-portrait[src="/media/' + id + '"]') !== null, portrait),
-    'homepage uses the public portrait of a featured partner');
-  const teamScene = await evaluate(() => {
-    const section = document.querySelector('.home-profile');
-    return { top: section.getBoundingClientRect().top + scrollY, hold: parseFloat(section.style.getPropertyValue('--stage-hold')) };
-  });
-  assert(teamScene.hold > 0);
-  const framePortrait = async y => {
-    await evaluate(async y => {
-      scrollTo({ top: y, behavior: 'instant' });
-      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-    }, y);
-    return evaluate(() => getComputedStyle(document.querySelector('.home-team-portrait')).clipPath);
-  };
-  const readingClip = await framePortrait(teamScene.top + teamScene.hold * .25);
-  const movingClip = await framePortrait(teamScene.top + teamScene.hold + 160);
-  assert.equal(readingClip, 'inset(0px 0px 100%)');
-  assert.notEqual(movingClip, readingClip);
-  await until(() => evaluate(() => document.querySelector('.home-team-portrait').naturalWidth > 0), 'public portrait loads');
-  await capture('desktop-homepage-partner-transition');
-  assert.equal(await framePortrait(teamScene.top + teamScene.hold * .25), readingClip);
+  const homepage = await (await fetch(app.origin + '/')).text();
+  assert(homepage.includes(name) && homepage.includes('Stanowisko testowe'));
+  assert(!homepage.includes('/media/' + portrait));
+  assert((await (await fetch(app.origin + '/zespol/')).text()).includes('/media/' + portrait));
 
   await visit('/zespol/' + member().id + '/edytuj');
+  await wire('EditTeamMember', 'save', { portrait_selection: 'none' });
+  assert.equal(member().portrait_source, 'none');
+  assert.equal(member().portrait_media_id, portrait);
+  assert.equal((await publicMedia(portrait)).status, 404);
+  assert.equal(await privateStatus(portrait), 200);
+  assert(!(await (await fetch(app.origin + '/zespol/')).text()).includes('/media/' + portrait));
+  await visit('/zespol/' + member().id + '/edytuj');
+  const portraitSelection = () => evaluate(selector => document.querySelector(selector)?.value, portraitField);
+  assert.equal(await portraitSelection(), 'none');
+  await until(() => evaluate(id => {
+    const preview = document.querySelector('img[src$="/media-panel/' + id + '"]');
+    return preview?.complete && preview.naturalWidth > 0;
+  }, portrait), 'hidden portrait has a private preview');
+  await wire('EditTeamMember', 'save', { portrait_selection: 'uploaded' });
+  assert.equal(member().portrait_source, 'uploaded');
+  assert.equal((await publicMedia(portrait)).status, 200);
+  await visit('/zespol/' + member().id + '/edytuj');
+  assert.equal(await portraitSelection(), 'uploaded');
   const replacement = await uploadFile(fixture.jpeg);
   assert.equal((await publicMedia(portrait)).status, 200, 'old association survives until save');
   await wire('EditTeamMember', 'save');
@@ -204,7 +207,6 @@ test('managed media uploads, editorial references and delivery respect the artic
   await stored(portrait);
   await visit('/zespol');
   await action('ListTeamMembers', 'delete', member().id);
-  assert(!(await (await fetch(app.origin + '/')).text()).includes('/media/' + replacement));
   assert.equal((await publicMedia(replacement)).status, 404);
   await stored(replacement);
   await action('ListTeamMembers', 'restore', member().id);

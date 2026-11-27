@@ -90,7 +90,8 @@ final class MediaReferences
         if ($media->purpose === MediaPurpose::Portrait) {
             $team = TeamMember::find($media->record_id);
 
-            return $team && $team->portrait_media_id === $media->id && (! $user || Gate::forUser($user)->allows('update', $team));
+            return $team && $team->portrait_media_id === $media->id
+                && ($user ? Gate::forUser($user)->allows('update', $team) : $team->portrait_source === 'uploaded');
         }
 
         $article = ($user ? Article::query() : Article::published())->find($media->record_id);

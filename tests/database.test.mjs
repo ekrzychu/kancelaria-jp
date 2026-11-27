@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile, rename, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { php, startSite } from './support/site.mjs';
@@ -150,4 +150,41 @@ test('homepage selection migration preserves the previous visible order', async 
   artisan(['migrate', '--force']);
   assert.deepEqual(rows(database, 'SELECT slug FROM specializations WHERE homepage_featured ORDER BY display_order,id'), previouslyVisible);
   assert.equal(rows(database, 'SELECT COUNT(*) AS total FROM specializations')[0].total, 13);
+});
+
+test('forward migrations preserve offer data and existing portrait visibility', async t => {
+  const paths = ['2026_11_27_000008_expand_job_offers.php', '2026_11_27_000009_select_public_team_portraits.php'];
+  const migration = (dir, file) => join(dir, 'database', 'migrations', file);
+  const { dir, database, artisan, stop } = await startSite({
+    importContent: false, serve: false,
+    prepare: dir => Promise.all(paths.map(file => rename(migration(dir, file), join(dir, file)))),
+  });
+  t.after(stop);
+  const titles = ['Łódź – radca prawny', 'Łódź – radca prawny', 'Dodaj'];
+  for (const [index, title] of titles.entries()) {
+    rows(database, 'INSERT INTO job_offers (title,description,url,status,display_order,deleted_at) VALUES (?,?,?,?,?,?)',
+      [title, 'Opis ogłoszenia', '/kontakt/', index === 0 ? 'open' : 'closed', index + 1, index === 1 ? '2026-11-01' : null]);
+  }
+  const id = 'a'.repeat(32);
+  rows(database, "INSERT INTO users (id,name,email,password) VALUES (1,'Profil testowy','migration@example.test','test')");
+  rows(database, "INSERT INTO media_images (id,user_id,session_version,purpose,width,height) VALUES (?,1,0,'portrait',100,125)", [id]);
+  for (const [index, [portrait, upload]] of [[null, null], ['existing.webp', null], ['legacy.webp', id]].entries()) {
+    rows(database, "INSERT INTO team_members (name,role,portrait,portrait_media_id,team_group,display_order) VALUES (?,'Radca prawny',?,?,'support',?)",
+      ['Profil ' + index, portrait, upload, index + 1]);
+  }
+  await Promise.all(paths.map(file => rename(join(dir, file), migration(dir, file))));
+  artisan(['migrate', '--force', '--no-ansi']);
+
+  const offers = rows(database, 'SELECT slug,title,description,url,status,display_order,deleted_at,requirements FROM job_offers ORDER BY id');
+  assert.deepEqual(offers.map(offer => offer.slug), ['lodz-radca-prawny', 'lodz-radca-prawny-2', 'dodaj-2']);
+  assert.deepEqual(offers.map(offer => offer.title), titles);
+  assert.deepEqual(offers.map(offer => offer.status), ['open', 'closed', 'closed']);
+  assert.deepEqual(offers.map(offer => offer.display_order), [1, 2, 3]);
+  assert(offers[1].deleted_at);
+  assert(offers.every(offer => offer.description === 'Opis ogłoszenia' && offer.url === '/kontakt/' && offer.requirements === null));
+  assert.deepEqual(rows(database, 'SELECT portrait,portrait_media_id,portrait_source FROM team_members ORDER BY id'), [
+    { portrait: null, portrait_media_id: null, portrait_source: 'none' },
+    { portrait: 'existing.webp', portrait_media_id: null, portrait_source: 'existing' },
+    { portrait: 'legacy.webp', portrait_media_id: id, portrait_source: 'uploaded' },
+  ]);
 });

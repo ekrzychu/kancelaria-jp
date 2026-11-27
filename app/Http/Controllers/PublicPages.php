@@ -6,6 +6,7 @@ use App\Content\PublicationContent;
 use App\Content\SiteContent;
 use App\Models\Article;
 use App\Models\ContactMessage;
+use App\Models\JobOffer;
 use App\Support\PublicUrl;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -58,6 +59,16 @@ final class PublicPages
     public function career(): Response
     {
         return $this->page('career', 'Kariera', ['vacancies' => $this->content->openVacancies()]);
+    }
+
+    public function job(string $slug): Response
+    {
+        $job = JobOffer::open()->where('slug', $slug)->first();
+
+        return $job === null ? $this->notFound() : $this->page('job', $job->title, [
+            'job' => $job,
+            'description' => $job->description,
+        ]);
     }
 
     public function legacyArchive(): Response
@@ -172,11 +183,20 @@ final class PublicPages
         $documents = $this->content->site()['documents'] ?? [];
         $document = SiteContent::findBySlug($documents, $slug);
 
-        return $document === null ? $this->notFound() : $this->page('document', $document['title'], [
+        if ($document === null || ! view()->exists('pages.documents.'.$slug)) {
+            return $this->notFound();
+        }
+
+        return $this->page('documents.'.$slug, $document['title'], [
             'document' => $document,
             'description' => $document['summary'],
             'robots' => 'noindex,follow',
         ]);
+    }
+
+    public function legacyDocument(string $document): Response
+    {
+        return PublicUrl::redirect($this->request, '/dokumenty/'.$document.'/');
     }
 
     public function notFound(): Response

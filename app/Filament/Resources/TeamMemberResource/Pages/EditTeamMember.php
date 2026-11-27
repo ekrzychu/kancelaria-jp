@@ -22,6 +22,12 @@ final class EditTeamMember extends EditContent
     {
         $this->originalPortrait = $this->portraitHash($this->record);
 
+        $data['portrait_selection'] = match ($this->record->portrait_source) {
+            'uploaded' => $this->record->portrait_media_id ? 'uploaded' : 'none',
+            'existing' => $this->record->publicPortraitUrl() ? $this->record->portrait : 'none',
+            default => 'none',
+        };
+
         return $data;
     }
 
@@ -42,6 +48,6 @@ final class EditTeamMember extends EditContent
 
     private function portraitHash(TeamMember $record): string
     {
-        return hash('sha256', serialize([$record->portrait, $record->portrait_media_id]));
+        return hash('sha256', serialize([$record->portrait_source, $record->portrait, $record->portrait_media_id]));
     }
 }

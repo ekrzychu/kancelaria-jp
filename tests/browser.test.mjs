@@ -50,6 +50,73 @@ test('browser regression against the Laravel application', async t => {
     }
   });
 
+  await t.test('header enters at load and document list reveals use the shared animation', async () => {
+    await browser.viewport(1440, 900);
+    await reduced('no-preference');
+    const preload = await browser.call('Page.addScriptToEvaluateOnNewDocument', {
+      source: `window.brandEntrances = 0;
+        document.addEventListener('animationstart', e => {
+          if (e.target.matches('.site-header .brand') && e.animationName === 'editorial-enter') window.brandEntrances++;
+        });`,
+    });
+    try {
+      await visit('/o-kancelarii/');
+      await until(() => evaluate(() => window.brandEntrances === 1), 'header animation starts before scrolling');
+      const visual = () => evaluate(() => {
+        const style = getComputedStyle(document.querySelector('.header-bar'));
+        return [style.filter, style.backdropFilter];
+      });
+      assert.deepEqual(await visual(), ['none', 'none']);
+      await scroll(await evaluate(() => document.documentElement.scrollHeight));
+      await until(() => evaluate(() => {
+        const entries = [...document.querySelectorAll('.about-document-list li')];
+        return entries.every(row => getComputedStyle(row).animationName === 'editorial-enter')
+          && Number.parseFloat(getComputedStyle(entries[2]).animationDelay) > Number.parseFloat(getComputedStyle(entries[0]).animationDelay);
+      }), 'staggered document entries');
+      await scroll(0);
+      assert.deepEqual(await visual(), ['none', 'none']);
+      assert.equal(await evaluate(() => window.brandEntrances), 1);
+      await reduced('reduce');
+      await visit('/dokumenty/strategia-esg/');
+      assert(await evaluate(() => getComputedStyle(document.querySelector('.brand')).animationName === 'none'
+        && [...document.querySelectorAll('.document-goals li')].map(li => li.value).join() === '4,5,8,10,16'));
+      await evaluate(() => document.querySelector('.article-contents a[href="#cele"]').click());
+      assert.equal(await evaluate(() => location.hash), '#cele');
+    } finally {
+      await browser.call('Page.removeScriptToEvaluateOnNewDocument', { identifier: preload.identifier });
+      await reduced('no-preference');
+    }
+  });
+
+  await t.test('team layouts keep generous portrait frames and omit hidden images', async () => {
+    app.database.query([
+      { sql: "UPDATE team_members SET portrait='office-reception-800.webp', portrait_source='existing' WHERE team_group='leadership' ORDER BY id LIMIT 1" },
+      { sql: "UPDATE team_members SET portrait='office-meeting-760.webp', portrait_source='existing', name=? WHERE team_group='support' ORDER BY id LIMIT 1",
+        params: ['Aleksandra Przykładowa-Kowalczyk Wójtowicz-Żurawska'] },
+    ]);
+    for (const [width, height, columns] of [[1920, 1080, 4], [1440, 900, 4], [820, 1180, 2], [390, 844, 1]]) {
+      await browser.viewport(width, height, width < 600);
+      await visit('/zespol/');
+      const state = await evaluate(async () => {
+        const leader = document.querySelector('.team-group--leadership .team-list');
+        const photo = leader.querySelector('.team-portrait');
+        const frame = photo.parentElement.getBoundingClientRect();
+        return {
+          columns: getComputedStyle(leader).gridTemplateColumns.split(' ').length,
+          portraitWidth: frame.width,
+          ratio: frame.width / frame.height,
+          uncropped: getComputedStyle(photo).objectFit === 'contain',
+          src: (await photo.decode().then(() => photo.naturalWidth > 0)),
+          textOnly: !!leader.querySelector('.team-person:not(.has-portrait):not(:has(img))'),
+          overflow: document.documentElement.scrollWidth > innerWidth,
+        };
+      });
+      assert.equal(state.columns, columns);
+      assert(state.portraitWidth > 200 && Math.abs(state.ratio - .8) < .01);
+      assert(state.src && state.uncropped && state.textOnly && !state.overflow);
+    }
+  });
+
   await t.test('first Tab reveals the skip link and moves focus into main', async () => {
     for (const [w, h, mobile] of [[1440, 900, false], [390, 844, true]]) {
       await browser.viewport(w, h, mobile);
@@ -101,11 +168,12 @@ test('browser regression against the Laravel application', async t => {
   await t.test('homepage stages progress forward and backward and survive resize and reload', async () => {
     await browser.viewport(1440, 900);
     await visit('/');
-    const stages = () => evaluate(() => [...document.querySelectorAll('[data-home-stage]')].map(el => ({
-      id: el.dataset.homeStage, start: el.getBoundingClientRect().top + scrollY,
-      hold: parseFloat(el.style.getPropertyValue('--stage-hold')) || 0,
-      pinned: el.hasAttribute('data-pinned'),
-    })));
+    const stages = () => evaluate(() => [...document.querySelectorAll('[data-home-stage]')].map(el => {
+      const { top, height } = el.getBoundingClientRect();
+      const viewport = el.querySelector('.home-stage-viewport').getBoundingClientRect().height;
+      const pinned = el.hasAttribute('data-pinned');
+      return { id: el.dataset.homeStage, start: top + scrollY, hold: pinned ? height - viewport : 0, height, viewport, pinned };
+    }));
     const initial = await stages();
     assert.deepEqual(initial.map(stage => stage.id), ['hero', 'practices', 'publications', 'profile', 'office', 'clients']);
     const desktopCapabilities = await evaluate(() => ({
@@ -113,7 +181,13 @@ test('browser regression against the Laravel application', async t => {
       finePointer: matchMedia('(pointer: fine)').matches,
       viewport: [innerWidth, innerHeight],
     }));
+    const sharedDuration = scenes => {
+      const { hold, height, viewport } = scenes[0];
+      assert(scenes.every(stage => stage.pinned && stage.hold === hold && stage.height === height && stage.viewport === viewport)
+        && hold === viewport / 2 && height === viewport + hold, 'Expected equal fullscreen dimensions: ' + JSON.stringify(scenes));
+    };
     assert(initial.every(stage => stage.pinned && stage.hold > 0), 'Expected full-screen stages with ' + JSON.stringify(desktopCapabilities));
+    sharedDuration(initial);
     assert(await evaluate(() => {
       const photo = document.querySelector('.home-hero-photo');
       return photo.offsetParent.matches('.home-stage-content')
@@ -154,10 +228,12 @@ test('browser regression against the Laravel application', async t => {
           assert.deepEqual([box[0], ...box.slice(2)], [original[0], ...original.slice(2)], stage.id + ' preserves horizontal position and size');
           return original[1] - box[1] - readOffset;
         });
-        assert(travel.every(distance => distance > 25) && Math.max(...travel) > 80,
+        const moving = stage.id === 'hero' ? travel.slice(0, 2) : travel;
+        assert(moving.every(distance => distance > 25) && Math.max(...moving) > 80,
           stage.id + ' adds substantial upward travel beyond the section scroll: ' + travel);
         if (stage.id === 'hero') {
-          assert(Math.abs(travel[0] - travel[1]) < .03 && travel[0] - travel[2] > 80, 'hero copy leads the photograph together');
+          assert(Math.abs(travel[0] - travel[1]) < .03 && travel[0] > 100 && Math.abs(travel[2]) < .03,
+            'hero copy moves together while the image frame stays anchored');
         }
         if (stage.id === 'office') {
           assert(travel[1] - travel[0] > 20, 'office copy leads the image crop');
@@ -177,14 +253,107 @@ test('browser regression against the Laravel application', async t => {
           stage.id + ' has no position jump at the sticky boundary');
       }
     }
-    const office = initial.find(stage => stage.id === 'office');
-    const officePhoto = '.home-office-photo';
-    await sample(office.start - 360, officePhoto);
-    const officeClip = () => evaluate(() => getComputedStyle(document.querySelector('.home-office-photo')).clipPath);
-    const approachingClip = await officeClip();
-    await sample(office.start + office.hold * .3, officePhoto);
-    assert.notEqual(approachingClip, await officeClip(), 'the frame crops the doorway on approach');
-    assert.equal(await officeClip(), 'inset(0px 0px 0%)', 'the doorway is fully visible at the reading position');
+    const photographs = async scenes => {
+      const [hero] = scenes;
+      const office = scenes.find(stage => stage.id === 'office');
+      const readPhoto = name => evaluate(name => {
+        const section = document.querySelector('.home-' + name);
+        const frame = section.querySelector('picture');
+        const box = frame.getBoundingClientRect();
+        const image = frame.querySelector('img');
+        const crop = image.getBoundingClientRect();
+        const viewport = section.querySelector('.home-stage-viewport').getBoundingClientRect();
+        return {
+          top: box.top - viewport.top, bottom: viewport.bottom - box.bottom,
+          imageTop: crop.top - box.top, imageBottom: box.bottom - crop.bottom,
+          clip: getComputedStyle(frame).clipPath, crop: getComputedStyle(image).objectPosition,
+        };
+      }, name);
+      await sample(hero.start + hero.hold * .3, '.home-hero-photo');
+      const readingHero = await readPhoto('hero');
+      for (const y of [hero.hold * .7, hero.hold, hero.hold + 180, hero.hold * .3]) {
+        await sample(hero.start + y, '.home-hero-photo');
+        const shot = await readPhoto('hero');
+        assert(Math.abs(shot.top - readingHero.top) < .1 && shot.bottom <= .1, 'hero frame meets its scene edges');
+        assert(shot.imageTop <= .1 && shot.imageBottom <= .1, 'hero image covers its frame');
+        if (y >= hero.hold) assert.notEqual(shot.crop, readingHero.crop, 'parallax stays inside the anchored hero frame');
+      }
+      await sample(office.start + office.hold * .3, '.home-office-photo');
+      const readingOffice = await readPhoto('office');
+      assert.equal(readingOffice.clip, 'inset(0px 0px 0%)');
+      for (const y of [office.start - 520, office.start - 340, office.start - 180, office.start - 30, office.start + office.hold + 150]) {
+        await sample(y, '.home-office-photo');
+        const shot = await readPhoto('office');
+        assert(shot.top > 0 && shot.bottom > 0 && Math.abs(shot.top - readingOffice.top) < .1,
+          'office frame stays clear of the scene boundaries');
+        assert(shot.imageTop <= .1 && shot.imageBottom <= .1, 'office image fills the aperture');
+        if (y < office.start) assert.notEqual(shot.clip, readingOffice.clip, 'office entrance mask opens before the reading pose');
+      }
+    };
+    await photographs(initial);
+    const readableScenes = async scenes => {
+      for (const stage of scenes) {
+        await sample(stage.start + stage.hold * .4, '[data-home-stage="' + stage.id + '"]');
+        assert(await evaluate(id => {
+          const section = document.querySelector('[data-home-stage="' + id + '"]');
+          const frame = section.querySelector('.home-stage-viewport').getBoundingClientRect();
+          return [...section.querySelectorAll('h1, h2, h3, a, p, small, address')].every(element => {
+            const box = element.getBoundingClientRect();
+            return box.top >= frame.top - .1 && box.bottom <= frame.bottom + .1;
+          });
+        }, stage.id), stage.id + ' keeps its readable content inside the pinned viewport');
+      }
+    };
+    await readableScenes(initial);
+
+    const publications = initial.find(stage => stage.id === 'publications');
+    const articleState = () => evaluate(() => {
+      const scene = document.querySelector('.home-publications');
+      const list = scene.querySelector('.home-publications-list');
+      return {
+        translation: getComputedStyle(list).translate,
+        opacity: [...list.children].map(item => Number(getComputedStyle(item).opacity)),
+        headingOpacity: Number(getComputedStyle(scene.querySelector('.home-publications-heading')).opacity),
+        animated: scene.getAnimations({ subtree: true }).some(animation => animation.animationName === 'editorial-enter'),
+      };
+    });
+    const articlePositions = [];
+    for (const remaining of [510, 480, 450, 420, 390, 360]) {
+      articlePositions.push(await sample(publications.start - remaining, '.home-publications-list li'));
+    }
+    const approaching = await articleState();
+    assert(approaching.headingOpacity > approaching.opacity[0] && approaching.opacity[0] > approaching.opacity[1]
+      && approaching.opacity[1] > approaching.opacity[2], 'heading and articles are revealed in editorial order');
+    assert.equal(approaching.translation, 'none');
+    assert(!approaching.animated, 'fullscreen publications have no timed entrance animation');
+    for (let i = 1; i < articlePositions.length; i++) {
+      assert(articlePositions[i].every((box, index) => {
+        const distance = articlePositions[i - 1][index][1] - box[1];
+        return distance >= 29 && distance < 40;
+      }), 'publication layers travel continuously on approach');
+    }
+    assert.deepEqual(await sample(publications.start - 450, '.home-publications-list li'), articlePositions[2],
+      'publication entrance retraces the same path');
+    for (const boundary of [publications.start, publications.start + publications.hold]) {
+      const positions = [];
+      for (const offset of [-6, 0, 6]) {
+        const [[, y]] = await sample(boundary + offset, '.home-publications-heading');
+        positions.push(y);
+      }
+      assert(Math.abs((positions[0] - positions[1]) - (positions[1] - positions[2])) < 1,
+        'publication heading maintains its speed across the sticky boundary');
+    }
+    for (const [width, height] of [[1920, 1080], [1280, 800]]) {
+      await scroll(0);
+      await browser.viewport(width, height);
+      await until(async () => (await stages()).every(stage => stage.pinned && stage.viewport === height), 'desktop fullscreen sizing');
+      const scenes = await stages();
+      sharedDuration(scenes);
+      await photographs(scenes);
+      await readableScenes(scenes);
+    }
+    await browser.viewport(1440, 900);
+    await until(async () => (await stages()).every(stage => stage.viewport === 900), 'restore original fullscreen sizing');
     assert(await evaluate(() => {
       const number = document.querySelector('.home-experience-number');
       return number.textContent.trim() === number.dataset.finalValue;
@@ -486,6 +655,11 @@ test('browser regression against the Laravel application', async t => {
         && document.querySelectorAll('#publication-list a:not([hidden])').length === count, data.articles.length));
       await visit(pathOf(data.articles[0]));
       assert(await evaluate(() => !!document.querySelector('.article-body').innerText.trim()));
+      await visit('/dokumenty/kodeks-etyczny/');
+      assert(await evaluate(() => {
+        const link = document.querySelector('[href="#zgloszenia"]');
+        return !!link?.getClientRects().length && getComputedStyle(document.querySelector('#zgloszenia')).opacity === '1';
+      }));
     } finally {
       await browser.call('Emulation.setScriptExecutionDisabled', { value: false });
     }

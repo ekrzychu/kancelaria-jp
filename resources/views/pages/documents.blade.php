@@ -9,7 +9,7 @@
 </section>
 
 <section class="section" aria-label="Lista dokumentów">
-  <div class="container editorial-list" data-reveal-children>
+  <div class="container editorial-list" data-reveal-children data-reveal-sequence>
     @foreach ($site['documents'] as $doc)
       <a class="editorial-row" href="/dokumenty/{{ $doc['slug'] }}/">
         <span class="row-title">{{ $doc['title'] }}</span>

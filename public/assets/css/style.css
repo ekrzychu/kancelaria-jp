@@ -1357,14 +1357,16 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
   background: var(--surface);
 }
 
-.about-brand-upright {
-  fill: var(--paper);
-  stroke: var(--taupe);
-  stroke-width: .65;
+.about-brand-monogram {
+  fill: var(--taupe);
 }
 
-.about-brand-bowl {
-  fill: var(--taupe);
+.about-brand-guides {
+  fill: none;
+  stroke: var(--taupe);
+  stroke-opacity: .58;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
 }
 
 .about-identity > .about-frame {
@@ -1741,18 +1743,6 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  [data-reveal="subtle"] {
-    --enter-y: 6px;
-    --enter-duration: 340ms;
-    --enter-opacity: 0;
-  }
-
-  [data-reveal-sequence] {
-    --enter-y: 24px;
-    --enter-duration: 460ms;
-    --enter-opacity: .28;
-  }
-
   :is(.about-steps, .career-steps).is-scroll-enhanced :is(.about-step, .career-step):not(.is-revealed) :is(.about-step-copy, .career-step-copy) {
     opacity: 0;
   }
@@ -1761,10 +1751,6 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
     --enter-y: 30px;
     --enter-opacity: .46;
     animation: editorial-enter 500ms var(--motion-ease) backwards;
-  }
-
-  [data-reveal-sequence] [data-reveal].is-revealed {
-    animation-delay: var(--reveal-delay, 0ms);
   }
 
   .about-action-arrow,
@@ -1846,20 +1832,27 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
 
 .team-person.has-portrait {
   display: grid;
-  grid-template-columns: clamp(3.25rem, 6vw, 5.5rem) minmax(0, 1fr);
+  grid-template-columns: clamp(5.25rem, 8vw, 7.25rem) minmax(0, 1fr);
   align-items: start;
-  gap: .85rem;
+  gap: clamp(.85rem, 1.4vw, 1.5rem);
+}
+
+.team-portrait-frame {
+  aspect-ratio: 4 / 5;
 }
 
 .team-portrait {
+  display: block;
   width: 100%;
-  aspect-ratio: 4 / 5;
-  object-fit: cover;
+  height: 100%;
+  object-fit: contain;
+  object-position: left center;
 }
 
 .team-person h3 {
   font-size: clamp(1.35rem, 1.65vw, 1.85rem);
   line-height: 1.18;
+  overflow-wrap: anywhere;
 }
 
 .team-person p {
@@ -1876,12 +1869,21 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
 }
 
 .team-group--leadership .team-person {
-  padding-block: clamp(1.25rem, 2.4vw, 3rem);
+  display: block;
+  padding-block: clamp(1rem, 2vw, 2rem);
+}
+
+.team-group--leadership .team-portrait-frame {
+  margin-block-end: 1rem;
+}
+
+.team-group--leadership .team-portrait {
+  object-position: center bottom;
 }
 
 .team-group--leadership .team-person h3 {
-  font-size: clamp(1.95rem, 3.2vw, 3.75rem);
-  letter-spacing: -.04em;
+  font-size: clamp(1.5rem, 1.85vw, 2.25rem);
+  letter-spacing: -.025em;
 }
 
 .team-group--leadership .team-person p {
@@ -1929,6 +1931,12 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
 
   .team-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 82rem) {
+  .team-group--leadership .team-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
@@ -2027,6 +2035,87 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
 
 .career-opening:last-child {
   border-block-end: 1px solid var(--line);
+}
+
+.job-back {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 2.75rem;
+  color: var(--burgundy);
+}
+
+.job-intro .button {
+  margin-block-start: 1rem;
+}
+
+.job-layout {
+  display: grid;
+  align-items: start;
+  gap: clamp(2rem, 5vw, 6rem);
+  padding-block-end: clamp(3.5rem, 6vw, 7.5rem);
+}
+
+.job-summary,
+.job-section {
+  border-block-start: 1px solid var(--line);
+  padding-block-start: 1.15rem;
+}
+
+.job-summary h2,
+.job-section h2 {
+  margin-block: 0 1rem;
+  font-size: clamp(1.45rem, 2vw, 2.1rem);
+}
+
+.job-facts {
+  display: grid;
+  gap: .8rem 1.2rem;
+  margin: 0;
+}
+
+.career-opening .job-facts {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+  max-inline-size: 38rem;
+  margin-block: .9rem .35rem;
+}
+
+.job-facts dt {
+  color: var(--text-muted);
+  font-size: var(--type-small);
+}
+
+.job-facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.job-reading {
+  min-inline-size: 0;
+  max-inline-size: 68ch;
+  overflow-wrap: anywhere;
+}
+
+.job-section + .job-section {
+  margin-block-start: clamp(1.5rem, 3vw, 3rem);
+}
+
+.job-section h3 {
+  margin-block: 1.2rem .45rem;
+  font-size: 1.1em;
+}
+
+.job-section ul {
+  padding-inline-start: 1.45em;
+}
+
+.job-copy {
+  white-space: pre-line;
+}
+
+@media (min-width: 48rem) {
+  .job-layout:has(.job-summary) {
+    grid-template-columns: minmax(13rem, .6fr) minmax(0, 1.4fr);
+  }
 }
 
 .career-process {
@@ -2933,6 +3022,38 @@ main:has(.archive-empty) + .site-footer {
   }
 }
 
+.document-detail .section-kicker {
+  margin-block-end: .5rem;
+}
+
+.document-note {
+  border-inline-start: 2px solid var(--taupe);
+  margin-block: 1rem 0;
+  padding-inline-start: .8rem;
+  color: var(--text-muted);
+}
+
+.document-detail .article-body > section + section {
+  margin-block-start: clamp(2.35rem, 4vw, 4rem);
+}
+
+.document-detail .article-body section > * + * {
+  margin-block-start: .8em;
+}
+
+.document-goals li {
+  border-block-start: 1px solid var(--line);
+  padding-block: .65rem;
+}
+
+.document-goals li::marker {
+  font-weight: 600;
+}
+
+.document-detail .article-body > .text-action {
+  margin-block-start: 2rem;
+}
+
 /* Contact */
 
 .contact-hero,
@@ -3614,42 +3735,41 @@ main:has(.archive-empty) + .site-footer {
   }
 
   :is([data-reveal], [data-reveal-children] > *).is-revealed {
-    animation: editorial-enter var(--enter-duration) var(--motion-ease) backwards;
+    animation: editorial-enter var(--enter-duration) var(--motion-ease) var(--reveal-delay, 0ms) backwards;
   }
 
-  :is([data-reveal="subtle"], [data-reveal="service-row"], [data-reveal="publication-row"], [data-reveal="team-person"], .about-document-list li).is-awaiting-reveal:not(:focus-within) {
-    opacity: 0;
-    pointer-events: none;
+  body:not(.homepage) :is([data-reveal], [data-reveal-children] > *) {
+    --enter-duration: 460ms;
+    --enter-y: 24px;
+    --enter-opacity: .28;
   }
 
-  .contact-form[data-reveal]:is(:target, :focus-within) {
-    opacity: 1;
-    pointer-events: auto;
+  :is(.site-header .brand, .site-header .nav-link, .site-header .menu-button) {
+    --enter-y: 8px;
+    --enter-opacity: .35;
+    animation: editorial-enter 460ms var(--motion-ease) var(--header-enter-delay, 0ms) backwards;
+  }
+
+  .site-header :is(.nav-link, .menu-button) {
+    --header-enter-delay: 60ms;
+  }
+
+  .site-header .nav-link:nth-child(n+4) {
+    --header-enter-delay: 110ms;
+  }
+
+  :is([data-reveal].is-revealed, [data-reveal-children] > .is-revealed):focus-within,
+  :is([data-reveal].is-revealed, [data-reveal-children] > .is-revealed):is(:target, :has(:target)) {
     animation: none;
+  }
+
+  .site-header :is(.brand, .nav-link, .menu-button):focus-within {
+    opacity: 1 !important;
+    transform: none !important;
   }
 
   .contact-methods .contact-action:is(:hover, :focus-visible) .contact-arrow {
     translate: .25rem;
-  }
-
-  :is([data-reveal="service-row"], [data-reveal="publication-row"]) {
-    --enter-y: 16px;
-    --enter-duration: 380ms;
-    --enter-opacity: 0;
-  }
-
-  [data-reveal="team-person"] {
-    --enter-y: 23px;
-    --enter-duration: 460ms;
-    --enter-opacity: .28;
-  }
-
-  [data-reveal-sequence] [data-reveal="team-person"].is-revealed {
-    animation-delay: min(var(--reveal-delay, 0ms), 180ms);
-  }
-
-  [data-reveal-sequence] .publication-entry.is-revealed {
-    animation-delay: min(var(--reveal-delay, 0ms), 160ms);
   }
 
   a.editorial-row > * {
@@ -3735,6 +3855,7 @@ main:has(.archive-empty) + .site-footer {
 /* Each fullscreen scene holds at the top, then leaves with its section in document flow. */
 .homepage {
   --stage-height: 100dvh;
+  --stage-hold: 50dvh;
   --stage-top: max(4.75rem, 8dvh);
   --stage-bottom: max(4.25rem, 7dvh);
 }
@@ -3774,18 +3895,37 @@ main:has(.archive-empty) + .site-footer {
   --stage-bottom: max(4.5rem, 12dvh);
 }
 
-/* Carry the title and introduction out together while the frame and its crop travel more slowly. */
-.home-hero[data-pinned] :is(.home-hero-heading, .home-hero-intro) {
-  translate: 0 calc(-22dvh * var(--stage-departure, 0));
+/* Each editorial layer has one translation, with a still pose between entrance and exit. */
+[data-pinned] :is(.home-hero-heading, .home-hero-intro, .home-publications-heading, .home-publications-list li,
+  .home-profile-statement, .home-profile-side, .home-team, .home-office-copy, .home-clients h2, .home-client-logos) {
+  translate: 0 calc(var(--scene-rise) * var(--stage-arrival, 0) - var(--scene-leave) * var(--stage-departure, 0) +
+    var(--stage-settle, 0px));
+  opacity: calc(1 - var(--scene-veil, .82) * var(--stage-arrival, 0));
 }
 
+[data-pinned] :is(.home-hero-heading, .home-hero-intro, .home-publications-heading, .home-publications-list li,
+  .home-profile-statement, .home-profile-side, .home-team, .home-office-copy,
+  .home-practices-intro, .home-practices-rail):focus-within {
+  opacity: 1;
+}
+
+[data-pinned] :is(.home-publications-heading h2, .home-profile-statement h2, .home-clients h2) {
+  clip-path: inset(-.14em -.12em calc(24% * var(--stage-arrival, 0) - .14em) -.12em);
+}
+
+.home-hero[data-pinned] :is(.home-hero-heading, .home-hero-intro) {
+  --scene-rise: 3dvh;
+  --scene-leave: 22dvh;
+  --scene-veil: .22;
+}
+
+/* The reception frame keeps the existing burgundy blend and covers the viewport to its foot. */
 .home-hero[data-pinned] .home-hero-photo {
   inset-block-end: -1.5rem;
-  translate: 0 calc(-6dvh * var(--stage-departure, 0));
 }
 
 .home-hero[data-pinned] .home-hero-photo img {
-  object-position: center calc(42% + 36% * var(--stage-departure, 0));
+  object-position: center calc(42% - 8% * var(--stage-arrival, 0) + 36% * var(--stage-departure, 0));
 }
 
 #specjalizacje[data-pinned] {
@@ -3798,13 +3938,15 @@ main:has(.archive-empty) + .site-footer {
 }
 
 .home-practices[data-pinned] .home-practices-intro {
-  translate: 0 calc(var(--heading-travel, 0px) * var(--stage-progress, 0));
+  translate: 0 calc(5dvh * var(--stage-arrival, 0) + var(--heading-travel, 0px) * var(--stage-progress, 0));
+  opacity: calc(1 - .7 * var(--stage-arrival, 0));
 }
 
 .home-practices[data-pinned] .home-practices-rail {
   overflow: clip;
   padding: 6px;
-  translate: 0 calc(.53125rem - clamp(1.875rem, 3.4dvh, 2.75rem) * var(--stage-progress, 0));
+  translate: 0 calc(.53125rem + 7dvh * var(--stage-arrival, 0) - clamp(1.875rem, 3.4dvh, 2.75rem) * var(--stage-progress, 0));
+  opacity: calc(1 - .82 * var(--stage-arrival, 0));
 }
 
 .home-practices[data-pinned] .home-practice-list {
@@ -3820,46 +3962,36 @@ main:has(.archive-empty) + .site-footer {
   padding-inline-start: .75rem;
 }
 
-/* Let the lead arrive first, with the related articles travelling together behind it. */
+/* Lead with the heading, then the feature, then the related articles. */
 .home-publications[data-pinned] .home-publications-heading {
-  translate: 0 calc(-13dvh * var(--stage-arrival, 0) - 17dvh * var(--stage-departure, 0));
+  --scene-rise: 3dvh;
+  --scene-leave: 17dvh;
+  --scene-veil: .55;
 }
 
-.home-publications[data-pinned] .home-publications-list {
-  translate: 0 calc(-8dvh * var(--stage-arrival, 0) - 13dvh * var(--stage-departure, 0));
+.home-publications[data-pinned] .home-publications-list li {
+  --scene-rise: 6dvh;
+  --scene-leave: 13dvh;
 }
 
-.home-publications[data-pinned] .home-publications-list li:not(:first-child) {
-  translate: 0 calc(5dvh * var(--stage-arrival, 0));
+.home-publications[data-pinned] .home-publications-list li:nth-child(2) {
+  --scene-rise: 9dvh;
+  --scene-veil: .93;
+}
+
+.home-publications[data-pinned] .home-publications-list li:nth-child(n+3) {
+  --scene-rise: 12dvh;
+  --scene-veil: 1;
 }
 
 .home-profile[data-pinned] :is(.home-profile-statement, .home-profile-side) {
-  translate: 0 calc(-11dvh * var(--stage-arrival, 0) - 18dvh * var(--stage-departure, 0));
+  --scene-rise: 5dvh;
+  --scene-leave: 18dvh;
 }
 
 .home-profile[data-pinned] .home-team {
-  translate: 0 calc(-6dvh * var(--stage-arrival, 0) - 12dvh * var(--stage-departure, 0));
-}
-
-.home-profile[data-pinned] .home-team li {
-  position: relative;
-}
-
-.home-team-portrait {
-  display: none;
-}
-
-.home-profile[data-pinned] .home-team-portrait {
-  position: absolute;
-  inset-block-start: calc(100% + .65rem);
-  display: block;
-  inline-size: min(100%, clamp(5rem, 10vw, 9rem));
-  block-size: clamp(5rem, 14dvh, 9rem);
-  object-fit: cover;
-  object-position: center 26%;
-  clip-path: inset(0 0 calc(100% * (1 - var(--stage-departure, 0))) 0);
-  translate: 0 calc(25% * var(--stage-departure, 0));
-  pointer-events: none;
+  --scene-rise: 9dvh;
+  --scene-leave: 12dvh;
 }
 
 .home-office[data-pinned] {
@@ -3873,28 +4005,31 @@ main:has(.archive-empty) + .site-footer {
     var(--office-photo-ratio) * 1.9 / 1.08));
 }
 
-/* Uncover the doorway within its frame, then let the copy lead the hand-off. */
+/* The doorway's frame stays inside its scene. Only the aperture and overscanned image move. */
 .home-office[data-pinned] .home-office-photo {
-  clip-path: inset(0 0 calc(28% * var(--stage-arrival, 0)) 0);
-  translate: 0 calc(-14dvh * var(--stage-arrival, 0) - 6dvh * var(--stage-departure, 0));
+  clip-path: inset(0 0 calc(36% * var(--stage-arrival, 0)) 0);
 }
 
 .home-office[data-pinned] .home-office-photo img {
   inset-block-start: -10%;
   height: 120%;
-  translate: 0 calc(5% * (var(--stage-arrival, 0) - var(--stage-departure, 0)));
+  translate: 0 calc(7% * (var(--stage-arrival, 0) - var(--stage-departure, 0)));
 }
 
 .home-office[data-pinned] .home-office-copy {
-  translate: 0 calc(-6dvh * var(--stage-arrival, 0) - 16dvh * var(--stage-departure, 0));
+  --scene-rise: 8dvh;
+  --scene-leave: 16dvh;
 }
 
 .home-clients[data-pinned] h2 {
-  translate: 0 calc(-11dvh * var(--stage-arrival, 0) - 15dvh * var(--stage-departure, 0));
+  --scene-rise: 4dvh;
+  --scene-leave: 15dvh;
 }
 
 .home-clients[data-pinned] .home-client-logos {
-  translate: 0 calc(-6dvh * var(--stage-arrival, 0) - 9dvh * var(--stage-departure, 0));
+  --scene-rise: 8dvh;
+  --scene-leave: 9dvh;
+  --scene-veil: .94;
 }
 
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) and (forced-colors: none) {

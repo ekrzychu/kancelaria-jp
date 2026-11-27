@@ -65,6 +65,7 @@ final class CountPageView
         $type = match ($route) {
             'articles.show' => 'article',
             'services.show' => 'service',
+            'career.show' => 'job',
             'documents.show' => 'document',
             default => null,
         };

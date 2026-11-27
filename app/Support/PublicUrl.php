@@ -15,7 +15,7 @@ final class PublicUrl
 
     public const RESERVED_SLUGS = [
         'aktualnosci', 'artykuly', 'assets', 'dokumenty', 'kariera', 'kontakt', 'o-kancelarii', 'specjalizacje',
-        'zespol', ...self::FRAMEWORK_PREFIXES,
+        'zespol', 'polityka-prywatnosci', ...self::FRAMEWORK_PREFIXES,
     ];
 
     public static function isSlug(mixed $slug): bool

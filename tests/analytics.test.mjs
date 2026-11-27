@@ -41,18 +41,20 @@ test('counted views are canonical daily aggregates, with bounded sources and fai
   const document = site.data.site.documents[0].slug;
   const get = (path, headers = {}) => request(site, path, { headers });
   const privateMarker = 'private-analytics-fixture';
+  row(site, "INSERT INTO job_offers (slug,title,status,display_order) VALUES ('proba-pracy','Próba pracy','open',1), ('zamknieta','Zakończona','closed',2)");
   for (const [path, referer] of [
     ['/?q=' + privateMarker, 'https://www.google.pl/path?' + privateMarker],
     ['/', 'https://www.google.pl/other'],
     ['/' + article + '/', 'https://l.facebook.com/path'],
     ['/specjalizacje/' + service + '/', 'https://unknown.example.test/' + privateMarker],
     ['/dokumenty/' + document + '/', site.origin + '/'],
+    ['/kariera/proba-pracy/?q=' + privateMarker, site.origin + '/'],
   ]) assert.equal((await get(path, { Referer: referer })).status, 200);
 
   for (const [path, status, headers] of [
     ['/kontakt', 301, {}], ['/aktualnosci/', 301, {}], ['/sitemap.xml', 200, {}],
     ['/media/00000000000000000000000000000000', 404, {}], ['/assets/admin/panel.css', 200, {}],
-    ['/unknown-fixture/', 404, {}], ['/podglad/artykuly/1', 404, {}], ['/livewire/update', 404, {}],
+    ['/kariera/zamknieta/', 404, {}], ['/unknown-fixture/', 404, {}], ['/podglad/artykuly/1', 404, {}], ['/livewire/update', 404, {}],
     ['/', 200, { 'User-Agent': 'Googlebot' }], ['/', 200, { 'User-Agent': '' }],
     ['/', 200, { 'Sec-Purpose': 'prefetch;prerender' }], ['/', 200, { 'X-Moz': 'prefetch' }],
     ['/', 200, { 'Sec-Fetch-Dest': 'iframe' }], ['/', 200, { 'X-Livewire': 'true' }],
@@ -67,6 +69,7 @@ test('counted views are canonical daily aggregates, with bounded sources and fai
     { day: date(), page: 'article:' + article, source: 'social', views: 1 },
     { day: date(), page: 'document:' + document, source: 'internal', views: 1 },
     { day: date(), page: 'home', source: 'search', views: 2 },
+    { day: date(), page: 'job:proba-pracy', source: 'internal', views: 1 },
     { day: date(), page: 'service:' + service, source: 'external', views: 1 },
   ]);
 

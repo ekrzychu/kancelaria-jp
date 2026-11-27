@@ -2,7 +2,7 @@
     <div
         class="space-y-2"
         x-data="{
-            image: $wire.$entangle(@js($getStatePath())),
+            image: $wire.$entangle(@js($getStatePath())){{ $field->isLive() ? '.live' : '' }},
             pending: false,
             progress: 0,
             error: '',

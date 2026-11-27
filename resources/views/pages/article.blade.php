@@ -3,7 +3,7 @@
 @section('content')
 <article class="article-detail publication-frame" aria-labelledby="article-title">
   <div class="article-progress" aria-hidden="true" hidden></div>
-  <header class="article-header" data-reveal="subtle">
+  <header class="article-header" data-reveal>
     <div class="article-intro">
       @include('partials.archive-link')
       <div class="article-meta">
@@ -20,7 +20,7 @@
   </header>
   <div class="article-reading">
     @if ($sectionCount >= 2)
-      <details class="article-contents" data-reveal="subtle">
+      <details class="article-contents" data-reveal>
         <summary>Spis treści</summary>
         <nav aria-label="Spis treści">
           <ul>
@@ -39,14 +39,14 @@
   </div>
   @if ($related)
     <section class="article-related" aria-labelledby="article-related-title">
-      <header class="article-related-heading" data-reveal="subtle">
+      <header class="article-related-heading" data-reveal>
         <h2 id="article-related-title">Pozostałe publikacje</h2>
         @include('partials.archive-link')
       </header>
       <div data-reveal-sequence>
         @foreach ($related as $index => $publication)
           @php $relatedSummary = is_string($publication['summary'] ?? null) ? trim($publication['summary']) : ''; @endphp
-          <a class="publication-entry editorial-row" data-reveal="publication-row"
+          <a class="publication-entry editorial-row" data-reveal
              href="{{ $previewPublicOrigin ?? '' }}/{{ $publication['slug'] }}/" aria-labelledby="article-related-{{ $index }}">
             <div class="publication-heading">
               @include('partials.publication-meta', ['publication' => $publication])

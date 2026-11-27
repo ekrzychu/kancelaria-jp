@@ -171,7 +171,7 @@
   }
 
   function initArticleReading() {
-    const article = document.querySelector('.article-detail');
+    const article = document.querySelector('.article-detail:has(.article-progress)');
     if (!article) return;
     const body = article.querySelector('.article-body');
     const progress = article.querySelector('.article-progress');
@@ -400,40 +400,31 @@
   }
 
 
-  function revealSequenceInset() {
-    return Math.min(72, Math.round(window.innerHeight * .08));
-  }
-
   function initReveals() {
     const motion = window.matchMedia('(prefers-reduced-motion: no-preference)');
     if (!motion.matches || !('IntersectionObserver' in window)) return;
 
     const selector = '[data-reveal], [data-reveal-children] > *';
     const targets = document.querySelectorAll(selector);
-    const pendingSequence = new Map();
     const bypassed = new WeakSet();
     const listeners = new AbortController();
-    let sequenceObserver;
 
     function revealEntries(entries, observer) {
       const nextDelays = new Map();
       for (const { target, isIntersecting, intersectionRatio } of entries) {
-        if (bypassed.has(target) || !isIntersecting || intersectionRatio < revealThreshold) continue;
+        if (!isIntersecting || bypassed.has(target) || (observer === homeObserver && intersectionRatio < revealThreshold)) continue;
         observer.unobserve(target);
-        target.classList.remove('is-awaiting-reveal');
-        const sequence = pendingSequence.get(target);
+        const sequence = target.closest('[data-reveal-sequence]');
         if (sequence) {
-          pendingSequence.delete(target);
           const delay = nextDelays.get(sequence) ?? 0;
           if (delay) target.style.setProperty('--reveal-delay', `${delay}ms`);
-          nextDelays.set(sequence, delay + 90);
+          nextDelays.set(sequence, Math.min(delay + 75, 150));
         }
+
         const reveal = () => {
-          if (bypassed.has(target) || target.matches(':focus-within')) return;
+          if (bypassed.has(target) || target.matches(':focus-within') || target.closest('[data-pinned]')) return;
           target.classList.add('is-revealed');
-          if (target.dataset.reveal === 'experience' && !target.closest('[data-pinned]')) {
-            countExperience(target, listeners.signal);
-          }
+          if (target.dataset.reveal === 'experience') countExperience(target, listeners.signal);
         };
         const image = target.dataset.reveal === 'image' && target.querySelector('img');
         if (image && !image.complete) {
@@ -444,40 +435,16 @@
       }
     }
 
-    function observeSequence() {
-      sequenceObserver?.disconnect();
-      if (!pendingSequence.size) return;
-      const inset = revealSequenceInset();
-      sequenceObserver = new IntersectionObserver(revealEntries, {
-        rootMargin: `${inset}px 0px 0px`,
-        threshold: revealThreshold,
-      });
-      pendingSequence.forEach((_, target) => sequenceObserver.observe(target));
-    }
-
-    const observer = new IntersectionObserver(revealEntries, { threshold: revealThreshold });
+    const observer = new IntersectionObserver(revealEntries, { rootMargin: '36px 0px' });
+    const homeObserver = new IntersectionObserver(revealEntries, { threshold: revealThreshold });
     for (const target of targets) {
-      const sequence = target.closest('[data-reveal-sequence]');
-      if (sequence || target.matches('[data-reveal="subtle"], [data-reveal="service-row"]')) {
-        target.classList.add('is-awaiting-reveal');
-      }
-      if (sequence) {
-        pendingSequence.set(target, sequence);
-      } else {
-        observer.observe(target);
-      }
-    }
-    if (pendingSequence.size) {
-      observeSequence();
-      window.addEventListener('resize', observeSequence, { passive: true, signal: listeners.signal });
+      (target.closest('.homepage') ? homeObserver : observer).observe(target);
     }
 
     function finishReveal(target) {
       bypassed.add(target);
       observer.unobserve(target);
-      sequenceObserver?.unobserve(target);
-      pendingSequence.delete(target);
-      target.classList.remove('is-revealed', 'is-awaiting-reveal');
+      target.classList.remove('is-revealed');
     }
 
     document.addEventListener('focusin', event => {
@@ -488,9 +455,9 @@
 
     motion.addEventListener('change', () => {
       observer.disconnect();
-      sequenceObserver?.disconnect();
+      homeObserver.disconnect();
       listeners.abort();
-      targets.forEach(target => target.classList.remove('is-revealed', 'is-awaiting-reveal'));
+      targets.forEach(target => target.classList.remove('is-revealed'));
     }, { once: true });
 
     return finishReveal;
@@ -536,13 +503,12 @@
         !CSS.supports('position', 'sticky') || !CSS.supports('selector(:has(*))')) return;
 
     const headerBar = document.querySelector('.header-bar');
-    const holdRatios = { hero: .4, practices: .625, publications: .45, profile: .39, office: .275, clients: .45 };
+    const main = document.getElementById('main');
     const stages = Array.from(document.querySelectorAll('[data-home-stage]'), section => ({
       section,
       viewport: section.querySelector('.home-stage-viewport'),
       content: section.querySelector('.home-stage-content'),
       layout: section.querySelector('.home-frame'),
-      holdRatio: holdRatios[section.dataset.homeStage],
     }));
     const opening = stages[0];
     const practices = stages.find(stage => stage.section.id === 'specjalizacje');
@@ -557,6 +523,7 @@
 
     let active = false;
     let height;
+    let hold;
     let frame = 0;
 
     function setProgress(stage, property, value) {
@@ -568,16 +535,21 @@
     function draw() {
       frame = 0;
       const y = window.scrollY;
+      const join = height * .14;
       for (const stage of stages) {
         const elapsed = y - stage.start;
-        setProgress(stage, '--stage-progress', clamp(elapsed / stage.hold));
-        if (stage === practices) continue;
-
-        // Settle as the scene pins, leave a reading beat, then continue into the next scene's entrance.
-        const approach = height * .72;
-        const departure = stage.hold * .5;
-        setProgress(stage, '--stage-arrival', 1 - ease(1 + elapsed / approach));
-        setProgress(stage, '--stage-departure', ease((elapsed - departure) / (stage.hold - departure + height * .36)));
+        const progress = clamp(elapsed / hold);
+        setProgress(stage, '--stage-progress', progress);
+        const arrival = stage === opening ? progress / .22 : 1 + elapsed / (height * .86);
+        setProgress(stage, '--stage-arrival', 1 - ease(arrival));
+        if (stage !== practices) {
+          // Leave a still reading interval before handing off to the next scene.
+          setProgress(stage, '--stage-departure', ease((elapsed - hold / 2) / (hold / 2 + height * .36)));
+          // Counter the change in native viewport speed just before pinning and just after release.
+          const entry = clamp(1 + elapsed / join);
+          const exit = clamp((elapsed - hold) / join);
+          setProgress(stage, '--stage-settle', `${join * (exit * (1 - exit) ** 2 - entry ** 2 * (1 - entry))}px`);
+        }
       }
     }
 
@@ -609,7 +581,7 @@
       }
 
       setPinned(true);
-      height = opening.viewport.clientHeight;
+      height = opening.viewport.getBoundingClientRect().height;
       const practiceWindow = practiceRail.clientHeight - 12;
       if (!stages.every(stage => fits(stage, practiceWindow))) {
         setPinned(false);
@@ -618,17 +590,14 @@
 
       const headingTravel = Math.max(0, practiceWindow - practiceHeading.offsetHeight - height * .035);
       practices.section.style.setProperty('--heading-travel', `${headingTravel}px`);
-      for (const stage of stages) {
-        stage.hold = Math.round(height * stage.holdRatio);
-        stage.section.style.setProperty('--stage-hold', `${stage.hold}px`);
-      }
+      hold = opening.section.getBoundingClientRect().height - height;
 
       const y = window.scrollY;
       for (const stage of stages) stage.start = stage.section.getBoundingClientRect().top + y;
       draw();
     }
 
-    document.getElementById('main').addEventListener('focusin', ({ target }) => {
+    main.addEventListener('focusin', ({ target }) => {
       if (!active || !target.matches('a:focus-visible')) return;
       const stage = stages.find(({ section }) => section.contains(target));
       if (!stage) return;
@@ -640,7 +609,7 @@
       const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
       if (box.top >= safeTop && box.bottom <= safeBottom && target.contains(hit)) return;
 
-      window.scrollTo({ top: stage.start + stage.hold * .4, behavior: 'instant' });
+      window.scrollTo({ top: stage.start + hold * .4, behavior: 'instant' });
       if (frame) cancelAnimationFrame(frame);
       draw();
     });
