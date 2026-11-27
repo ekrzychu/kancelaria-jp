@@ -187,14 +187,24 @@ test('section employees manage specializations, public profiles and recruitment 
   await action('EditJobOffer', 'close', null);
   assert.equal(job(editedTitle).status, 'closed');
   assert.equal(await html('/kariera/'), empty);
+  sql('UPDATE job_offers SET url=? WHERE id=?', ['/kontakt/', jobId]);
+  await visit('/kariera/' + jobId + '/edytuj');
+  await wire('EditJobOffer', 'save', { description: 'Opis z dotychczasowym odnośnikiem' });
+  assert.equal(job(editedTitle).description, 'Opis z dotychczasowym odnośnikiem');
   await visit('/kariera');
   await capture('job-list');
   await action('ListJobOffers', 'reopen', job(editedTitle));
   assert.equal(job(editedTitle).status, 'open');
+  assert.equal(job(editedTitle).url, '/kontakt/');
   await visit('/kariera/dodaj');
   await wire('CreateJobOffer', 'create', { title: 'Druga oferta próbna' });
   await visit('/kariera');
   const secondJob = () => job('Druga oferta próbna');
+  sql('UPDATE job_offers SET url=? WHERE id=?', ['javascript:alert(1)', secondJob().id]);
+  await action('ListJobOffers', 'publish', secondJob());
+  assert.equal(secondJob().status, 'draft');
+  sql('UPDATE job_offers SET url=NULL WHERE id=?', [secondJob().id]);
+  await visit('/kariera');
   await action('ListJobOffers', 'publish', secondJob());
   const checkOrder = async first => {
     const content = await html('/kariera/');

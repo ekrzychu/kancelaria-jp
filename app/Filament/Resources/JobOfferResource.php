@@ -33,14 +33,17 @@ final class JobOfferResource extends ManagedContentResource
     protected const array FILTERS_BLOCKING_MOVES = ['status'];
 
     private const array STATUSES = ['draft' => 'Szkic', 'open' => 'Aktywne', 'closed' => 'Zakończone'];
+    private const int TITLE_LENGTH = 255;
+    private const int DESCRIPTION_LENGTH = 16000;
+    private const int URL_LENGTH = 2048;
 
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            TextInput::make('title')->label('Nazwa stanowiska')->required()->maxLength(255),
+            TextInput::make('title')->label('Nazwa stanowiska')->required()->maxLength(self::TITLE_LENGTH),
             Text::make(fn (?JobOffer $record): string => 'Status: '.self::STATUSES[($record?->status ?? JobStatus::Draft)->value]),
-            Textarea::make('description')->label('Opis ogłoszenia')->rows(5)->maxLength(16000)->columnSpanFull(),
-            TextInput::make('url')->label('Link do ogłoszenia')->maxLength(2048)->columnSpanFull()
+            Textarea::make('description')->label('Opis ogłoszenia')->rows(5)->maxLength(self::DESCRIPTION_LENGTH)->columnSpanFull(),
+            TextInput::make('url')->label('Link do ogłoszenia')->maxLength(self::URL_LENGTH)->columnSpanFull()
                 ->helperText('Nowe odnośniki muszą używać HTTP lub HTTPS.'),
         ]);
     }
@@ -52,10 +55,11 @@ final class JobOfferResource extends ManagedContentResource
         $legacyLink = $record && is_string($url) && $record->url === $url
             && preg_match('~\A(?:/(?!/)[^\x00-\x20\\\\]*|\#[^\s]*|mailto:[^\s]+|tel:[+0-9-]+)\z~i', $url);
 
+        // Publishing from the list has no editor form to validate the saved fields.
         return static::validateContent($data, [
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string|max:16000',
-            'url' => $legacyLink ? 'nullable|string|max:2048' : 'nullable|string|max:2048|url:http,https',
+            'title' => 'required|string|max:'.self::TITLE_LENGTH,
+            'description' => 'nullable|string|max:'.self::DESCRIPTION_LENGTH,
+            'url' => ['nullable', 'string', 'max:'.self::URL_LENGTH, ...($legacyLink ? [] : ['url:http,https'])],
         ]);
     }
 
