@@ -10,14 +10,15 @@ final class ArticleHtml
     public const MAX_LENGTH = 250_000;
 
     private HtmlSanitizer $sanitizer;
+    private HtmlSanitizer $editorSanitizer;
 
     public function __construct()
     {
         $config = (new HtmlSanitizerConfig())
             ->allowLinkSchemes(['https', 'http', 'mailto', 'tel'])
             ->allowRelativeLinks()
-            ->allowMediaSchemes(['https', 'http'])
             ->allowRelativeMedias()
+            ->withAttributeSanitizer(new ReviewedImageSource())
             ->withMaxInputLength(self::MAX_LENGTH);
 
         foreach ([
@@ -44,10 +45,16 @@ final class ArticleHtml
         }
 
         $this->sanitizer = new HtmlSanitizer($config);
+        $this->editorSanitizer = new HtmlSanitizer($config->dropElement('img'));
     }
 
     public function sanitize(string $html): string
     {
         return $this->sanitizer->sanitize($html);
+    }
+
+    public function sanitizeEditor(string $html): string
+    {
+        return $this->editorSanitizer->sanitize($html);
     }
 }

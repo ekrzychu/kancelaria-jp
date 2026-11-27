@@ -3,9 +3,13 @@
 namespace App\Filament\Resources;
 
 use App\Content\ArticleEditing;
+use App\Content\ArticleFigures;
 use App\Content\ArticleHtml;
 use App\Content\ArticleStatus;
 use App\Filament\Resources\ArticleResource\Pages;
+use App\Filament\Forms\ImageUpload;
+use App\Media\MediaPurpose;
+use App\Media\MediaReferences;
 use App\Models\Article;
 use App\Support\PublicUrl;
 use BackedEnum;
@@ -17,6 +21,8 @@ use Filament\Actions\EditAction;
 use Filament\Actions\RestoreAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
@@ -92,6 +98,22 @@ final class ArticleResource extends Resource
                             ['blockquote', 'link', 'table'], ['undo', 'redo'],
                         ]);
             }
+            $positions = app(ArticleFigures::class)->positions($record);
+            $fields[] = Repeater::make('image_blocks')->label('Zdjęcia w artykule')->defaultItems(0)
+                ->addActionLabel('Dodaj zdjęcie')->maxItems(20)->columnSpanFull()
+                ->validationMessages(['max' => 'Możesz dodać do 20 zdjęć.'])
+                ->helperText('Wybierz położenie względem zapisanej treści. Zdjęcia w tym samym miejscu pojawiają się w kolejności listy.')
+                ->schema([
+                    ImageUpload::make('image')->label('Zdjęcie')->purpose(MediaPurpose::Article)->required()
+                        ->validationMessages(['required' => 'Wybierz zdjęcie.']),
+                    TextInput::make('alt')->label('Opis alternatywny')->required()->maxLength(300)
+                        ->validationMessages(['required' => 'Wpisz opis alternatywny.', 'max' => 'Opis może mieć najwyżej 300 znaków.']),
+                    TextInput::make('caption')->label('Podpis zdjęcia')->maxLength(1000)
+                        ->validationMessages(['max' => 'Podpis może mieć najwyżej 1000 znaków.']),
+                    Select::make('position')->label('Położenie')->required()->options($positions)
+                        ->default(MediaReferences::END)
+                        ->validationMessages(['required' => 'Wybierz położenie.', 'in' => 'Wybierz dostępne położenie.']),
+                ]);
 
             return $fields;
         });

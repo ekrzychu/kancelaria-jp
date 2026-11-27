@@ -4,12 +4,14 @@ namespace App\Filament\Resources\ArticleResource\Pages;
 
 use App\Content\ArticleEditing;
 use App\Filament\Resources\ArticleResource;
+use App\Media\MediaReferences;
 use App\Models\Article;
 use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Support\Enums\Width;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 final class CreateArticle extends CreateRecord
@@ -31,7 +33,13 @@ final class CreateArticle extends CreateRecord
     {
         Gate::authorize('create', Article::class);
 
-        return Article::create(Arr::only($data, ['slug', 'title', 'category', 'author', 'date', 'summary'])
-            + ['body_html' => app(ArticleEditing::class)->saveBody(null, $data)]);
+        return DB::transaction(function () use ($data): Article {
+            $article = Article::create(Arr::only($data, ['slug', 'title', 'category', 'author', 'date', 'summary'])
+                + ['body_html' => app(ArticleEditing::class)->saveBody(null, $data)]);
+            app(MediaReferences::class)->saveArticle($article, $data + ['image_blocks' => []]);
+            $article->save();
+
+            return $article;
+        });
     }
 }

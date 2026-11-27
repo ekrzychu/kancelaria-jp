@@ -45,7 +45,7 @@ final class SiteContent
         }
 
         foreach (TeamMember::ordered()->get() as $person) {
-            $groups[$person->team_group->value]['people'][] = $person->only(['name', 'role', 'portrait']);
+            $groups[$person->team_group->value]['people'][] = $person->only(['name', 'role', 'portrait', 'portrait_media_id']);
         }
 
         return $groups;
@@ -92,7 +92,7 @@ final class SiteContent
 
     public static function articleData(Article $article): array
     {
-        return $article->only(['slug', 'title', 'summary', 'category', 'author', 'body_html', 'image', 'image_alt'])
+        return $article->only(['id', 'slug', 'title', 'summary', 'category', 'author', 'body_html', 'image', 'image_alt', 'image_blocks'])
             + ['date' => $article->date?->format('Y-m-d')];
     }
 }

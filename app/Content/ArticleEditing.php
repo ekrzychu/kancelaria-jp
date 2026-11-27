@@ -57,7 +57,7 @@ final class ArticleEditing
                 throw ValidationException::withMessages(['data.body_'.$index => 'Treść artykułu jest za długa lub nieprawidłowa.']);
             }
 
-            $clean = $this->html->sanitize($value);
+            $clean = $this->html->sanitizeEditor($value);
             if ($this->editorMarkup($clean) === $this->editorMarkup($part['html'])) {
                 $body .= $part['html'];
             } else {

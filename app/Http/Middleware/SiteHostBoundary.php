@@ -16,7 +16,7 @@ final class SiteHostBoundary
         abort_unless($admin || $host === config('hosts.public'), 400);
 
         $path = rawurldecode($request->getPathInfo());
-        // This phase has no file exports, imports, unsigned storage or temporary uploads.
+        // Generic file endpoints stay blocked. The editors use purpose-specific routes.
         abort_if(preg_match('#^/+(?:filament|storage)(?:/+|$)#i', $path), 404);
 
         // Livewire also registers package routes outside the panel's route group.

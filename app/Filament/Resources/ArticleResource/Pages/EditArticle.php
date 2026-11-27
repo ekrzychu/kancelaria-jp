@@ -5,6 +5,7 @@ namespace App\Filament\Resources\ArticleResource\Pages;
 use App\Content\ArticleEditing;
 use App\Content\ArticleStatus;
 use App\Filament\Resources\ArticleResource;
+use App\Media\MediaReferences;
 use App\Models\Article;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Support\Enums\Width;
@@ -55,7 +56,8 @@ final class EditArticle extends EditRecord
 
     protected function mutateFormDataBeforeFill(array $data): array
     {
-        $this->originalBodyHash = hash('sha256', $this->record->body_html);
+        $this->originalBodyHash = $this->contentHash($this->record);
+        $data['image_blocks'] ??= [];
 
         foreach (app(ArticleEditing::class)->parts($this->record) as $index => $part) {
             if (! $part['locked']) {
@@ -71,17 +73,23 @@ final class EditArticle extends EditRecord
         return DB::transaction(function () use ($record, $data): Article {
             $current = Article::lockForUpdate()->findOrFail($record->getKey());
             Gate::authorize('update', $current);
-            if (! hash_equals($this->originalBodyHash, hash('sha256', $current->body_html))) {
+            if (! hash_equals($this->originalBodyHash, $this->contentHash($current))) {
                 throw ValidationException::withMessages(['data.title' => 'Treść zmieniła się od otwarcia formularza. Odśwież stronę.']);
             }
 
             $current->fill(Arr::only($data, ['slug', 'title', 'category', 'author', 'date', 'summary', 'image_alt']));
             $current->body_html = app(ArticleEditing::class)->saveBody($current, $data);
+            app(MediaReferences::class)->saveArticle($current, $data + ['image_blocks' => []]);
             $current->save();
-            $this->originalBodyHash = hash('sha256', $current->body_html);
+            $this->originalBodyHash = $this->contentHash($current);
             $record->setRawAttributes($current->getAttributes(), sync: true);
 
             return $record;
         });
+    }
+
+    private function contentHash(Article $article): string
+    {
+        return hash('sha256', serialize([$article->body_html, $article->image_blocks ?? []]));
     }
 }

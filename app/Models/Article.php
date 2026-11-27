@@ -22,6 +22,7 @@ final class Article extends Model
         return [
             'date' => 'immutable_date:Y-m-d',
             'status' => ArticleStatus::class,
+            'image_blocks' => 'array',
         ];
     }
 

@@ -22,13 +22,14 @@
           @foreach ($people as $person)
             @php
 $portrait = $person['portrait'] ?? '';
+            $managedPortrait = $person['portrait_media_id'] ?? null;
             $hasPortrait = is_string($portrait)
                 && preg_match('/\A[\w.-]+\.(?:avif|jpe?g|png|webp)\z/i', $portrait)
                 && is_file(public_path('assets/img/' . $portrait));
 @endphp
-            <li class="team-person{{ $hasPortrait ? ' has-portrait' : '' }}" data-reveal="team-person">
-              @if ($hasPortrait)
-                <img class="team-portrait" src="/assets/img/{{ $portrait }}" alt="" loading="lazy" decoding="async">
+            <li class="team-person{{ $hasPortrait || $managedPortrait ? ' has-portrait' : '' }}" data-reveal="team-person">
+              @if ($hasPortrait || $managedPortrait)
+                <img class="team-portrait" src="{{ $managedPortrait ? \App\Models\MediaImage::url($managedPortrait) : '/assets/img/'.$portrait }}" alt="" loading="lazy" decoding="async">
               @endif
               <div>
                 <h3>{{ $person['name'] }}</h3>

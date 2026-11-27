@@ -138,7 +138,8 @@ final class PublicationContent
                     $wrapper->appendChild($table);
                 }
 
-                if ($sections || $tables->length) {
+                $inserted = app(ArticleFigures::class)->insert($document, $body, $article, $publicOrigin !== '');
+                if ($sections || $tables->length || $inserted) {
                     $bodyHtml = '';
                     foreach ($body->childNodes as $node) {
                         $bodyHtml .= $document->saveHTML($node);
@@ -147,7 +148,7 @@ final class PublicationContent
             }
         }
 
-        // Only reviewed, imported body_html is trusted here. DOM formatting is not sanitization.
+        // Managed figures are assembled with DOM attributes and text nodes after HTML sanitization.
         $body = new HtmlString($bodyHtml);
 
         return compact('body', 'sections', 'sectionCount', 'summary', 'author');

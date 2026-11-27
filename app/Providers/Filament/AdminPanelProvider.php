@@ -14,6 +14,7 @@ use App\Filament\Resources\SpecializationResource;
 use App\Filament\Resources\TeamMemberResource;
 use App\Filament\Resources\UserResource;
 use App\Http\Controllers\ArticlePreview;
+use App\Http\Controllers\MediaController;
 use App\Http\Middleware\RequireCurrentAccountSession;
 use App\Support\PanelAvatar;
 use Filament\Actions\Action;
@@ -57,6 +58,10 @@ final class AdminPanelProvider extends PanelProvider
             ->homeUrl(PanelLoginResponse::destination(...))
             ->authenticatedRoutes(function (): void {
                 Route::get('/podglad/artykuly/{article}', ArticlePreview::class)->name('articles.preview');
+                Route::post('/media-panel/upload/{purpose}', [MediaController::class, 'upload'])
+                    ->middleware('throttle:20,1')->name('media.upload');
+                Route::get('/media-panel/{media}', [MediaController::class, 'privateImage'])
+                    ->where('media', '[a-f0-9]{32}')->name('media.preview');
             })
             ->colors(['primary' => [
                 50 => '#f9f0f4', 100 => '#f0e2e9', 200 => '#e0c9d5',

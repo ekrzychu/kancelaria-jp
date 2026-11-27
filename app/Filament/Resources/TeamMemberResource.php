@@ -3,12 +3,17 @@
 namespace App\Filament\Resources;
 
 use App\Content\TeamGroup;
+use App\Filament\Forms\ImageUpload;
 use App\Filament\Resources\TeamMemberResource\Pages;
+use App\Media\MediaPurpose;
+use App\Media\MediaReferences;
+use App\Models\MediaImage;
 use App\Models\TeamMember;
 use BackedEnum;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Text;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
@@ -18,7 +23,9 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\HtmlString;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 final class TeamMemberResource extends ManagedContentResource
 {
@@ -55,6 +62,11 @@ final class TeamMemberResource extends ManagedContentResource
             Select::make('team_group')->label('Grupa')->options(self::groups())->required(),
             Select::make('portrait')->label('Zdjęcie')->options(fn (?TeamMember $record): array => self::portraits($record))
                 ->placeholder('Bez zdjęcia')->helperText('Wybierz zatwierdzony portret lub pozostaw pole puste.'),
+            Text::make(fn (?TeamMember $record): HtmlString => new HtmlString(
+                '<img class="max-h-40 max-w-full rounded" alt="Dotychczasowe zdjęcie" src="/assets/img/'.e($record?->portrait).'">'))
+                ->visible(fn (?TeamMember $record): bool => isset(self::portraits($record)[$record?->portrait])),
+            ImageUpload::make('portrait_media_id')->label('Prześlij portret')->purpose(MediaPurpose::Portrait)
+                ->helperText('Przesłany portret zastępuje dotychczasowe zdjęcie po zapisaniu profilu.'),
             Toggle::make('homepage_partner')->label('Wspólnik na stronie głównej')->default(false)
                 ->helperText('Strona główna pokazuje maksymalnie dwa wyróżnione profile według kolejności.'),
         ]);
@@ -71,12 +83,40 @@ final class TeamMemberResource extends ManagedContentResource
         ]);
     }
 
+    public static function savePortrait(TeamMember $member, array $data): void
+    {
+        $id = $data['portrait_media_id'] ?? null;
+        if ($id !== null) {
+            if (! is_string($id)) {
+                throw ValidationException::withMessages(['data.portrait_media_id' => 'Wybierz poprawne zdjęcie.']);
+            }
+            app(MediaReferences::class)->bind($id, MediaPurpose::Portrait, $member, 'data.portrait_media_id');
+            $member->portrait = null;
+        }
+        $member->portrait_media_id = $id;
+        $member->save();
+    }
+
+    private static function portraitUrl(TeamMember $record): ?string
+    {
+        if ($record->trashed()) {
+            return null;
+        }
+
+        $path = match (true) {
+            filled($record->portrait_media_id) => MediaImage::url($record->portrait_media_id, private: true),
+            isset(self::portraits($record)[$record->portrait]) => '/assets/img/'.$record->portrait,
+            default => null,
+        };
+
+        return $path === null ? null : rtrim(config('hosts.admin_url'), '/').$path;
+    }
+
     public static function table(Table $table): Table
     {
         return static::directoryTable($table->columns([
             ImageColumn::make('portrait')->label('Zdjęcie')->circular()
-                ->getStateUsing(fn (TeamMember $record): ?string => isset(self::portraits($record)[$record->portrait])
-                    ? rtrim(config('hosts.admin_url'), '/').'/assets/img/'.$record->portrait : null),
+                ->getStateUsing(self::portraitUrl(...)),
             TextColumn::make('name')->label('Imię i nazwisko')->searchable()->wrap(),
             TextColumn::make('role')->label('Stanowisko')->searchable()->wrap(),
             TextColumn::make('team_group')->label('Grupa')->formatStateUsing(fn (TeamGroup $state): string => $state->heading()),

@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\MediaController;
+
 use App\Http\Controllers\PublicPages;
 use App\Http\Controllers\SitemapController;
 use App\Support\PublicUrl;
@@ -17,6 +19,7 @@ Route::get('/kontakt', [PublicPages::class, 'contact'])->name('contact');
 Route::get('/dokumenty', [PublicPages::class, 'documents'])->name('documents.index');
 Route::get('/dokumenty/{slug}', [PublicPages::class, 'document'])->name('documents.show');
 Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
+Route::get('/media/{media}', [MediaController::class, 'publicImage'])->where('media', '[a-f0-9]{32}');
 
 Route::get('/{slug}', [PublicPages::class, 'article'])
     ->where('slug', '(?!(?:'.implode('|', PublicUrl::RESERVED_SLUGS).')(?:/|$))[a-z0-9-]+')

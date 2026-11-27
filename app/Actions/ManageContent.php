@@ -11,12 +11,15 @@ use Illuminate\Validation\ValidationException;
 
 final class ManageContent
 {
-    public function create(string $model, Closure $attributes): Model
+    public function create(string $model, Closure $attributes, ?Closure $afterCreate = null): Model
     {
-        return $this->write(function () use ($model, $attributes): Model {
+        return $this->write(function () use ($model, $attributes, $afterCreate): Model {
             Gate::authorize('create', $model);
 
-            return $model::create($attributes() + ['display_order' => (int) $model::max('display_order') + 1]);
+            $record = $model::create($attributes() + ['display_order' => (int) $model::max('display_order') + 1]);
+            $afterCreate?->__invoke($record);
+
+            return $record;
         });
     }
 
