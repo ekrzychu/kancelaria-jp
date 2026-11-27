@@ -22,8 +22,8 @@ try {
         PDO::ATTR_TIMEOUT => 5,
     ]);
     $version = $pdo->query('SELECT VERSION()')->fetchColumn();
-    if (! preg_match('/\A11\.4\.\d+.*MariaDB/i', $version)) {
-        throw new RuntimeException('The regression suite requires MariaDB 11.4.');
+    if (! preg_match('/\A(?:11\.4|12\.3)\.\d+.*MariaDB/i', $version)) {
+        throw new RuntimeException('The regression suite requires MariaDB 11.4 or 12.3.');
     }
 
     switch ($argv[1] ?? '') {

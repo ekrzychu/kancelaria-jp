@@ -20,11 +20,11 @@ function failedImport(artisan, args, diagnostic) {
   });
 }
 
-test('MariaDB 11.4 migrations, dry run, rollback, exact import, and repeat refusal', async t => {
+test('MariaDB migrations, dry run, rollback, exact import, and repeat refusal', async t => {
   const { dir, database, artisan, modelChecks, stop } = await startSite({ importContent: false, serve: false });
   t.after(stop);
 
-  assert.match(database.version, /^11\.4\.\d+.*MariaDB/i);
+  assert.match(database.version, /^(?:11\.4|12\.3)\.\d+.*MariaDB/i);
   assert.deepEqual(counts(database), [0, 0, 0, 0]);
   const tableSettings = rows(database,
     'SELECT TABLE_NAME, ENGINE, TABLE_COLLATION FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() ORDER BY TABLE_NAME');

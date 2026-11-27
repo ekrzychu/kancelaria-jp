@@ -15,7 +15,7 @@ Phase 2 preserves the approved Phase 1 baseline `cca68503e4666e7c268e448c3c2d9d4
 
 ## Requirements
 
-Use PHP 8.4 with `pdo_mysql` and the standard Laravel extensions, including cURL, DOM, GD with JPEG, PNG and WebP support, libxml, mbstring, OpenSSL and XML. Use Composer 2 and MariaDB 11.4. Phase 2 was verified against PHP 8.4.28 with mysqlnd 8.4.28, Composer 2.11.3, Laravel 13.44.1 and MariaDB 11.4.14. The `mariadb` connection uses native PDO parameter binding, InnoDB, strict SQL, `utf8mb4_unicode_ci` and a UTC session timezone.
+Use PHP 8.4 or 8.5 with `pdo_mysql` and the standard Laravel extensions, including cURL, DOM, GD with JPEG, PNG and WebP support, libxml, mbstring, OpenSSL and XML. Use Composer 2 and MariaDB 11.4 or 12.3. Phase 2 was verified against PHP 8.4.28 with mysqlnd 8.4.28, Composer 2.11.3, Laravel 13.44.1 and MariaDB 11.4.14. The `mariadb` connection uses native PDO parameter binding, InnoDB, strict SQL, `utf8mb4_unicode_ci` and a UTC session timezone.
 
 ## Local MariaDB
 
@@ -78,7 +78,15 @@ Set the `DB_*` values in the ignored `.env` to the dedicated application schema 
 & $env:PHP_BIN artisan serve --host=127.0.0.1 --port=8743
 ```
 
-On macOS or Linux, use the equivalent `composer install`, `composer check-platform-reqs`, `php artisan key:generate` and `php artisan ...` commands with your installed PHP 8.4 and a dedicated MariaDB instance. Open `http://127.0.0.1:8743`. Press Ctrl+C to stop a foreground PHP development server.
+On macOS or Linux, use the equivalent `composer install`, `composer check-platform-reqs`, `php artisan key:generate` and `php artisan ...` commands with a supported PHP version and a dedicated MariaDB instance. Open `http://127.0.0.1:8743`. Press Ctrl+C to stop a foreground PHP development server.
+
+### Native Arch Linux
+
+Use the Arch packages `php`, `php-gd`, `composer` and `mariadb-lts` with the supported versions above. In `/etc/php/php.ini`, enable `curl`, `gd`, `intl`, `pdo_mysql` and `zip`. Run `composer install` and `composer check-platform-reqs` to verify the locked dependencies against the enabled extensions.
+
+Initialize a private MariaDB data directory with `mariadb-install-db` and run `mariadbd` bound to `127.0.0.1` on a separate port such as `3314`. Use the provisioning SQL above for the application and test accounts. Copy `.env.example` to `.env` if needed, set its `DB_*` values for `kjp_app`, and follow the migration and startup commands above.
+
+For regressions, use Node.js 22 or newer and Chrome or Chromium. Set `CHROME_BIN=/usr/bin/chromium` when using Arch Chromium. On the test PHP CLI, use `upload_max_filesize=10M`, `post_max_size=12M` and `memory_limit=384M` to match CI. Export `TEST_DB_HOST=127.0.0.1`, `TEST_DB_PORT=3314`, `TEST_DB_USERNAME=kjp_test` and `TEST_DB_PASSWORD` from your private test credentials, then run `node tests/run.mjs`.
 
 ## Import and schema
 
@@ -115,7 +123,7 @@ $env:TEST_DB_PASSWORD = $credentials.test
 node tests/run.mjs
 ```
 
-Each run creates random `kancelaria_jp_test_<hex>` schemas using the isolated account, runs migrations and imports fixtures as needed, then drops only schemas it created. The harness rejects missing test credentials, port 3306 and servers outside the MariaDB 11.4 series. It uses disposable files and an explicit test connection. GitHub Actions pins its own MariaDB 11.4.13 service image and generates a masked ephemeral test password. Tests cover real MariaDB operations, route/config caching, public visibility, search, filtering, browser interactions and disabled contact submissions.
+Each run creates random `kancelaria_jp_test_<hex>` schemas using the isolated account, runs migrations and imports fixtures as needed, then drops only schemas it created. The harness rejects missing test credentials, port 3306 and servers outside the MariaDB 11.4 and 12.3 series. It uses disposable files and an explicit test connection. GitHub Actions uses PHP 8.4, pins its own MariaDB 11.4.13 service image and generates a masked ephemeral test password. Tests cover real MariaDB operations, route/config caching, public visibility, search, filtering, browser interactions and disabled contact submissions.
 
 Run `php tests/content.php`, `node --test tests/database.test.mjs`, `node --test tests/http.test.mjs`, and `node --test tests/browser.test.mjs` individually when needed.
 
