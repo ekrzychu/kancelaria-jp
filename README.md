@@ -223,6 +223,16 @@ The initial delivery attempt and up to two automatic retries use the same Messag
 
 Keep submissions, mail copies, backups and SMTP credentials restricted to authorized staff and operators. Keep request bodies, SQL bindings and mail payloads out of logging and tracing. The application emits counts for delivery and does not record transport exception text. Set `CONTACT_RETENTION_DAYS` to the approved period after archiving and run `php artisan contact:retention` to count eligible archived records. Zero disables the report. No command automatically deletes correspondence. Before launch, approve the retention procedure for MariaDB, OVH mail and backups, and confirm the privacy notice reflects the actual processing.
 
+### Phase 7A editorial workflows
+
+The panel uses the public monogram, Source Serif headings and a compact Filament interface. Article writing and illustrations occupy the main editor column. Publication metadata stays in its own section. Podgląd shows the saved article in the public template with computer and phone widths. The embedded preview remains private to the administrative origin. Save a new draft to preview it. The panel warns about unsaved changes when leaving an editor. Crash recovery is deferred pending private, versioned draft storage and conflict handling.
+
+Use Opublikuj to publish on creation or Zapisz szkic to save a private draft. Successful saves and publishes return to the corresponding resource list. Internal article and specialization addresses are generated from the title and use numbered suffixes for collisions. Administrators can choose a custom address on creation and edit an unpublished article draft’s address. Published article addresses and saved specialization addresses stay stable.
+
+Na stronie głównej selects up to eight active specializations in their existing order. Its migration selects the same first eight active, non-deleted entries previously displayed. Mój profil supports a private account photo with local initials as the fallback. Avatar uploads use the existing private media storage and owner checks. Run the forward migrations after backing up MariaDB and managed media. Release validation uses simulated contact email and disposable data.
+
+Design references used were the editorial layout and navigation in [Craft CMS](https://craftcms.com/docs/5.x/system/control-panel.html) and the [Statamic publish screen](https://www.statamic.com/blog/statamic-6-sneak-peek), responsive preview controls from [Contentful](https://www.contentful.com/help/content-preview/), distinct draft and publish actions from [Strapi](https://docs.strapi.io/cms/features/draft-and-publish), and direct recovery copy from the [GOV.UK Design System](https://design-system.service.gov.uk/patterns/service-unavailable-pages/).
+
 ## Branches and license
 
 The Laravel migration is on `laravel-migration`. `main` and the two fullscreen animation branches retain their existing histories. This is proprietary software. See [LICENSE](LICENSE). Asset licenses remain alongside their assets.

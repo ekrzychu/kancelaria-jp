@@ -37,6 +37,22 @@ test('public routing and contact page', async t => {
     }
   });
 
+  await t.test('temporary public failures preserve their status and use generic recovery copy', async () => {
+    const rename = (from, to) => app.database.query([{ sql: 'RENAME TABLE ' + from + ' TO ' + to }]);
+    rename('articles', 'unavailable_articles');
+    try {
+      const result = await request('/artykuly/');
+      assert.equal(result.status, 503);
+      assert.match(result.headers.get('cache-control'), /no-store/);
+      const html = await result.text();
+      assert.match(html, /Usługa jest tymczasowo niedostępna/);
+      assert.match(html, /href="\/kontakt\/"/);
+      assert.doesNotMatch(html, /SQLSTATE|unavailable_articles|QueryException/);
+    } finally {
+      rename('unavailable_articles', 'articles');
+    }
+  });
+
   await t.test('existing redirects and query string are preserved', async () => {
     for (const [from, to] of [
       ['/aktualnosci/', '/artykuly/'],
@@ -256,7 +272,7 @@ test('specialization order, persisted team groups, and active vacancies are data
   database.query([
     { sql: 'UPDATE specializations SET active=0 WHERE slug=?', params: [data.services[0].slug] },
     { sql: 'UPDATE specializations SET deleted_at=? WHERE slug=?', params: ['2026-11-01 12:00:00', data.services[1].slug] },
-    { sql: 'UPDATE specializations SET display_order=0, title=? WHERE slug=?', params: ['Próba specjalizacji Łódź', data.services[9].slug] },
+    { sql: 'UPDATE specializations SET display_order=0, homepage_featured=1, title=? WHERE slug=?', params: ['Próba specjalizacji Łódź', data.services[9].slug] },
     { sql: 'UPDATE team_members SET homepage_partner=0 WHERE name=?', params: [data.team[0].name] },
     { sql: 'UPDATE team_members SET homepage_partner=1, team_group=?, name=? WHERE name=?', params: ['support', 'Próba profilu Łódź', data.team[2].name] },
     { sql: 'UPDATE team_members SET deleted_at=? WHERE name=?', params: ['2026-11-01 12:00:00', data.team[3].name] },
@@ -271,7 +287,7 @@ test('specialization order, persisted team groups, and active vacancies are data
     })),
   ]);
   const home = await htmlAt('/');
-  assert.deepEqual(homeLinks(home), [data.services[9].slug, ...data.services.slice(2, 9).map(entry => entry.slug)]);
+  assert.deepEqual(homeLinks(home), [data.services[9].slug, ...data.services.slice(2, 8).map(entry => entry.slug)]);
   assert.match(home, /Próba profilu Łódź/);
   assert(!home.includes(data.team[0].name));
   for (const entry of data.services.slice(0, 2)) await htmlAt('/specjalizacje/' + entry.slug + '/', 404);

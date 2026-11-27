@@ -81,7 +81,7 @@ test('administrators and employees manage accounts and publications in the brows
   const adminPassword = randomPassword();
   const employeePassword = randomPassword();
   const newPassword = randomPassword();
-  const slug = 'syntetyczna-publikacja';
+  const slug = 'syntetyczna-publikacja-kontrolna';
   const title = 'Syntetyczna publikacja kontrolna';
   app.panelChecks(['provision'], JSON.stringify({ name: 'Test admin', email: adminEmail, password: adminPassword }));
 
@@ -143,13 +143,16 @@ test('administrators and employees manage accounts and publications in the brows
 
   await visit('/artykuly/dodaj');
   await waitText('Zapisz szkic');
-  await wire('.create-article', 'create', { title, slug: 'login', body_0: '<p>Tekst próbny</p>' });
+  await waitText('Opublikuj');
+  assert(!await evaluate(() => document.querySelector('[id="data.slug"], [id="form.slug"]')));
+  await wire('.create-article', 'create', { title: '', slug: 'login', body_0: '<p>Tekst próbny</p>' });
   assert.equal(rows(app, 'SELECT COUNT(*) AS count FROM articles')[0].count, 3);
   const unsafe = '<h2>Test nagłówka</h2><p>Treść <strong>pogrubiona</strong> <a href="javascript:alert(1)">link</a></p>'
     + '<img src="/assets/img/podzial-majatku-1.png" onerror="alert(1)"><script>alert(1)</script><iframe src="https://example.test"></iframe>'
     + '<table><tbody><tr><td>Komórka</td></tr></tbody></table>';
-  await wire('.create-article', 'create', { title, slug, date: '2035-02-01', summary: 'Streszczenie kontrolne.', body_0: unsafe });
+  await wire('.create-article', 'create', { title, slug: 'adres-podany-przez-pracownika', date: '2035-02-01', summary: 'Streszczenie kontrolne.', body_0: unsafe });
   await until(() => article()?.status === 'draft', 'saved draft');
+  await waitPath('/artykuly');
   assert.doesNotMatch(article().body_html, /script|onerror|iframe|javascript:/i);
   assert.match(article().body_html, /<strong>pogrubiona<\/strong>/);
   assert.match(article().body_html, /<table>.*Komórka.*<\/table>/s);
@@ -177,6 +180,17 @@ test('administrators and employees manage accounts and publications in the brows
       .filter(action => action.getClientRects().length)
       .map(action => action.textContent.trim());
   }, title);
+  await visit(editPath);
+  await wire('.edit-article', 'mountAction', {}, ['previewSaved']);
+  await until(() => evaluate(() => !!document.querySelector('iframe.panel-preview')?.contentDocument?.querySelector('.article-body')), 'embedded public article');
+  await evaluate(() => [...document.querySelectorAll('.panel-preview-controls button')].find(button => button.textContent.includes('Telefon')).click());
+  assert(await evaluate(() => document.querySelector('iframe.panel-preview').classList.contains('panel-preview-mobile')));
+  const framing = await evaluate(async path => {
+    const response = await fetch(path + '?frame=1');
+    return ['x-frame-options', 'content-security-policy', 'cache-control'].map(header => response.headers.get(header));
+  }, previewPath);
+  assert.deepEqual(framing, ['SAMEORIGIN', "frame-ancestors 'self'", 'no-store, private']);
+  if (screenshotDir) await browser.screenshot(screenshotDir, 'desktop-embedded-phone-preview');
   await visit('/artykuly');
   assert.deepEqual((await rowActions()).filter(Boolean), ['Edytuj', 'Podgląd', 'Opublikuj', 'Więcej']);
   if (screenshotDir) await browser.screenshot(screenshotDir, 'desktop-publication-table');
@@ -207,6 +221,8 @@ test('administrators and employees manage accounts and publications in the brows
   assert.equal(article().title, title + ' z edytora');
   assert.equal(article().summary, 'Zapisano przy publikacji.');
   assert.equal(article().date, '2035-02-01');
+  await waitPath('/artykuly');
+  await visit(editPath);
   await waitText('Wycofaj publikację');
   await wire('.edit-article', 'save', { title: title + ' po zmianie', slug: 'niepoprawna-zmiana-adresu' });
   assert.equal(article().title, title + ' po zmianie');
@@ -245,9 +261,13 @@ test('administrators and employees manage accounts and publications in the brows
   await visit('/artykuly');
   await tableAction('.list-articles', 'unpublish', id);
   assert.equal(article().status, 'unpublished');
+  await visit('/artykuly/dodaj');
+  await wire('.create-article', 'publish', { title: 'Syntetyczna publikacja kontrolna', body_0: '<p>Nowa publikacja.</p>' });
+  await waitPath('/artykuly');
+  assert.equal(rows(app, 'SELECT status FROM articles WHERE slug=?', [slug + '-2'])[0]?.status, 'published');
   assert((await rowActions()).includes('Opublikuj ponownie'));
   assert.equal((await http(app, '/' + slug + '/', { admin: false })).status, 404);
-  assert(!(await http(app, '/sitemap.xml', { admin: false })).text.includes(slug));
+  assert(!(await http(app, '/sitemap.xml', { admin: false })).text.includes('/' + slug + '/'));
   await tableAction('.list-articles', 'delete', id);
   assert(article().deleted_at);
   assert.equal(await evaluate(async path => (await fetch(path)).status, previewPath), 404);
@@ -310,6 +330,19 @@ test('administrators and employees manage accounts and publications in the brows
   });
   await waitPath('/uzytkownicy');
   assert.deepEqual(JSON.parse(account(employeeEmail).permissions), ['team']);
+
+  await visit('/artykuly/dodaj');
+  assert(await evaluate(() => !!document.querySelector('[id="data.slug"], [id="form.slug"]')));
+  const manual = { title: 'Artykuł administratora', body_0: '<p>Treść próbna.</p>' };
+  await wire('.create-article', 'create', { ...manual, slug: 'login' });
+  assert.equal(rows(app, 'SELECT id FROM articles WHERE title=?', [manual.title]).length, 0);
+  await wire('.create-article', 'create', { ...manual, slug: 'adres-administratora' });
+  await waitPath('/artykuly');
+  const manualId = rows(app, 'SELECT id FROM articles WHERE slug=?', ['adres-administratora'])[0].id;
+  await visit('/artykuly/' + manualId + '/edytuj');
+  await wire('.edit-article', 'save', { slug: 'zmieniony-adres-szkicu' });
+  await waitPath('/artykuly');
+  assert.equal(rows(app, 'SELECT slug FROM articles WHERE id=?', [manualId])[0].slug, 'zmieniony-adres-szkicu');
 });
 
 test('concurrent deactivations leave an active administrator', async t => {

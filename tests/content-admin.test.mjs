@@ -77,12 +77,11 @@ test('section employees manage specializations, public profiles and recruitment 
     scope: [{ entry: 'Punkt A' }, { entry: 'Punkt B' }],
   };
   const specialization = () => find('specializations', 'slug', slug);
-  await wire('CreateSpecialization', 'create', { ...specData, slug: app.data.services[0].slug });
-  assert.equal(sql('SELECT count(*) AS total FROM specializations')[0].total, 13);
+  assert(!await evaluate(() => document.querySelector('[id="data.slug"], [id="form.slug"]')));
   await wire('CreateSpecialization', 'create', { ...specData, body: [['Niepoprawny akapit']] });
   assert.equal(specialization(), undefined);
   assert(await evaluate(() => document.querySelectorAll('.fi-fo-field-wrp-error-message').length > 0));
-  await wire('CreateSpecialization', 'create', { ...specData, active: true, display_order: 999 });
+  await wire('CreateSpecialization', 'create', { ...specData, slug: 'niedozwolony-adres', active: true, display_order: 999, homepage_featured: true });
   assert(specialization());
   const detail = '/specjalizacje/' + slug + '/';
   const specId = specialization().id;
@@ -184,6 +183,8 @@ test('section employees manage specializations, public profiles and recruitment 
   await action('EditJobOffer', 'publish', null, { title: editedTitle, description: '<b>Tekst próbny</b>' });
   assert.equal(job(editedTitle).status, 'open');
   assert((await html('/kariera/')).includes('&lt;b&gt;Tekst próbny&lt;/b&gt;'));
+  await until(() => evaluate(() => location.pathname === '/kariera'), 'return to recruitment list after publishing');
+  await visit('/kariera/' + jobId + '/edytuj');
   await action('EditJobOffer', 'close', null);
   assert.equal(job(editedTitle).status, 'closed');
   assert.equal(await html('/kariera/'), empty);
@@ -220,6 +221,10 @@ test('section employees manage specializations, public profiles and recruitment 
   await action('ListJobOffers', 'restore', job(editedTitle));
   assert.equal(job(editedTitle).status, 'closed');
   assert(!(await html('/kariera/')).includes(editedTitle));
+  await visit('/kariera/dodaj');
+  await wire('CreateJobOffer', 'publish', { title: 'Oferta opublikowana przy tworzeniu' });
+  await until(() => evaluate(() => location.pathname === '/kariera'), 'return to recruitment list after creation');
+  assert.equal(job('Oferta opublikowana przy tworzeniu').status, 'open');
   await browser.viewport(390, 844, true);
   await visit('/kariera');
   await capture('mobile-recruitment');

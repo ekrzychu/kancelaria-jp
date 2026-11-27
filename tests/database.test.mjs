@@ -138,3 +138,16 @@ test('import preserves long Unicode HTML, article states and optional job fields
   const jobs = rows(database, 'SELECT title,description,url,status,display_order FROM job_offers ORDER BY display_order,id');
   assert.deepEqual(jobs, vacancies.map((job, index) => ({ title: null, description: null, url: null, ...job, display_order: index + 1 })));
 });
+
+test('homepage selection migration preserves the previous visible order', async t => {
+  const { artisan, database, stop } = await startSite({ serve: false });
+  t.after(stop);
+  artisan(['migrate:rollback', '--step=2', '--force']);
+  rows(database, 'UPDATE specializations SET active=0 WHERE display_order=1');
+  rows(database, 'UPDATE specializations SET deleted_at=UTC_TIMESTAMP() WHERE display_order=2');
+  const previouslyVisible = rows(database,
+    'SELECT slug FROM specializations WHERE active AND deleted_at IS NULL ORDER BY display_order,id LIMIT 8');
+  artisan(['migrate', '--force']);
+  assert.deepEqual(rows(database, 'SELECT slug FROM specializations WHERE homepage_featured ORDER BY display_order,id'), previouslyVisible);
+  assert.equal(rows(database, 'SELECT COUNT(*) AS total FROM specializations')[0].total, 13);
+});

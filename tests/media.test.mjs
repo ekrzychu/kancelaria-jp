@@ -104,7 +104,7 @@ test('managed media uploads, editorial references and delivery respect the artic
     button.click();
   }, selector, label, index);
 
-  for (const purpose of ['article', 'portrait']) {
+  for (const purpose of ['article', 'portrait', 'avatar']) {
     assert([401, 419].includes(await rawRequest(app.adminOrigin, '/media-panel/upload/' + purpose, { method: 'POST' })));
     assert([404, 405].includes(await rawRequest(app.origin, '/media-panel/upload/' + purpose, { method: 'POST' })));
   }
@@ -117,8 +117,29 @@ test('managed media uploads, editorial references and delivery respect the artic
   const foreign = await apiUpload('article');
   assert.equal(foreign.status, 201);
   assert.equal(meta(foreign.id).record_id, null);
+  await visit('/profile');
+  const avatar = await uploadFile(fixture.jpeg);
+  await wire('Profile', 'save', { currentPassword: password });
+  assert.equal(sql('SELECT avatar_media_id FROM users WHERE email=?', [administrator])[0].avatar_media_id, avatar);
+  assert.equal(await privateStatus(avatar), 200);
+  assert.equal((await publicMedia(avatar)).status, 404);
+  await until(() => evaluate(id => document.querySelector('.fi-topbar img.fi-avatar')?.getAttribute('src') === '/media-panel/' + id, avatar), 'account menu photo');
 
   await login(email('team'), '/zespol');
+  assert.equal(await privateStatus(avatar), 404);
+  await visit('/profile');
+  const personal = await uploadFile(fixture.jpeg);
+  await wire('Profile', 'save', { currentPassword: password });
+  assert.equal(await privateStatus(personal), 200);
+  const newAvatar = await uploadFile(fixture.png);
+  await wire('Profile', 'save', { currentPassword: password });
+  assert.equal(await privateStatus(personal), 404);
+  assert.equal(await privateStatus(newAvatar), 200);
+  await visit('/profile');
+  await clickText('button', 'Usuń zdjęcie');
+  await wire('Profile', 'save', { currentPassword: password });
+  assert.equal(await privateStatus(newAvatar), 404);
+  await until(() => evaluate(() => document.querySelector('.fi-topbar img.fi-avatar')?.getAttribute('src').startsWith('data:image/svg+xml,')), 'account menu initials');
   await visit('/zespol/dodaj');
   assert.equal((await apiUpload('article')).status, 403);
   assert.equal(await privateStatus(foreign.id), 404);

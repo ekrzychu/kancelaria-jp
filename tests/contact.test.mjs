@@ -92,7 +92,9 @@ test('contact intake, confidential administration and cron delivery', async t =>
     assert.deepEqual(mail.reply_to, [submission.email]);
     assert.deepEqual(mail.cc, []);
     assert.deepEqual(mail.bcc, []);
-    assert.equal(mail.html, null);
+    assert.match(mail.html, /Jaroch-Konwent Pakos/);
+    assert.match(mail.html, /&lt;script&gt;contactFixture\(\)&lt;\/script&gt;/);
+    assert.doesNotMatch(mail.html, /<script>contactFixture/);
     assert.equal(mail.body, 'Imię i nazwisko: ' + submission.name + '\nAdres e-mail: ' + submission.email
       + '\nTelefon: ' + submission.phone + '\n\nTreść wiadomości:\n' + submission.message);
     assert.equal(state().delivery_status, 'failed');
