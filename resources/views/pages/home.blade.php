@@ -196,3 +196,15 @@ $summary = $service['home_summary'] ?? $service['summary'];
   </section>
 @endif
 @endsection
+
+@section('before-footer')
+<section class="home-contact home-section" aria-labelledby="home-contact-title" data-home-surface="burgundy">
+  <div class="home-frame home-contact-layout" data-reveal>
+    <h2 id="home-contact-title">Każda sprawa zaczyna się od&nbsp;rozmowy.</h2>
+    <div class="home-contact-detail">
+      <p>Przedstaw nam swoją sytuację. Pomożemy ustalić możliwe kierunki dalszego działania.</p>
+      <a class="button home-contact-action" href="{{ $previewPublicOrigin ?? '' }}/kontakt/" data-home-surface="light">Skontaktuj się z&nbsp;kancelarią</a>
+    </div>
+  </div>
+</section>
+@endsection

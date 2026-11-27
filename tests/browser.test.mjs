@@ -142,6 +142,57 @@ test('browser regression against the Laravel application', async t => {
     await browser.viewport(1440, 900);
   });
 
+  await t.test('floating Contact yields through homepage transitions and returns after the shared footer', async () => {
+    const footerStructure = () => evaluate(() => [...document.querySelector('.site-footer').children]
+      .map(el => el.className));
+    await visit('/o-kancelarii/');
+    const shared = await footerStructure();
+    for (const [width, height, mobile] of [[1440, 900, false], [390, 844, true]]) {
+      await browser.viewport(width, height, mobile);
+      await visit('/');
+      assert.deepEqual(await footerStructure(), shared);
+      const state = () => evaluate(() => {
+        const button = document.querySelector('.home-contact-float');
+        const { opacity, pointerEvents, visibility } = getComputedStyle(button);
+        return { inert: button.inert, opacity: Number(opacity), pointerEvents, visibility };
+      });
+      const boundaries = await evaluate(() => {
+        const practices = document.querySelector('#specjalizacje').getBoundingClientRect();
+        return [practices.top + scrollY, practices.bottom + scrollY];
+      });
+      for (const [direction, edges] of [[1, boundaries], [-1, [...boundaries].reverse()]]) {
+        for (const edge of edges) {
+          await scroll(edge - direction * 140);
+          await browser.call('Input.dispatchMouseEvent', { type: 'mouseWheel', x: 120, y: 200, deltaX: 0, deltaY: 340 * direction });
+          await until(() => evaluate(({ edge, direction }) => direction * (scrollY - edge) > 0, { edge, direction }), 'cross specialization boundary');
+        }
+      }
+      await scroll(await evaluate(() => document.documentElement.scrollHeight));
+      await until(async () => (await state()).inert, 'footer makes Kontakt inert');
+      assert.equal((await state()).pointerEvents, 'none');
+      assert(await evaluate(() => {
+        const button = document.querySelector('.home-contact-float');
+        button.focus();
+        return document.activeElement !== button;
+      }));
+      await until(async () => (await state()).visibility === 'hidden', 'Kontakt exit completes');
+      if (process.env.HOMEPAGE_SCREENSHOTS) {
+        await browser.screenshot(process.env.HOMEPAGE_SCREENSHOTS, mobile ? 'footer-mobile' : 'footer-desktop');
+      }
+
+      await scroll(0);
+      await until(async () => !(await state()).inert && (await state()).opacity === 1, 'Kontakt returns on reverse scroll');
+      await browser.viewport(width, height - 44, mobile);
+      await until(async () => !(await state()).inert && (await state()).opacity === 1, 'Kontakt remains visible after resize');
+      await reduced('reduce');
+      await scroll(await evaluate(() => document.documentElement.scrollHeight));
+      await until(async () => (await state()).inert, 'reduced-motion footer');
+      assert.equal((await state()).opacity, 0);
+      await reduced('no-preference');
+    }
+    await browser.viewport(1440, 900);
+  });
+
   await t.test('specialization search folds Polish accents, clears, and reports zero results', async () => {
     await visit('/specjalizacje/');
     const matching = data.services.find(service => service.slug === 'bankowosc-finanse');

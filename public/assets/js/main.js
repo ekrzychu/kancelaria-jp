@@ -304,24 +304,30 @@
       first.right > second.left && first.left < second.right &&
       first.bottom > second.top && first.top < second.bottom;
 
-    const visibleContent = new Set();
+    const footer = document.querySelector('.site-footer');
     const textBounds = document.createRange();
     const editorialText = 'h1, h2, h3, h4, p, dt, dd, figcaption, td, th, .row-summary, .service-scope li, .article-body :is(li, pre)';
-    const protectedContent = document.querySelectorAll(
-      `:is(main, .home-contact, footer) :is(form, input, textarea, select, a, button, [contenteditable], .article-detail summary, .article-table-scroll, .article-body :is(figure, img), ${editorialText})`
-    );
-    const observer = 'IntersectionObserver' in window && new IntersectionObserver(entries => {
-      for (const { target, isIntersecting } of entries) {
-        if (isIntersecting) visibleContent.add(target);
-        else visibleContent.delete(target);
-      }
-      scheduleTone();
+    const protectedContent = [...document.querySelectorAll(
+      `:is(main, .home-contact) :is(form, input, textarea, select, a, button, [contenteditable], .article-detail summary, .article-table-scroll, .article-body :is(figure, img), ${editorialText})`
+    )].filter(element => element !== contact);
+
+    // Use the layout slot so the button's own animation can't move the sampling points.
+    const contactBox = () => ({
+      left: contact.offsetLeft,
+      top: contact.offsetTop,
+      right: contact.offsetLeft + contact.offsetWidth,
+      bottom: contact.offsetTop + contact.offsetHeight,
     });
-    for (const element of protectedContent) {
-      if (element === contact) continue;
-      visibleContent.add(element);
-      if (observer) observer.observe(element);
+    const hitAt = (x, y) => document.elementsFromPoint(x, y).find(element => !contact.contains(element));
+
+    function obscuresContent(box, element, rect) {
+      if (!overlaps(box, rect)) return false;
+      const x = (Math.max(box.left, rect.left) + Math.min(box.right, rect.right)) / 2;
+      const y = (Math.max(box.top, rect.top) + Math.min(box.bottom, rect.bottom)) / 2;
+      // Hit-testing respects the sticky viewport and the clipped specialization rail.
+      return element.contains(hitAt(x, y) ?? null);
     }
+
     contact.classList.add('is-positioned');
 
     function applyTone(tone) {
@@ -331,8 +337,14 @@
     }
 
     function renderTone() {
-      if (toneAnimation || requestedTone === contact.dataset.controlTone) return;
-      if (!motion.matches || !canAnimateTone) {
+      const animate = !contact.inert && motion.matches && canAnimateTone;
+      if (animate && toneAnimation && face.dataset.controlTone === requestedTone) return;
+
+      toneAnimation?.cancel();
+      toneAnimation = undefined;
+      face.hidden = true;
+      if (requestedTone === contact.dataset.controlTone) return;
+      if (!animate) {
         applyTone(requestedTone);
         return;
       }
@@ -351,24 +363,21 @@
         face.hidden = true;
         toneAnimation = undefined;
         animation.cancel();
-        renderTone();
       };
     }
 
     function updateTone() {
       frame = 0;
-      const box = contact.getBoundingClientRect();
-      const collision = [...visibleContent].some(element => {
-        if (!overlaps(box, element.getBoundingClientRect())) return false;
-        if (!element.matches(editorialText)) return true;
+      const box = contactBox();
+      contact.inert = (footer && overlaps(box, footer.getBoundingClientRect())) || protectedContent.some(element => {
+        const bounds = element.getBoundingClientRect();
+        if (!overlaps(box, bounds)) return false;
+        if (!element.matches(editorialText)) return obscuresContent(box, element, bounds);
         textBounds.selectNodeContents(element);
-        return [...textBounds.getClientRects()].some(rect => overlaps(box, rect));
+        return [...textBounds.getClientRects()].some(rect => obscuresContent(box, element, rect));
       });
-      contact.classList.toggle('is-yielding', collision);
-      const sample = (x, y) => homeSurfaceFor(
-        document.elementsFromPoint(x, y).find(element => !contact.contains(element))
-      );
-      const center = sample(box.left + box.width / 2, box.top + box.height / 2);
+      const sample = (x, y) => homeSurfaceFor(hitAt(x, y));
+      const center = sample((box.left + box.right) / 2, (box.top + box.bottom) / 2);
 
       // Keep the current face until the button clears the boundary between two surfaces.
       if (
@@ -376,8 +385,8 @@
         (sample(box.left + 14, box.top + 7) === center && sample(box.right - 14, box.bottom - 7) === center)
       ) {
         requestedTone = center;
-        renderTone();
       }
+      renderTone();
     }
 
     function scheduleTone() {
@@ -386,15 +395,13 @@
 
     window.addEventListener('scroll', scheduleTone, { passive: true });
     window.addEventListener('resize', scheduleTone, { passive: true });
-    contact.addEventListener('transitionend', scheduleTone);
-    motion.addEventListener('change', () => {
-      if (!motion.matches) toneAnimation?.finish();
-    });
+    document.fonts?.ready.then(scheduleTone);
+    motion.addEventListener('change', scheduleTone);
 
     document.addEventListener('focusin', ({ target }) => {
       if (target === contact || !target.matches(':is(a, button):focus-visible') || !target.closest('main, .home-contact, footer')) return;
 
-      if (!target.closest('[data-pinned]') && overlaps(contact.getBoundingClientRect(), target.getBoundingClientRect())) {
+      if (!contact.inert && !target.closest('[data-pinned]') && overlaps(contactBox(), target.getBoundingClientRect())) {
         target.scrollIntoView({ behavior: 'instant', block: 'center', inline: 'nearest' });
       }
     });

@@ -1,21 +1,8 @@
-@if ($path === '/')
-<section class="home-contact home-section" aria-labelledby="home-contact-title" data-home-surface="burgundy">
-  <div class="home-frame home-contact-layout" data-reveal>
-    <h2 id="home-contact-title">Każda sprawa zaczyna się od&nbsp;rozmowy.</h2>
-    <div class="home-contact-detail">
-      <p>Przedstaw nam swoją sytuację. Pomożemy ustalić możliwe kierunki dalszego działania.</p>
-      <a class="button home-contact-action" href="{{ $previewPublicOrigin ?? '' }}/kontakt/" data-home-surface="light">Skontaktuj się z&nbsp;kancelarią</a>
-    </div>
+<footer class="site-footer{{ $path === '/' ? ' site-footer-dark' : '' }}" data-home-surface="{{ $path === '/' ? 'burgundy' : 'beige' }}">
+  <div class="container footer-callout" data-reveal>
+    <h2>Porozmawiajmy o sprawie.</h2>
+    <a class="text-action" href="{{ $previewPublicOrigin ?? '' }}/kontakt/">Skontaktuj się z kancelarią</a>
   </div>
-</section>
-@endif
-<footer class="site-footer" data-home-surface="{{ $path === '/' ? 'burgundy' : 'beige' }}">
-  @if ($path !== '/')
-    <div class="container footer-callout" data-reveal>
-      <h2>Porozmawiajmy o sprawie.</h2>
-      <a class="text-action" href="{{ $previewPublicOrigin ?? '' }}/kontakt/">Skontaktuj się z kancelarią</a>
-    </div>
-  @endif
   <div class="container footer-grid" data-reveal-children>
     <div class="footer-identity">
       <a class="footer-brand" href="{{ $previewPublicOrigin ?? '' }}/">{{ $site['name'] }}</a>

@@ -392,7 +392,7 @@ html:has(> .homepage) {
 }
 
 .home-frame,
-.homepage :is(.header-inner, .footer-grid, .legal-row),
+.homepage :is(.header-inner, .footer-callout, .footer-grid, .legal-row),
 .about-frame,
 .services-frame,
 .team-frame,
@@ -405,7 +405,7 @@ body:has(> main > :is(.about-hero, .page-hero, .service-hero, .team-hero, .caree
   margin-inline: auto;
 }
 
-.homepage :is(.site-header, .home-contact, .site-footer) {
+.homepage :is(.site-header, .home-contact) {
   background: var(--burgundy);
   color: var(--light-text);
 }
@@ -419,22 +419,19 @@ body:has(> main > :is(.about-hero, .page-hero, .service-hero, .team-hero, .caree
   background: var(--taupe);
 }
 
-.homepage :is(.site-header, .home-hero, .home-publications, .home-contact, .site-footer) :focus-visible {
+.homepage :is(.site-header, .home-hero, .home-publications, .home-contact) :focus-visible {
   outline-color: var(--light-text);
 }
 
-.homepage .site-header :is(.brand, .menu-button, .nav-link:is(:hover, :focus-visible)),
-.homepage .site-footer :is(h2, a) {
+.homepage .site-header :is(.brand, .menu-button, .nav-link:is(:hover, :focus-visible)) {
   color: var(--light-text);
 }
 
 .homepage .site-header :is(.brand-text small, .nav-link),
-.homepage .site-footer :is(.footer-identity p, address, .legal-row),
 .home-hero-intro p {
   color: #e7dacf;
 }
 
-.homepage .site-footer a:not(.button):is(:hover, :focus-visible),
 .homepage .site-header :is(.brand, .menu-button):is(:hover, :focus-visible) {
   color: var(--home-cream);
 }
@@ -1188,34 +1185,10 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
   margin: .75rem var(--page-gutter) 0 auto;
 }
 
-.home-contact-float.is-yielding {
+.home-contact-float[inert] {
+  opacity: 0;
   visibility: hidden;
-}
-
-.homepage .footer-grid,
-.homepage .legal-row {
-  border-top: 1px solid var(--dark-line);
-}
-
-.homepage .footer-grid {
-  gap: .75rem clamp(1rem, 3vw, 4.25rem);
-  padding-block: .85rem;
-}
-
-.homepage .footer-nav ul {
-  gap: .1rem .75rem;
-}
-
-.homepage .site-footer .social-links {
-  margin-top: .2rem;
-}
-
-.homepage .legal-row {
-  min-height: calc(var(--home-contact-bottom) + var(--home-contact-size) + .25rem);
-  align-items: center;
-  gap: .2rem .9rem;
-  padding-block: .4rem;
-  padding-inline-end: max(0px, var(--home-contact-end) + var(--home-contact-width) - var(--home-gutter) + .65rem);
+  pointer-events: none;
 }
 
 @media (max-width: 56rem) {
@@ -1238,10 +1211,6 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
 
   .home-office-copy {
     padding-inline-start: clamp(1.25rem, 3.2vw, 2rem);
-  }
-
-  .homepage .footer-grid {
-    column-gap: .85rem;
   }
 }
 
@@ -1301,26 +1270,6 @@ body:not(.homepage) .home-contact-float:not(.is-positioned) {
 
   .home-contact-float {
     padding-inline: .6rem;
-  }
-
-  .homepage .footer-grid {
-    grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr);
-  }
-
-  .homepage .footer-contact {
-    padding-inline-end: max(0px, var(--home-contact-end) + var(--home-contact-width) - var(--home-gutter) + .75rem);
-  }
-
-  .homepage .footer-nav {
-    grid-column: 1 / -1;
-  }
-
-  .homepage .footer-nav ul {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .homepage .legal-row {
-    justify-content: start;
   }
 }
 
@@ -3379,6 +3328,22 @@ main:has(.archive-empty) + .site-footer {
   overflow-wrap: anywhere;
 }
 
+.site-footer-dark {
+  --line: var(--dark-line);
+  --text-muted: #e7dacf;
+  --link-hover: var(--home-cream);
+  background: var(--burgundy);
+  color: var(--light-text);
+}
+
+.site-footer.site-footer-dark :is(a, h2) {
+  color: inherit;
+}
+
+.site-footer-dark :focus-visible {
+  outline-color: var(--light-text);
+}
+
 .footer-callout {
   display: flex;
   align-items: center;
@@ -3779,7 +3744,11 @@ main:has(.archive-empty) + .site-footer {
 
   .home-contact-float {
     transform-origin: right center;
-    transition: scale 200ms var(--motion-ease);
+    transition: scale 200ms var(--motion-ease), opacity 200ms var(--motion-ease), visibility 200ms;
+  }
+
+  .home-contact-float[inert] {
+    scale: .975;
   }
 
   .home-contact-float:is(:hover, :focus-visible) {
