@@ -20,6 +20,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -39,41 +40,36 @@ final class SpecializationResource extends ManagedContentResource
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            TextInput::make('title')->label('Nazwa specjalizacji')->required()->maxLength(255)
+            TextInput::make('title')->label('Nazwa specjalizacji')->required()->string()->maxLength(255)
                 ->live(onBlur: true)->afterStateUpdated(function (?string $state, Get $get, Set $set, ?Specialization $record): void {
                     if ($record === null && blank($get('slug'))) {
                         $set('slug', Str::limit(Str::slug($state ?? ''), 191, ''));
                     }
                 }),
-            TextInput::make('slug')->label('Adres specjalizacji')->required()->maxLength(191)
+            TextInput::make('slug')->label('Adres specjalizacji')->required()->string()->maxLength(191)
                 ->disabledOn('edit')->helperText('Adres pozostaje stały po zapisaniu.'),
-            TextInput::make('category')->label('Kategoria')->required()->maxLength(255),
+            TextInput::make('category')->label('Kategoria')->required()->string()->maxLength(255),
             Text::make(fn (?Specialization $record): string => $record?->active ? 'Status: Aktywna' : 'Status: Nieaktywna'),
-            Textarea::make('summary')->label('Krótki opis')->required()->maxLength(16000)->columnSpanFull(),
-            Textarea::make('home_summary')->label('Opis na stronie głównej')->maxLength(16000)->columnSpanFull()
+            Textarea::make('summary')->label('Krótki opis')->required()->string()->maxLength(16000)->columnSpanFull(),
+            Textarea::make('home_summary')->label('Opis na stronie głównej')->rules(['nullable', 'string'])->maxLength(16000)->columnSpanFull()
                 ->helperText('Gdy pole jest puste, na stronie głównej pojawi się krótki opis.'),
             Repeater::make('body')->label('Opis szczegółowy')->simple(Textarea::make('paragraph')
-                ->label('Akapit')->required()->maxLength(16000))->minItems(1)->maxItems(100)->columnSpanFull()
+                ->label('Akapit')->required()->string()->maxLength(16000))->minItems(1)->maxItems(100)->columnSpanFull()
                 ->addActionLabel('Dodaj akapit'),
             Repeater::make('scope')->label('Zakres usług')->simple(TextInput::make('entry')
-                ->label('Punkt zakresu')->required()->maxLength(2000))->minItems(1)->maxItems(100)->columnSpanFull()
+                ->label('Punkt zakresu')->required()->string()->maxLength(2000))->minItems(1)->maxItems(100)->columnSpanFull()
                 ->addActionLabel('Dodaj punkt'),
         ]);
     }
 
     public static function contentData(array $data, ?Model $record = null): array
     {
+        // Check uniqueness while holding the write lock and require ordered lists after dehydration.
         $data = static::validateContent($data, [
-            'title' => 'required|string|max:255',
-            ...($record ? [] : ['slug' => ['required', 'string', 'max:191', 'regex:/\A[a-z0-9-]+\z/', Rule::unique('specializations', 'slug')]]),
-            'category' => 'required|string|max:255',
-            'summary' => 'required|string|max:16000',
-            'home_summary' => 'nullable|string|max:16000',
-            'body' => 'required|array|list|min:1|max:100',
-            'body.*' => 'required|string|max:16000',
-            'scope' => 'required|array|list|min:1|max:100',
-            'scope.*' => 'required|string|max:2000',
-        ]);
+            ...($record ? [] : ['slug' => ['regex:/\A[a-z0-9-]+\z/', Rule::unique('specializations', 'slug')]]),
+            'body' => 'list',
+            'scope' => 'list',
+        ]) + Arr::only($data, ['title', 'category', 'summary', 'home_summary']);
         $data['home_summary'] = filled($data['home_summary'] ?? null) ? $data['home_summary'] : null;
 
         return $record ? $data : $data + ['active' => false];

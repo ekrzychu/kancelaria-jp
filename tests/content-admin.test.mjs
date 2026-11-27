@@ -79,11 +79,15 @@ test('section employees manage specializations, public profiles and recruitment 
   const specialization = () => find('specializations', 'slug', slug);
   await wire('CreateSpecialization', 'create', { ...specData, slug: app.data.services[0].slug });
   assert.equal(sql('SELECT count(*) AS total FROM specializations')[0].total, 13);
-  await wire('CreateSpecialization', 'create', specData);
+  await wire('CreateSpecialization', 'create', { ...specData, body: [['Niepoprawny akapit']] });
+  assert.equal(specialization(), undefined);
+  assert(await evaluate(() => document.querySelectorAll('.fi-fo-field-wrp-error-message').length > 0));
+  await wire('CreateSpecialization', 'create', { ...specData, active: true, display_order: 999 });
   assert(specialization());
   const detail = '/specjalizacje/' + slug + '/';
   const specId = specialization().id;
   assert.equal(Number(specialization().active), 0);
+  assert.equal(specialization().display_order, 14);
   await html(detail, 404);
   await visit('/specjalizacje/' + specId + '/edytuj');
   await capture('specialization-editor');
