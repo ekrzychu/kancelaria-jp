@@ -3765,12 +3765,6 @@ main:has(.archive-empty) + .site-footer {
   padding-block: var(--stage-top) var(--stage-bottom);
 }
 
-/* During the hold, the layout drifts together. Natural document flow handles entry and exit. */
-[data-pinned]:not(.home-practices) > .home-stage-viewport > .home-stage-content {
-  --stage-drift: calc(min(2rem, .065 * var(--stage-hold, 0px)) * var(--stage-progress, 0));
-  translate: 0 calc(-1 * var(--stage-drift));
-}
-
 [data-pinned] [data-reveal].is-revealed {
   animation: none;
 }
@@ -3780,10 +3774,18 @@ main:has(.archive-empty) + .site-footer {
   --stage-bottom: max(4.5rem, 12dvh);
 }
 
-/* Offset a fraction of the shared drift for a slower photographic layer. */
+/* Carry the title and introduction out together while the frame and its crop travel more slowly. */
+.home-hero[data-pinned] :is(.home-hero-heading, .home-hero-intro) {
+  translate: 0 calc(-22dvh * var(--stage-departure, 0));
+}
+
 .home-hero[data-pinned] .home-hero-photo {
   inset-block-end: -1.5rem;
-  translate: 0 calc(.24 * var(--stage-drift));
+  translate: 0 calc(-6dvh * var(--stage-departure, 0));
+}
+
+.home-hero[data-pinned] .home-hero-photo img {
+  object-position: center calc(42% + 36% * var(--stage-departure, 0));
 }
 
 #specjalizacje[data-pinned] {
@@ -3818,6 +3820,48 @@ main:has(.archive-empty) + .site-footer {
   padding-inline-start: .75rem;
 }
 
+/* Let the lead arrive first, with the related articles travelling together behind it. */
+.home-publications[data-pinned] .home-publications-heading {
+  translate: 0 calc(-13dvh * var(--stage-arrival, 0) - 17dvh * var(--stage-departure, 0));
+}
+
+.home-publications[data-pinned] .home-publications-list {
+  translate: 0 calc(-8dvh * var(--stage-arrival, 0) - 13dvh * var(--stage-departure, 0));
+}
+
+.home-publications[data-pinned] .home-publications-list li:not(:first-child) {
+  translate: 0 calc(5dvh * var(--stage-arrival, 0));
+}
+
+.home-profile[data-pinned] :is(.home-profile-statement, .home-profile-side) {
+  translate: 0 calc(-11dvh * var(--stage-arrival, 0) - 18dvh * var(--stage-departure, 0));
+}
+
+.home-profile[data-pinned] .home-team {
+  translate: 0 calc(-6dvh * var(--stage-arrival, 0) - 12dvh * var(--stage-departure, 0));
+}
+
+.home-profile[data-pinned] .home-team li {
+  position: relative;
+}
+
+.home-team-portrait {
+  display: none;
+}
+
+.home-profile[data-pinned] .home-team-portrait {
+  position: absolute;
+  inset-block-start: calc(100% + .65rem);
+  display: block;
+  inline-size: min(100%, clamp(5rem, 10vw, 9rem));
+  block-size: clamp(5rem, 14dvh, 9rem);
+  object-fit: cover;
+  object-position: center 26%;
+  clip-path: inset(0 0 calc(100% * (1 - var(--stage-departure, 0))) 0);
+  translate: 0 calc(25% * var(--stage-departure, 0));
+  pointer-events: none;
+}
+
 .home-office[data-pinned] {
   --stage-top: max(4.125rem, 6dvh);
   --stage-bottom: 1.25rem;
@@ -3829,10 +3873,28 @@ main:has(.archive-empty) + .site-footer {
     var(--office-photo-ratio) * 1.9 / 1.08));
 }
 
+/* Uncover the doorway within its frame, then let the copy lead the hand-off. */
+.home-office[data-pinned] .home-office-photo {
+  clip-path: inset(0 0 calc(28% * var(--stage-arrival, 0)) 0);
+  translate: 0 calc(-14dvh * var(--stage-arrival, 0) - 6dvh * var(--stage-departure, 0));
+}
+
 .home-office[data-pinned] .home-office-photo img {
   inset-block-start: -10%;
   height: 120%;
-  translate: 0 calc(.24 * var(--stage-drift));
+  translate: 0 calc(5% * (var(--stage-arrival, 0) - var(--stage-departure, 0)));
+}
+
+.home-office[data-pinned] .home-office-copy {
+  translate: 0 calc(-6dvh * var(--stage-arrival, 0) - 16dvh * var(--stage-departure, 0));
+}
+
+.home-clients[data-pinned] h2 {
+  translate: 0 calc(-11dvh * var(--stage-arrival, 0) - 15dvh * var(--stage-departure, 0));
+}
+
+.home-clients[data-pinned] .home-client-logos {
+  translate: 0 calc(-6dvh * var(--stage-arrival, 0) - 9dvh * var(--stage-departure, 0));
 }
 
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) and (forced-colors: none) {

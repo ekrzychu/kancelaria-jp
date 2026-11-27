@@ -119,54 +119,84 @@ test('browser regression against the Laravel application', async t => {
       return photo.offsetParent.matches('.home-stage-content')
         && Math.abs(photo.getBoundingClientRect().width / photo.offsetParent.clientWidth - .57) < .01;
     }), 'the hero photograph stays anchored to the full stage width');
-    const progress = name => evaluate(name => Number(document.querySelector('[data-home-stage="' + name + '"]').style.getPropertyValue('--stage-progress')), name);
-    const motionTargets = {
-      hero: ['.home-hero-heading', '.home-hero-intro', '.home-hero-photo'],
-      practices: ['.home-practices-intro', '.home-practices-rail'],
-      publications: ['.home-publications-heading', '.home-publications-list article'],
-      profile: ['.home-profile-statement', '.home-profile-detail', '.home-experience', '.home-team'],
-      office: ['.home-office-copy', '.home-office-photo img'],
-      clients: ['.home-clients h2', '.home-client-logos'],
-    };
     const measureMotion = selector => evaluate(selector => [...document.querySelectorAll(selector)].map(element => {
       const { x, y, width, height } = element.getBoundingClientRect();
       return [x, y, width, height].map(value => Math.round(value * 100) / 100);
     }), selector);
-
+    const sample = async (y, selector) => {
+      await scroll(y);
+      await evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+      return measureMotion(selector);
+    };
+    const sceneTargets = {
+      hero: '.home-hero-heading, .home-hero-intro, .home-hero-photo',
+      practices: '.home-practices-intro, .home-practices-rail',
+      publications: '.home-publications-heading, .home-publications-list li',
+      profile: '.home-profile-statement, .home-profile-detail, .home-experience, .home-team',
+      office: '.home-office-photo img, .home-office-copy',
+      clients: '.home-clients h2, .home-client-logos',
+    };
+    const readOffset = 162;
     for (const stage of initial) {
-      const states = [];
-      for (const fraction of [.24, .72, .24]) {
-        await scroll(stage.start + stage.hold * fraction);
-        await until(async () => Math.abs(await progress(stage.id) - fraction) < .02, stage.id + ' progress at ' + fraction);
-        states.push(await measureMotion(motionTargets[stage.id].join(', ')));
-      }
-      const [start, forward, reversed] = states;
-      assert.deepEqual(reversed, start, stage.id + ' reverses to the same composition');
-      const offsets = forward.map((box, index) => {
-        const original = start[index];
-        assert.deepEqual([box[0], ...box.slice(2)], [original[0], ...original.slice(2)], stage.id + ' keeps horizontal position and size');
-        return box[1] - original[1];
-      });
+      const selector = sceneTargets[stage.id];
+      const readingPosition = stage.start + stage.hold * .24;
+      const reading = await sample(readingPosition, selector);
       if (stage.id === 'practices') {
-        assert(offsets[0] > 30 && offsets[1] < 0, 'specializations retain their expressive opposing motion');
+        const forward = await sample(stage.start + stage.hold * .72, selector);
+        assert(forward[0][1] - reading[0][1] > 30 && forward[1][1] < reading[1][1],
+          'specializations retain their signature motion');
       } else {
-        assert(offsets.every(offset => offset < -2 && offset > -18), stage.id + ' drifts upwards together');
-        if (stage.id === 'hero') assert(Math.abs(offsets[0] - offsets[1]) < .03 && offsets[2] > offsets[0], 'hero photograph moves slightly slower: ' + offsets);
-        if (stage.id === 'office') assert(offsets[0] > offsets[1], 'office photograph moves slightly slower');
-      }
-
-      const frames = '[data-home-stage="' + stage.id + '"] .home-frame';
-      for (const boundary of [stage.start, stage.start + stage.hold]) {
-        const leading = [];
-        for (const side of [-1, 1]) {
-          await scroll(boundary + side * 2);
-          await evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-          const [[, y]] = await measureMotion(frames);
-          leading.push(y);
+        assert.deepEqual(await sample(stage.start + stage.hold * .45, selector), reading, stage.id + ' has a still reading beat');
+        const leavingPosition = stage.start + stage.hold + readOffset;
+        const leaving = await sample(leavingPosition, selector);
+        const travel = leaving.map((box, index) => {
+          const original = reading[index];
+          assert.deepEqual([box[0], ...box.slice(2)], [original[0], ...original.slice(2)], stage.id + ' preserves horizontal position and size');
+          return original[1] - box[1] - readOffset;
+        });
+        assert(travel.every(distance => distance > 25) && Math.max(...travel) > 80,
+          stage.id + ' adds substantial upward travel beyond the section scroll: ' + travel);
+        if (stage.id === 'hero') {
+          assert(Math.abs(travel[0] - travel[1]) < .03 && travel[0] - travel[2] > 80, 'hero copy leads the photograph together');
         }
-        assert(Math.abs(leading[1] - leading[0]) <= 5, stage.id + ' has no position jump at the sticky boundary');
+        if (stage.id === 'office') {
+          assert(travel[1] - travel[0] > 20, 'office copy leads the image crop');
+        }
+        if (stage.id === 'publications' || stage.id === 'office') {
+          const approach = await sample(stage.start - 360, selector);
+          assert(approach[1][1] - reading[1][1] > approach[0][1] - reading[0][1],
+            stage.id + ' sequences its leading and following layers');
+        }
+      }
+      assert.deepEqual(await sample(readingPosition, selector), reading, stage.id + ' reverses to the same composition');
+
+      for (const boundary of [stage.start, stage.start + stage.hold]) {
+        const before = await sample(boundary - 2, selector);
+        const after = await sample(boundary + 2, selector);
+        assert(after.every((box, index) => Math.abs(box[1] - before[index][1]) < 7),
+          stage.id + ' has no position jump at the sticky boundary');
       }
     }
+    const office = initial.find(stage => stage.id === 'office');
+    const officePhoto = '.home-office-photo';
+    await sample(office.start - 360, officePhoto);
+    const officeClip = () => evaluate(() => getComputedStyle(document.querySelector('.home-office-photo')).clipPath);
+    const approachingClip = await officeClip();
+    await sample(office.start + office.hold * .3, officePhoto);
+    assert.notEqual(approachingClip, await officeClip(), 'the frame crops the doorway on approach');
+    assert.equal(await officeClip(), 'inset(0px 0px 0%)', 'the doorway is fully visible at the reading position');
+    assert(await evaluate(() => {
+      const number = document.querySelector('.home-experience-number');
+      return number.textContent.trim() === number.dataset.finalValue;
+    }), 'the experience figure remains still while reading');
+    await browser.key('Tab', 9);
+    await evaluate(() => document.querySelector('.home-publications-heading a').focus({ preventScroll: true }));
+    await until(() => evaluate(() => {
+      const link = document.activeElement;
+      const { x, y, width, height } = link.getBoundingClientRect();
+      return link.matches('.home-publications-heading a:focus-visible')
+        && link.contains(document.elementFromPoint(x + width / 2, y + height / 2));
+    }), 'focusing a publication link brings it into view');
     await scroll(0);
     await evaluate(() => document.querySelector('.home-hero-action').click());
     await until(() => evaluate(() => location.hash === '#specjalizacje' && Math.abs(document.querySelector('#specjalizacje').getBoundingClientRect().top) < 100), 'homepage specialization link');

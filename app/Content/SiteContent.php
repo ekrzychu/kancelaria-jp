@@ -35,7 +35,7 @@ final class SiteContent
 
     public function homepagePartners(): array
     {
-        return TeamMember::homepagePartners()->limit(2)->get()->map->only(['name', 'role', 'portrait'])->all();
+        return TeamMember::homepagePartners()->limit(2)->get()->map->only(['name', 'role', 'portrait_media_id'])->all();
     }
 
     public function teamGroups(): array

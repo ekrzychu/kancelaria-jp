@@ -431,7 +431,9 @@
         const reveal = () => {
           if (bypassed.has(target) || target.matches(':focus-within')) return;
           target.classList.add('is-revealed');
-          if (target.dataset.reveal === 'experience') countExperience(target, listeners.signal);
+          if (target.dataset.reveal === 'experience' && !target.closest('[data-pinned]')) {
+            countExperience(target, listeners.signal);
+          }
         };
         const image = target.dataset.reveal === 'image' && target.querySelector('img');
         if (image && !image.complete) {
@@ -511,7 +513,7 @@
     function step(time) {
       start ??= time;
       const elapsed = time - start;
-      if (elapsed >= duration) {
+      if (elapsed >= duration || target.closest('[data-pinned]')) {
         finish();
         return;
       }
@@ -548,6 +550,11 @@
     const practiceHeading = practices.layout.querySelector('.home-practices-intro');
     const clamp = value => Math.max(0, Math.min(value, 1));
 
+    const ease = value => {
+      const t = clamp(value);
+      return t * t * (3 - 2 * t);
+    };
+
     let active = false;
     let height;
     let frame = 0;
@@ -564,6 +571,13 @@
       for (const stage of stages) {
         const elapsed = y - stage.start;
         setProgress(stage, '--stage-progress', clamp(elapsed / stage.hold));
+        if (stage === practices) continue;
+
+        // Settle as the scene pins, leave a reading beat, then continue into the next scene's entrance.
+        const approach = height * .72;
+        const departure = stage.hold * .5;
+        setProgress(stage, '--stage-arrival', 1 - ease(1 + elapsed / approach));
+        setProgress(stage, '--stage-departure', ease((elapsed - departure) / (stage.hold - departure + height * .36)));
       }
     }
 
