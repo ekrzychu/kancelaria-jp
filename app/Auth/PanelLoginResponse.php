@@ -3,11 +3,11 @@
 namespace App\Auth;
 
 use App\Enums\ContentSection;
-use App\Filament\Pages\Career;
 use App\Filament\Pages\Messages;
-use App\Filament\Pages\Specializations;
-use App\Filament\Pages\Team;
 use App\Filament\Resources\ArticleResource;
+use App\Filament\Resources\JobOfferResource;
+use App\Filament\Resources\SpecializationResource;
+use App\Filament\Resources\TeamMemberResource;
 use App\Models\User;
 use Filament\Auth\Http\Responses\Contracts\LoginResponse;
 use Filament\Facades\Filament;
@@ -27,9 +27,9 @@ class PanelLoginResponse implements LoginResponse
             if ($user->canAccessSection($section)) {
                 return match ($section) {
                     ContentSection::Articles => ArticleResource::getUrl(),
-                    ContentSection::Specializations => Specializations::getUrl(),
-                    ContentSection::Team => Team::getUrl(),
-                    ContentSection::Career => Career::getUrl(),
+                    ContentSection::Specializations => SpecializationResource::getUrl(),
+                    ContentSection::Team => TeamMemberResource::getUrl(),
+                    ContentSection::Career => JobOfferResource::getUrl(),
                     ContentSection::Messages => Messages::getUrl(),
                 };
             }

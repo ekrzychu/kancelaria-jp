@@ -3,15 +3,15 @@
 namespace App\Providers\Filament;
 
 use App\Auth\PanelLoginResponse;
-use App\Filament\Pages\Career;
 use App\Filament\Pages\Login;
 use App\Filament\Pages\Messages;
 use App\Filament\Pages\Profile;
 use App\Filament\Pages\RequestLocalPasswordReset;
 use App\Filament\Pages\ResetLocalPassword;
-use App\Filament\Pages\Specializations;
-use App\Filament\Pages\Team;
 use App\Filament\Resources\ArticleResource;
+use App\Filament\Resources\JobOfferResource;
+use App\Filament\Resources\SpecializationResource;
+use App\Filament\Resources\TeamMemberResource;
 use App\Filament\Resources\UserResource;
 use App\Http\Controllers\ArticlePreview;
 use App\Http\Middleware\RequireCurrentAccountSession;
@@ -71,8 +71,8 @@ final class AdminPanelProvider extends PanelProvider
             ->navigationGroups([NavigationGroup::make('Administracja')->collapsible(false)])
             ->maxContentWidth(Width::Full)
             ->renderHook(PanelsRenderHook::STYLES_AFTER, fn () => view('filament.panel-style'))
-            ->resources([ArticleResource::class, UserResource::class])
-            ->pages([Specializations::class, Team::class, Career::class, Messages::class])
+            ->resources([ArticleResource::class, SpecializationResource::class, TeamMemberResource::class, JobOfferResource::class, UserResource::class])
+            ->pages([Messages::class])
             ->middleware(['web', DisableBladeIconComponents::class, DispatchServingFilamentEvent::class])
             ->authMiddleware([
                 RequireCurrentAccountSession::class,
